@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('t-Col')
 export class Col {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+    Col: number;
 }

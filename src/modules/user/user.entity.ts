@@ -1,7 +1,10 @@
-import { Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('t-User')
 export class User {
     @PrimaryGeneratedColumn()
-    id: number;
+    User: bigint;
+
+    @Column({ name: 'User-Type', type: 'bigint' })
+    UserType: bigint;
 }
