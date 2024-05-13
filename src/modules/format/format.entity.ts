@@ -5,7 +5,7 @@ import { Page } from '../page/page.entity';
 import { Cell } from '../cell/cell.entity';
 import { Tx } from '../tx/tx.entity';
 
-@Entity()
+@Entity('t-Format')
 export class Format {
     @PrimaryGeneratedColumn()
     Format: bigint;
