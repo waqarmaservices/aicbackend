@@ -8,5 +8,6 @@ import { Col } from './col.entity';
     imports: [TypeOrmModule.forFeature([Col])],
     controllers: [ColController],
     providers: [ColService],
+    exports: [ColService]
 })
 export class ColModule {}

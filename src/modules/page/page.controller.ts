@@ -1,7 +1,8 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { PageService } from './page.service';
 import { ApiResponse } from '../../common/dtos/api-response.dto';
 import { HttpStatus } from '../../common/enum/http-status.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('page')
 export class PageController {
@@ -40,5 +41,12 @@ export class PageController {
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
+    }
+    @Post('pg')
+    @UseInterceptors(FileInterceptor('file'))
+    async importPG(@UploadedFile() file: Express.Multer.File) {
+      const filePath = file.path;
+      await this.pageService.importData(filePath);
+      return { message: 'PG data imported successfully' };
     }
 }

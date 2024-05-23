@@ -16,6 +16,22 @@ import { ItemModule } from './modules/item/item.module';
 import { FormatModule } from './modules/format/format.module';
 import { TxModule } from './modules/tx/tx.module';
 import { UserModule } from './modules/user/user.module';
+import { CellController } from './modules/cell/cell.controller';
+import { RowController } from './modules/row/row.controller';
+import { ItemController } from './modules/item/item.controller';
+import { PageController } from './modules/page/page.controller';
+import { FormatController } from './modules/format/format.controller';
+import { UserController } from './modules/user/user.controller';
+import { TxController } from './modules/tx/tx.controller';
+import { ColController } from './modules/col/col.controller';
+import { CellService } from 'modules/cell/cell.service';
+import { ColService } from './modules/col/col.service';
+import { ItemService } from './modules/item/item.service';
+import { RowService } from './modules/row/row.service';
+import { FormatService } from './modules/format/format.service';
+import { UserService } from './modules/user/user.service';
+import { TxService } from './modules/tx/tx.service';
+import { PageService } from './modules/page/page.service';
 
 @Module({
     imports: [
@@ -35,9 +51,27 @@ import { UserModule } from './modules/user/user.module';
         TxModule,
         UserModule,
     ],
-    controllers: [AppController],
+    controllers: [AppController,
+        CellController,
+        RowController,
+        ItemController,
+        TxController,
+        UserController,
+        FormatController,
+        PageController,
+        ColController
+
+    ],
     providers: [
         AppService,
+        CellService,
+        ColService,
+        FormatService,
+        ItemService,
+        RowService,
+        TxService,
+        PageService,
+        UserService,
         {
             provide: APP_INTERCEPTOR,
             useClass: CacheInterceptor,
