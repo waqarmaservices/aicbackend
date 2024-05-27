@@ -23,8 +23,7 @@ async function runImport() {
         const importTXService = app.get(TxService);
         const importPageService = app.get(PageService);
 
-
-        const filePath = './db.xlsx';
+        const filePath = './src/db.xlsx';
 
         await importCellService.importData(filePath);
         await importColService.importData(filePath);
@@ -44,4 +43,3 @@ async function runImport() {
 }
 
 runImport();
-

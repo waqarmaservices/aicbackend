@@ -18,6 +18,7 @@ export class CellService {
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const jsonData = XLSX.utils.sheet_to_json(sheet);
+    console.log('jsonData', jsonData);
 
     for (const row of jsonData) {
       const cell = this.cellRepository.create({

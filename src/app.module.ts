@@ -24,14 +24,6 @@ import { FormatController } from './modules/format/format.controller';
 import { UserController } from './modules/user/user.controller';
 import { TxController } from './modules/tx/tx.controller';
 import { ColController } from './modules/col/col.controller';
-import { CellService } from 'modules/cell/cell.service';
-import { ColService } from './modules/col/col.service';
-import { ItemService } from './modules/item/item.service';
-import { RowService } from './modules/row/row.service';
-import { FormatService } from './modules/format/format.service';
-import { UserService } from './modules/user/user.service';
-import { TxService } from './modules/tx/tx.service';
-import { PageService } from './modules/page/page.service';
 
 @Module({
     imports: [
@@ -51,7 +43,8 @@ import { PageService } from './modules/page/page.service';
         TxModule,
         UserModule,
     ],
-    controllers: [AppController,
+    controllers: [
+        AppController,
         CellController,
         RowController,
         ItemController,
@@ -59,19 +52,10 @@ import { PageService } from './modules/page/page.service';
         UserController,
         FormatController,
         PageController,
-        ColController
-
+        ColController,
     ],
     providers: [
         AppService,
-        CellService,
-        ColService,
-        FormatService,
-        ItemService,
-        RowService,
-        TxService,
-        PageService,
-        UserService,
         {
             provide: APP_INTERCEPTOR,
             useClass: CacheInterceptor,
