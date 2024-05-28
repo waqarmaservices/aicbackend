@@ -1,28 +1,37 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    JoinColumn,
+} from 'typeorm';
 import { User } from '../user/user.entity';
+import { Row } from '../row/row.entity';
 import { Col } from '../col/col.entity';
 import { Page } from '../page/page.entity';
 import { Cell } from '../cell/cell.entity';
-import { Tx } from '../tx/tx.entity';
 
 @Entity('t-Format')
 export class Format {
     @PrimaryGeneratedColumn()
-    Format: bigint;
+    Format: number;
 
-    @Column({ type: 'bigint' })
+    @ManyToOne(() => User, { nullable: true })
+    @JoinColumn({ name: 'User' })
     User: User;
 
-    @Column({ name: 'Object-Type', type: 'bigint' })
-    ObjectType: bigint;
+    @ManyToOne(() => Row, { nullable: false })
+    @JoinColumn({ name: 'Object-Type' })
+    ObjectType: Row;
 
     @Column({ type: 'bigint' })
-    Object: bigint;
+    Object: number;
 
-    @Column({ type: 'bigint' })
-    Container: bigint;
+    @Column({ type: 'bigint', nullable: true })
+    Container: number;
 
-    @Column({ name: 'PG-Nested-Col', type: 'bigint' })
+    @ManyToOne(() => Col, { nullable: true })
+    @JoinColumn({ name: 'PG-Nested-Col' })
     PGNestedCol: Col;
 
     @Column({ name: 'PG-Freeze-Col', type: 'smallint' })
@@ -31,60 +40,68 @@ export class Format {
     @Column({ name: 'PG-Expand', type: 'smallint' })
     PGExpand: number;
 
-    @Column({ name: 'PG-Level-Set', type: 'bigint' })
+    @ManyToOne(() => Page, { nullable: true })
+    @JoinColumn({ name: 'PG-Level-Set' })
     PGLevelSet: Page;
 
-    @Column({ name: 'PG-Search-Set', type: 'bigint' })
+    @ManyToOne(() => Page, { nullable: true })
+    @JoinColumn({ name: 'PG-Search-Set' })
     PGSearchSet: Page;
 
-    @Column({ name: 'PG-Sort', type: 'jsonb' })
-    PGSort: any;
+    @Column({ name: 'PG-Sort', type: 'jsonb', nullable: true })
+    PGSort: object;
 
-    @Column({ name: 'PG-Filter', type: 'jsonb' })
-    PGFilter: any;
+    @Column({ name: 'PG-Filter', type: 'jsonb', nullable: true })
+    PGFilter: object;
 
-    @Column({ name: 'RowSet-Tick', type: 'bigint' })
-    RowSetTick: bigint;
+    @ManyToOne(() => Row, { nullable: true })
+    @JoinColumn({ name: 'RowSet-Tick' })
+    RowSetTick: Row;
 
-    @Column({ name: 'Col-Order', type: 'smallint' })
+    @Column({ name: 'Col-Order', type: 'smallint', nullable: true })
     ColOrder: number;
 
-    @Column({ name: 'Col-Min-Width', type: 'smallint' })
+    @Column({ name: 'Col-Min-Width', type: 'smallint', nullable: true })
     ColMinWidth: number;
 
-    @Column({ name: 'Item-Order', type: 'smallint' })
+    @Column({ name: 'Item-Order', type: 'smallint', nullable: true })
     ItemOrder: number;
 
-    @Column({ name: 'Owner', type: 'bigint' })
+    @ManyToOne(() => User, { nullable: true })
+    @JoinColumn({ name: 'Owner' })
     Owner: User;
 
-    @Column({ type: 'bigint' })
+    @ManyToOne(() => Cell, { nullable: true })
+    @JoinColumn({ name: 'Default' })
     Default: Cell;
 
-    @Column({ type: 'bigint' })
-    Status: [];
+    @Column({ type: 'bigint', array: true, nullable: true })
+    Status: number[];
 
-    @Column({ type: 'bigint' })
-    Unit: bigint;
+    @ManyToOne(() => Row, { nullable: true })
+    @JoinColumn({ name: 'Unit' })
+    Unit: Row;
 
-    @Column({ name: 'Font-Style', type: 'jsonb' })
-    FontStyle: any;
+    @Column({ name: 'Font-Style', type: 'jsonb', nullable: true })
+    FontStyle: object;
 
-    @Column({ type: 'jsonb' })
-    Formula: any;
+    @Column({ type: 'jsonb', nullable: true })
+    Formula: object;
 
-    @Column({ type: 'jsonb' })
-    Comment: any;
+    @Column({ type: 'jsonb', nullable: true })
+    Comment: object;
 
-    @Column({ name: 'Tx-List', type: 'bigint' })
-    TxList: Tx;
+    @Column({ type: 'bigint', array: true, nullable: true })
+    TxList: number[];
 
-    @Column({ type: 'bigint' })
-    Deleted: bigint;
+    @ManyToOne(() => Row, { nullable: true })
+    @JoinColumn({ name: 'Deleted' })
+    Deleted: Row;
 
-    @Column({ name: 'Deleted-By', type: 'bigint' })
-    DeletedBy: bigint;
+    @ManyToOne(() => User, { nullable: true })
+    @JoinColumn({ name: 'Deleted-By' })
+    DeletedBy: User;
 
-    @Column({ name: 'Deleted-At', type: 'timestamp' })
+    @Column({ name: 'Deleted-At', type: 'timestamp', nullable: true })
     DeletedAt: Date;
 }
