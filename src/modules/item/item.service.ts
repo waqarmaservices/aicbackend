@@ -1,45 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as XLSX from 'xlsx';
 import { Item } from './item.entity';
 
 @Injectable()
 export class ItemService {
   constructor(
     @InjectRepository(Item)
-    private itemRepository: Repository<Item>,
+    private readonly itemRepository: Repository<Item>,
   ) {}
 
-
-  //Import function
-  async importData(filePath: string): Promise<void> {
-    const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-    for (const row of jsonData) {
-      const item = this.itemRepository.create({
-        Cell: row['Cell'],
-        Inherit: row['Inherit'],
-        DataType: row['Data-Type'],
-        Object: row['Object'],
-        SmallInt: row['SmallInt'],
-        BigInt: row['BigInt'],
-        Num: row['Num'],
-        Color: row['Color'],
-        DateTime: row['DateTime'],
-        JSON: row['JSON'],
-        Qty: row['Qty'],
-        Unit: row['Unit'],
-        StdQty: row['Std-Qty'],
-        StdUnit: row['Std-Unit'],
-        Foreign: row['Foreign'],
-      });
-      await this.itemRepository.save(item);
-    }
+  async createItem(payload: any): Promise<Item[]> {
+    const itemData = this.itemRepository.create(payload);
+    return this.itemRepository.save(itemData);
   }
 
-  
+  async findAll(): Promise<Item[]> {
+    return this.itemRepository.find();
+  }
+
+  async findOne(id: number): Promise<Item> {
+    return this.itemRepository.findOne({ where: { Item: id } });
+  }
+
+  async updateItem(id: number, updateData: Partial<Item>): Promise<Item> {
+    await this.itemRepository.update(id, updateData);
+    return this.findOne(id);
+  }
+
+  async deleteItem(id: number): Promise<void> {
+    await this.itemRepository.delete(id);
+  }
 }

@@ -1,31 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as XLSX from 'xlsx';
 import { User } from './user.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
   ) {}
 
-
-  //Import Function
-  async importData(filePath: string): Promise<void> {
-    const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-    for (const row of jsonData) {
-      const user = this.userRepository.create({
-        User: row['User'],
-        UserType: row['User-Type'],
-      });
-      await this.userRepository.save(user);
-    }
+  async createUser(payload: any): Promise<User[]> {
+    const userData = this.userRepository.create(payload);
+    return this.userRepository.save(userData);
   }
 
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({ relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'] });
+  }
+
+  async findOne(id: number): Promise<User> {
+    return this.userRepository.findOne({ where: { User: id }, relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'] });
+  }
+
+  async updateUser(id: number, updateData: Partial<User>): Promise<User> {
+    await this.userRepository.update(id, updateData);
+    return this.findOne(id);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await this.userRepository.delete(id);
+  }
 }

@@ -1,28 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as XLSX from 'xlsx';
 import { Col } from './col.entity';
 
 @Injectable()
 export class ColService {
-  constructor(
-    @InjectRepository(Col)
-    private colRepository: Repository<Col>,
-  ) {}
+    constructor(
+        @InjectRepository(Col)
+        private readonly colRepository: Repository<Col>,
+    ) { }
 
-//Import function
-
-  async importData(filePath: string): Promise<void> {
-    const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-    for (const row of jsonData) {
-      const col = this.colRepository.create({});
-      await this.colRepository.save(col);
+    async createCol(payload: any): Promise<Col[]> {
+        const colData = this.colRepository.create(payload);
+        return this.colRepository.save(colData);
     }
-  }
 
+    async findAll(): Promise<Col[]> {
+        return this.colRepository.find();
+    }
+
+    async findOne(id: number): Promise<Col> {
+        return this.colRepository.findOne({ where: { Col: id } });
+    }
+
+    async updateCol(id: number, updateData: Partial<Col>): Promise<Col> {
+        await this.colRepository.update(id, updateData);
+        return this.findOne(id);
+    }
+
+    async deleteCol(id: number): Promise<void> {
+        await this.colRepository.delete(id);
+    }
 }

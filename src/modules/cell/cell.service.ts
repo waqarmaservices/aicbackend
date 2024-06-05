@@ -1,36 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as XLSX from 'xlsx';
-import * as ExcelJS from 'exceljs';
 import { Cell } from './cell.entity';
 
 @Injectable()
 export class CellService {
-  constructor(
-    @InjectRepository(Cell)
-    private cellRepository: Repository<Cell>,
-  ) {}
+    constructor(
+        @InjectRepository(Cell)
+        private readonly cellRepository: Repository<Cell>,
+    ) { }
 
-  //Import function 
-  async importData(filePath: string): Promise<void> {
-    const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
-    console.log('jsonData', jsonData);
-
-    for (const row of jsonData) {
-      const cell = this.cellRepository.create({
-        Col: row['Col'],
-        Row: row['Row'],
-        DataType: row['Data-Type'],
-        DropDownSource: row['DropDown-Source'],
-        Items: row['Items'],
-      });
-      await this.cellRepository.save(cell);
+    async createCell(payload: any): Promise<Cell[]> {
+        const cellData = this.cellRepository.create(payload);
+        return this.cellRepository.save(cellData);
     }
-  }
 
-  
+    async findAll(): Promise<Cell[]> {
+        return this.cellRepository.find();
+    }
+
+    async findOne(id: number): Promise<Cell> {
+        return this.cellRepository.findOne({ where: { Cell: id } });
+    }
+
+    async updateCell(id: number, updateData: Partial<Cell>): Promise<Cell> {
+        await this.cellRepository.update(id, updateData);
+        return this.findOne(id);
+    }
+
+    async deleteCell(id: number): Promise<void> {
+        await this.cellRepository.delete(id);
+    }
 }
+
