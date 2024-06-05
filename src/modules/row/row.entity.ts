@@ -16,7 +16,7 @@ export class Row {
     @PrimaryColumn({ type: 'bigint' })
     Row: number;
 
-    @ManyToOne(() => Page, { nullable: true })
+    @ManyToOne(() => Page, { eager: true })
     @JoinColumn({ name: 'PG' })
     PG: Page;
 
@@ -75,3 +75,38 @@ export class Row {
     @OneToMany(() => Item, (item) => item.StdUnit)
     StdUnitItems: Item[];
 }
+
+
+// import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+// import { Page } from '../page/page.entity';
+
+// @Entity('t-Row')
+// export class Row {
+//   @PrimaryGeneratedColumn({ type: 'bigint' })
+//   Row: number;
+
+//   @ManyToOne(() => Page, { eager: true })
+//   @JoinColumn({ name: 'PG' })
+//   PG: Page;
+
+//   @ManyToOne(() => Row, { nullable: true })
+//   @JoinColumn({ name: 'Share' })
+//   Share: Row;
+
+//   @Column({ type: 'bigint', array: true, nullable: true })
+//   Inherit: number[];
+
+//   @Column({ type: 'varchar', name: 'Row-Type' }) 
+//   RowType: string;
+
+//   @Column({ name: 'Row-Level', type: 'smallint' })
+//   RowLevel: number;
+
+//   @ManyToOne(() => Row, { nullable: true })
+//   @JoinColumn({ name: 'Parent-Row' })
+//   ParentRow: Row;
+
+//   @ManyToOne(() => Row, { nullable: true })
+//   @JoinColumn({ name: 'Sibling-Row' })
+//   SiblingRow: Row;
+// }

@@ -16,6 +16,14 @@ import { ItemModule } from './modules/item/item.module';
 import { FormatModule } from './modules/format/format.module';
 import { TxModule } from './modules/tx/tx.module';
 import { UserModule } from './modules/user/user.module';
+import { CellController } from './modules/cell/cell.controller';
+import { RowController } from './modules/row/row.controller';
+import { ItemController } from './modules/item/item.controller';
+import { PageController } from './modules/page/page.controller';
+import { FormatController } from './modules/format/format.controller';
+import { UserController } from './modules/user/user.controller';
+import { TxController } from './modules/tx/tx.controller';
+import { ColController } from './modules/col/col.controller';
 
 @Module({
     imports: [
@@ -35,7 +43,17 @@ import { UserModule } from './modules/user/user.module';
         TxModule,
         UserModule,
     ],
-    controllers: [AppController],
+    controllers: [
+        AppController,
+        CellController,
+        RowController,
+        ItemController,
+        TxController,
+        UserController,
+        FormatController,
+        PageController,
+        ColController,
+    ],
     providers: [
         AppService,
         {

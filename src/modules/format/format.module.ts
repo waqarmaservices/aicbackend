@@ -8,5 +8,6 @@ import { Format } from './format.entity';
     imports: [TypeOrmModule.forFeature([Format])],
     controllers: [FormatController],
     providers: [FormatService],
+    exports: [FormatService]
 })
 export class FormatModule {}

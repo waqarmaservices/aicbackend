@@ -12,10 +12,10 @@ export class PageGateway implements OnModuleInit {
     @WebSocketServer() Server: Server;
 
     onModuleInit() {
-        this.Server.on('connection', (socket) => {
-            console.log(socket.id);
-            console.log('Connected');
-        });
+        // this.Server.on('connection', (socket) => {
+        //     console.log(socket.id);
+        //     console.log('Connected');
+        // });
     }
 
     @SubscribeMessage('updatePage')

@@ -8,5 +8,6 @@ import { Tx } from './tx.entity';
     imports: [TypeOrmModule.forFeature([Tx])],
     controllers: [TxController],
     providers: [TxService],
+    exports: [TxService]
 })
 export class TxModule {}

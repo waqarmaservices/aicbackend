@@ -7,6 +7,7 @@ import { PageGateway } from './page.gateway';
 @Module({
     imports: [TypeOrmModule.forFeature([Page])],
     controllers: [PageController],
-    providers: [PageService, PageGateway],
+    providers: [PageService ],
+    exports: [PageService]
 })
 export class PageModule {}

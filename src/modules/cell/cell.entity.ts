@@ -13,15 +13,15 @@ export class Cell {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     Cell: number;
 
-    @ManyToOne(() => Col)
+    @ManyToOne(() => Col, { eager: true })
     @JoinColumn({ name: 'Col' })
     Col: Col;
 
-    @ManyToOne(() => Row)
+    @ManyToOne(() => Row, { eager: true })
     @JoinColumn({ name: 'Row' })
     Row: Row;
 
-    @ManyToOne(() => Row, { nullable: true })
+    @ManyToOne(() => Row, { nullable: true, eager: true })
     @JoinColumn({ name: 'Data-Type' })
     DataType: Row;
 
@@ -31,3 +31,4 @@ export class Cell {
     @Column('bigint', { array: true, nullable: true })
     Items: number[];
 }
+

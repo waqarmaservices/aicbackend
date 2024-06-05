@@ -6,6 +6,6 @@ export class Col {
     @PrimaryColumn({ type: 'bigint' })
     Col: number;
 
-    @OneToMany(() => Cell, (cell) => cell.Col)
-    cells: Cell[];
+    // @OneToMany(() => Cell, (Cell) => Cell.Col)
+    // cells: Cell[];
 }

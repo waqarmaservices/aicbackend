@@ -8,5 +8,6 @@ import { Cell } from './cell.entity';
     imports: [TypeOrmModule.forFeature([Cell])],
     controllers: [CellController],
     providers: [CellService],
+    exports: [CellService ]
 })
 export class CellModule {}
