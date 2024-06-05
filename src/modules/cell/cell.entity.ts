@@ -1,25 +1,33 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    JoinColumn,
+} from 'typeorm';
 import { Col } from '../col/col.entity';
 import { Row } from '../row/row.entity';
-import { Item } from '../item/item.entity';
 
 @Entity('t-Cell')
 export class Cell {
     @PrimaryGeneratedColumn({ type: 'bigint' })
-    Cell: bigint;
+    Cell: number;
 
-    @Column({ type: 'bigint' })
+    @ManyToOne(() => Col)
+    @JoinColumn({ name: 'Col' })
     Col: Col;
 
-    @Column({ type: 'bigint' })
+    @ManyToOne(() => Row)
+    @JoinColumn({ name: 'Row' })
     Row: Row;
 
-    @Column({ name: 'Data-Type', type: 'bigint' })
-    DataType: bigint;
+    @ManyToOne(() => Row, { nullable: true })
+    @JoinColumn({ name: 'Data-Type' })
+    DataType: Row;
 
     @Column({ name: 'DropDown-Source', type: 'jsonb' })
-    DropDownSource: any;
+    DropDownSource: object;
 
-    @Column({ name: 'Items', type: 'bigint' })
-    Items: Item[];
+    @Column('bigint', { array: true, nullable: true })
+    Items: number[];
 }

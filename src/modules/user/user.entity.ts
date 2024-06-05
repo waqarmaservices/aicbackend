@@ -1,10 +1,32 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    ManyToOne,
+    JoinColumn,
+    OneToMany,
+} from 'typeorm';
+import { Row } from '../row/row.entity';
+import { Format } from '../format/format.entity';
+import { Tx } from '../tx/tx.entity';
 
 @Entity('t-User')
 export class User {
     @PrimaryGeneratedColumn()
-    User: bigint;
+    User: number;
 
-    @Column({ name: 'User-Type', type: 'bigint' })
-    UserType: bigint;
+    @ManyToOne(() => Row, { nullable: false })
+    @JoinColumn({ name: 'User-Type' })
+    UserType: Row;
+
+    @OneToMany(() => Format, (format) => format.User)
+    Formats: Format[];
+
+    @OneToMany(() => Format, (format) => format.Owner)
+    OwnedFormats: Format[];
+
+    @OneToMany(() => Format, (format) => format.DeletedBy)
+    DeletedFormats: Format[];
+
+    @OneToMany(() => Tx, (tx) => tx.TxUser)
+    Transactions: Tx[];
 }
