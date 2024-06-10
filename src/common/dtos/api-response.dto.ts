@@ -7,8 +7,8 @@ export class ApiResponse<T> {
     statusCode: number;
     constructor(
         success: boolean,
-        data: T,
-        error: string,
+        data: T | null,
+        error: string | null,
         statusCode: HttpStatus,
     ) {
         this.success = success;

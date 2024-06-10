@@ -28,9 +28,9 @@ export class PageController {
     }
 
     @Get()
-    async findAll(): Promise<ApiResponse<Page[]>> {
+    async findAll(): Promise<ApiResponse<any>> {
         try {
-            const pages = await this.pageService.findAll();
+            const pages = await this.pageService.getAllPagesData();
             return new ApiResponse(
                 true,
                 pages,
@@ -114,6 +114,45 @@ export class PageController {
             );
         }
     }
+    @Get('full/:pageId')
+    async getOnepage(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+        try {
+            const data = await this.pageService.getOnePage(pageId);
+            return new ApiResponse(true, data, '', 200);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+        }
+    }
+    // @Get('full')
+    // async getAllPagesData(): Promise<ApiResponse<any>> {
+    //     try {
+    //         const allPagesData = await this.pageService.getAllPagesData();
+    //         return new ApiResponse(true, allPagesData, 'All pages data fetched successfully', 200);
+    //     } catch (error) {
+    //         return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+    //     }
+    // }
+
+
+    // @Get()
+    // async getAllPagesData(): Promise<ApiResponse<any>> {
+    //     try {
+    //         const pages = await this.pageService.getAllPagesData();
+    //         return new ApiResponse(
+    //             true,
+    //             pages,
+    //             '',
+    //             HttpStatus.OK,
+    //         );
+    //     } catch (error) {
+    //         return new ApiResponse(
+    //             false,
+    //             null,
+    //             'Something went wrong. Please try again',
+    //             HttpStatus.INTERNAL_SERVER_ERROR,
+    //         );
+    //     }
+    // }
 }
 
 

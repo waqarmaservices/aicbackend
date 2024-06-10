@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Page } from './page.entity';  // Make sure this entity file matches your structure
+import { Page } from './page.entity';
 
 @Injectable()
 export class PageService {
@@ -15,7 +15,7 @@ export class PageService {
         return this.pageRepository.save(pageData);
     }
 
-    async findAll(): Promise<Page[]> {
+    async findAll(): Promise<any> {
         return this.pageRepository.find();
     }
 
@@ -30,5 +30,24 @@ export class PageService {
 
     async deletePage(id: number): Promise<void> {
         await this.pageRepository.delete(id);
+    }
+
+    async getOnePage(pageId: number): Promise<any> {
+        const page = await this.pageRepository.findOne({
+            where: { PG: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.Col', 'rows.cells.items']
+        });
+        if (!page) {
+            throw new Error('Page not found');
+        }
+        return page;
+    }
+    async getAllPagesData(): Promise<Page[]> {
+        try {
+            const allPagesData = await this.pageRepository.find({ relations: ['rows', 'rows.cells', 'rows.cells.Col', 'rows.cells.items'] });
+            return allPagesData;
+        } catch (error) {
+            throw error;
+        }
     }
 }
