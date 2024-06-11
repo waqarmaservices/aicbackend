@@ -39,7 +39,7 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /*
               port: 3000
             initialDelaySeconds: 60  # Increase this value to give app more time to start
             periodSeconds: 10
@@ -47,7 +47,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /
+              path: /*
               port: 3000
             initialDelaySeconds: 60  # Increase this value to give app more time to start
             periodSeconds: 10
