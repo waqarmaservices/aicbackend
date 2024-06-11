@@ -37,22 +37,22 @@ spec:
             - name: http
               containerPort: 3000
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /*
-              port: 3000
-            initialDelaySeconds: 60  # Increase this value to give app more time to start
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /*
-              port: 3000
-            initialDelaySeconds: 60  # Increase this value to give app more time to start
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3              
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: 3000
+          #   initialDelaySeconds: 60  # Increase this value to give app more time to start
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
+          #   failureThreshold: 3
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: 3000
+          #   initialDelaySeconds: 60  # Increase this value to give app more time to start
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
+          #   failureThreshold: 3              
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
