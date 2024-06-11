@@ -30,8 +30,8 @@ jobs:
         with:
           credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
 
-      # - name: Fetch Secrets From GCP Secret Manager
-        #  run: bash ./devops/secrets/fetch-secrets-development.sh
+      - name: Fetch Secrets From GCP Secret Manager
+        run: bash ./devops/secrets/fetch-secrets-development.sh
 
       # Configure docker to use the gcloud command-line tool as a credential helper
       - run: |
