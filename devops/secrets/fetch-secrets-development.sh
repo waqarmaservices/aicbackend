@@ -8,7 +8,7 @@ DB_PASSWORD=$(gcloud secrets versions access latest --secret="dev-db-password")
 
 echo "NODE_ENV=development" >> .env
 echo "APP_NAME=AIC API" >> .env
-echo "PORT=3050" >> .env
+echo "PORT=3000" >> .env
 
 echo "DB_HOST=$DB_HOST" >> .env
 echo "DB_PORT=$DB_PORT" >> .env

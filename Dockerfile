@@ -9,7 +9,7 @@ RUN npm install
 
 RUN npm run build
 
-EXPOSE 3050
+EXPOSE 3000
 
 # Start the service
 CMD ["npm", "start"]
