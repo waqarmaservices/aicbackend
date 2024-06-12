@@ -8,7 +8,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
     const logger = new Logger();
     const { port } = appConfig();
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, { cors: true });
     app.setGlobalPrefix('api');
     app.useGlobalFilters(new HttpExceptionFilter());
     app.useGlobalPipes(
