@@ -1,15 +1,12 @@
-FROM node:20.13.0
-
+FROM node:20.14.0
 WORKDIR /user/app/
 
-# Copy the local code to the container
-COPY . .
-
+COPY package*.json ./
+# Install dependencies
 RUN npm install
 
+COPY . .
+
 RUN npm run build
-
 EXPOSE 3000
-
-# Start the service
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "start"]
