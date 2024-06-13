@@ -1,8 +1,7 @@
-import * as path from 'path';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule, ConfigService } from 'nestjs-config';
+import { ConfigModule } from '@nestjs/config';
 import appConfig from './config/app.config';
 import { typeOrmAsyncConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -28,7 +27,10 @@ import { ColController } from './modules/col/col.controller';
 
 @Module({
     imports: [
-        ConfigModule.load(path.resolve(__dirname, 'config', '**/!(*.d).{ts,js}')),
+        ConfigModule.forRoot({
+            isGlobal: true,
+            load: [appConfig],
+        }),
         TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
         CacheModule.register(),
         AuthModule,
