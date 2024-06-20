@@ -3,13 +3,17 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import appConfig from './config/app.config';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
+
+const excludedPaths = [{ path: '/', method: RequestMethod.GET }];
 
 async function bootstrap() {
     const logger = new Logger();
     const { port } = appConfig();
     const app = await NestFactory.create(AppModule, { cors: true });
-    // app.setGlobalPrefix('api');
+    app.setGlobalPrefix('api', {
+        exclude: excludedPaths,
+    });
     app.useGlobalFilters(new HttpExceptionFilter());
     app.useGlobalPipes(
         new ValidationPipe({
@@ -26,7 +30,7 @@ async function bootstrap() {
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
-    await app.listen(3000);
-    logger.log(`Application running on port ${3000}`);
+    await app.listen(port);
+    logger.log(`Application running on port ${port}`);
 }
 bootstrap();
