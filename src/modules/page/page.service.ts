@@ -13,7 +13,7 @@ export class PageService {
     async createPage(): Promise<Page> {
         const pageData = this.pageRepository.create();
         return this.pageRepository.save(pageData);
-    }
+      }
 
     async findAll(): Promise<any> {
         return this.pageRepository.find();

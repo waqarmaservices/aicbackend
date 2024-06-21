@@ -10,12 +10,12 @@ export class ColService {
         private readonly colRepository: Repository<Col>,
     ) { }
 
-    async createCol(payload: any): Promise<Col[]> {
+    async createCol(payload: any): Promise<any> {
         const colData = this.colRepository.create(payload);
         return this.colRepository.save(colData);
     }
 
-    async findAll(): Promise<Col[]> {
+    async findAll(): Promise<any> {
         return this.colRepository.find();
     }
 

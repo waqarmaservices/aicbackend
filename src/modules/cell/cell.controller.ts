@@ -9,7 +9,7 @@ export class CellController {
     constructor(private readonly cellService: CellService) { }
 
     @Post()
-    async createCell(@Body() payload: any): Promise<ApiResponse<Cell[]>> {
+    async createCell(@Body() payload: any): Promise<ApiResponse<any>> {
         try {
             const cell = await this.cellService.createCell(payload);
             return new ApiResponse(
@@ -29,7 +29,7 @@ export class CellController {
     }
 
     @Get()
-    async findAll(): Promise<ApiResponse<Cell[]>> {
+    async findAll(): Promise<ApiResponse<any>> {
         try {
             const cells = await this.cellService.findAll();
             return new ApiResponse(

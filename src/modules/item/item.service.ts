@@ -10,12 +10,12 @@ export class ItemService {
     private readonly itemRepository: Repository<Item>,
   ) {}
 
-  async createItem(payload: any): Promise<Item[]> {
+  async createItem(payload: any): Promise<any> {
     const itemData = this.itemRepository.create(payload);
     return this.itemRepository.save(itemData);
   }
 
-  async findAll(): Promise<Item[]> {
+  async findAll(): Promise<any> {
     return this.itemRepository.find();
   }
 
