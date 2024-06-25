@@ -6,7 +6,7 @@ export class Item {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     Item: number;
 
-    @ManyToOne(() => Cell, cell => cell.items)
+    @ManyToOne(() => Cell, cell => cell.Items)
     @JoinColumn({ name: 'Cell' })
     Cell: Cell;
 
