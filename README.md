@@ -8,7 +8,7 @@ AIC Backend Description.
 
 $ npm install
 
-## Running the app
+## Running the ap
 
 # development
 $ npm run start
