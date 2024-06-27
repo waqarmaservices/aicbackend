@@ -62,8 +62,8 @@ export class RowService {
     private readonly rowRepository: Repository<Row>,
   ) {}
 
-   createRow(payload: any): Promise<Row[]> {
-    const rowData = this.rowRepository.create(payload);
+   createRow(payload: any): Promise<Row> {
+    const rowData = this.rowRepository.create(payload as Partial<Row>);
     return this.rowRepository.save(rowData);
   }
 

@@ -11,12 +11,7 @@ export class PageController {
     async createPage(): Promise<ApiResponse<Page>> {
         try {
             const page = await this.pageService.createPage();
-            return new ApiResponse(
-                true,
-                page,
-                '',
-                HttpStatus.CREATED,
-            );
+            return new ApiResponse(true, page, '', HttpStatus.CREATED);
         } catch (error) {
             return new ApiResponse(
                 false,

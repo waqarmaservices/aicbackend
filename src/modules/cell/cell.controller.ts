@@ -9,7 +9,7 @@ export class CellController {
     constructor(private readonly cellService: CellService) { }
 
     @Post()
-    async createCell(@Body() payload: any): Promise<ApiResponse<Cell[]>> {
+    async createCell(@Body() payload: any): Promise<ApiResponse<Cell>> {
         try {
             const cell = await this.cellService.createCell(payload);
             return new ApiResponse(

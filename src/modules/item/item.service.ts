@@ -10,8 +10,8 @@ export class ItemService {
     private readonly itemRepository: Repository<Item>,
   ) {}
 
-  async createItem(payload: any): Promise<Item[]> {
-    const itemData = this.itemRepository.create(payload);
+  async createItem(payload: any): Promise<Item> {
+    const itemData = this.itemRepository.create(payload as Partial<Item>);
     return this.itemRepository.save(itemData);
   }
 
@@ -22,6 +22,15 @@ export class ItemService {
   async findOne(id: number): Promise<Item> {
     return this.itemRepository.findOne({ where: { Item: id } });
   }
+
+    async findOneByColumnName(
+        columnName: string,
+        value: string,
+    ): Promise<Item> {
+        return this.itemRepository.findOne({
+            where: { [columnName]: { 3000000100: value } },
+        });
+    }
 
   async updateItem(id: number, updateData: Partial<Item>): Promise<Item> {
     await this.itemRepository.update(id, updateData);

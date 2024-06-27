@@ -91,7 +91,7 @@ export class Format {
     @Column({ type: 'jsonb', nullable: true })
     Comment: object;
 
-    @Column({ type: 'bigint', array: true, nullable: true })
+    @Column({ type: 'bigint', array: true, nullable: true, name: 'Tx-List' })
     TxList: number[];
 
     @ManyToOne(() => Row, { nullable: true })

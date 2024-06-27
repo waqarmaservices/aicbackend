@@ -24,6 +24,7 @@ import { FormatController } from './modules/format/format.controller';
 import { UserController } from './modules/user/user.controller';
 import { TxController } from './modules/tx/tx.controller';
 import { ColController } from './modules/col/col.controller';
+import { ImportModule } from './modules/import/import.module';
 
 @Module({
     imports: [
@@ -42,6 +43,7 @@ import { ColController } from './modules/col/col.controller';
         FormatModule,
         TxModule,
         UserModule,
+        ImportModule,
     ],
     controllers: [
         AppController,

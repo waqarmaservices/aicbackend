@@ -8,10 +8,10 @@ export class ColService {
     constructor(
         @InjectRepository(Col)
         private readonly colRepository: Repository<Col>,
-    ) { }
+    ) {}
 
-    async createCol(payload: any): Promise<Col[]> {
-        const colData = this.colRepository.create(payload);
+    async createCol(): Promise<Col> {
+        const colData = this.colRepository.create();
         return this.colRepository.save(colData);
     }
 

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Page } from './page.entity';  // Make sure this entity file matches your structure
+import { Page } from './page.entity';
 
 @Injectable()
 export class PageService {
     constructor(
         @InjectRepository(Page)
         private readonly pageRepository: Repository<Page>,
-    ) { }
+    ) {}
 
     async createPage(): Promise<Page> {
         const pageData = this.pageRepository.create();

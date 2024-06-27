@@ -8,7 +8,7 @@ export class FormatController {
   constructor(private readonly formatService: FormatService) {}
 
   @Post()
-  async createFormat(@Body() payload: any): Promise<ApiResponse<Format[]>> {
+  async createFormat(@Body() payload: any): Promise<ApiResponse<Format>> {
     try {
       const format = await this.formatService.createFormat(payload);
       return new ApiResponse(
