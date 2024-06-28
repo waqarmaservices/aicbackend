@@ -43,22 +43,22 @@ export class Row {
     SiblingRow: Row;
 
     @OneToMany(() => Cell, (cell) => cell.Row)
-    cells: Cell;
+    cells: Cell[];
 
     @OneToMany(() => Item, (item) => item["Data-Type"])
     items: Item[];
 
     @OneToMany(() => Row, (row) => row.Share)
-    shareRows: Row;
+    shareRows: Row[];
 
     @OneToMany(() => Row, (row) => row.ParentRow)
-    inheritRows: Row;
+    inheritRows: Row[];
 
     @OneToMany(() => Row, (row) => row.SiblingRow)
-    siblingRows: Row;
+    siblingRows: Row[];
 
     @OneToMany(() => Row, (row) => row.RowType)
-    rowTypes: Row;
+    rowTypes: Row[];
 
     @OneToMany(() => Format, (format) => format.RowSetTick)
     RowSetTickFormats: Format[];

@@ -8,7 +8,7 @@ export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
   @Post()
-  async createItem(@Body() payload: any): Promise<ApiResponse<any>> {
+  async createItem(@Body() payload: any): Promise<ApiResponse<Item[]>> {
     try {
       const item = await this.itemService.createItem(payload);
       return new ApiResponse(
@@ -28,7 +28,7 @@ export class ItemController {
   }
 
   @Get()
-  async findAll(): Promise<ApiResponse<Item>> {
+  async findAll(): Promise<ApiResponse<Item[]>> {
     try {
       const items = await this.itemService.findAll();
       return new ApiResponse(

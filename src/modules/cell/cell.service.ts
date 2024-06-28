@@ -10,12 +10,12 @@ export class CellService {
         private readonly cellRepository: Repository<Cell>,
     ) { }
 
-    async createCell(payload: any): Promise<any> {
+    async createCell(payload: any): Promise<Cell[]> {
         const cellData = this.cellRepository.create(payload);
         return this.cellRepository.save(cellData);
     }
 
-    async findAll(): Promise<any> {
+    async findAll(): Promise<Cell[]> {
         return this.cellRepository.find();
     }
 
