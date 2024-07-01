@@ -69,7 +69,7 @@ export class RowService {
 
   async findAll(): Promise<Row[]> {
     return this.rowRepository.find({
-      relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+        relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
     });
   }
 
@@ -88,4 +88,28 @@ export class RowService {
   async deleteRow(id: number): Promise<void> {
     await this.rowRepository.delete(id);
   }
+
+    async findAllOrderByIdAsc(): Promise<Row[]> {
+        return this.rowRepository.find({
+            order: { Row: 'ASC' },
+            relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+        });
+    }
+
+    async findAllOrderByIdDesc(): Promise<Row[]> {
+        return this.rowRepository.find({
+            order: { Row: 'DESC' },
+            relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+        });
+    }
+
+    async getLastInsertedRecord(): Promise<Row> {
+        const rows = await this.rowRepository.find({
+            order: {
+                Row: 'DESC',
+            },
+            take: 1,
+        });
+        return rows[0];
+    }
 }

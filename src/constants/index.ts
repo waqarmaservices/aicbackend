@@ -1,11 +1,29 @@
-export const ALL_PAGES_SHEET_CONSTANTS = {
+export const TOKEN_CONSTANTS = {
     PAGE_TYPE: 3000000328,
     PAGE_EDITION: 3000000334,
     PAGE_OWNER: 3000000099,
-    PAGE_STATUS: 3000000206,
     ROW_TYPE: 3000000346,
-    SYSTEM_STATUS: 3000000206,
     COL_ROW: 3000000340,
+    SECTION_HEAD: 3000000352,
+    DEFAULT: 3000000360,
+    COUNTRY: 3000000359,
+    REGION: 3000000365,
+    STATE: 3000000367,
+    COMPANY: 3000000358,
+    BRAND: 3000000357,
+};
+
+export const STATUSES = {
+    PRIVATE: 3000000204,
+    DRAFT: 3000000205,
+    SYSTEM: 3000000206,
+    HIDDEN: 3000000207,
+    MISSING_DATA: 3000000210,
+    SHARE: 3000000211,
+    INHERIT: 3000000212,
+    DDS_PAGE: 3000000218,
+    UNIQUE: 3000000220,
+    NESTED: 3000000221,
 };
 
 export const SYSTEM_INITIAL = {
@@ -14,6 +32,7 @@ export const SYSTEM_INITIAL = {
     ALL_TOKENS: 1000000003,
     ENGLISH: 3000000100,
     USER_ID: 3000000099,
+    ALL_LANGUAGES: 1000000003,
 };
 
 export const COL_DATA_TYPES = {
@@ -40,3 +59,37 @@ export const COL_DATA_TYPES = {
     Number: 3000000252,
     Date: 3000000293,
 };
+
+export const COLUMN_NAMES = {
+    Page_ID: 'Page_ID',
+    Page_Name: 'Page_Name',
+    Page_Type: 'Page_Type',
+    Page_Edition: 'Page_Edition',
+    Page_URL: 'Page_URL',
+    Page_SEO: 'Page_SEO',
+    Col_Name: 'Col_Name',
+    Col_Data_Type: 'Col_Data_Type',
+    Col_DropDown_Source: 'Col_DropDown_Source',
+    LANGUAGE: 'LANGUAGE',
+    REGION: 'REGION',
+
+};
+
+// export const Col_DROPDOWN_SOURCE = {
+//     ROW_TYPE : 3000000338
+//     STATUSES: 3000000202 
+//     CATEGORY_LABEL:  
+//     PRODUCT_LABEL:
+//     KEY:
+//     PREFERENCE:
+//     LEVEL_SET_LABEL:
+//     TRUE_FALSE:
+//     SEARCH_SET_LABEL:
+//     PARAM_OPR:
+//     PAGE_TYPE:
+//     EDITION:
+//     DATA_TYPE:
+//     PROFILE_LABEL:
+//     DISPLAY_SETTING:
+//     USER_TYPE:
+// }
