@@ -11,12 +11,12 @@ export class RowService {
     private readonly rowRepository: Repository<Row>,
   ) {}
 
-   createRow(payload: any): Promise<any> {
+   createRow(payload: any): Promise<Row[]> {
     const rowData = this.rowRepository.create(payload);
     return this.rowRepository.save(rowData);
   }
 
-  async findAll(): Promise<any> {
+  async findAll(): Promise<Row[]> {
     return this.rowRepository.find({
       relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
     });

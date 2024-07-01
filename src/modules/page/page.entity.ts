@@ -9,5 +9,5 @@ export class Page {
     PG: number;
 
     @OneToMany(() => Row, row => row.PG)
-    rows: Row;
+    rows: Row[];
 }

@@ -5,7 +5,7 @@ import { Item } from '../item/item.entity';
 
 @Entity('t-Cell')
 export class Cell {
-    @PrimaryGeneratedColumn({ type: 'bigint', name: 'Cell' })
+    @PrimaryGeneratedColumn({ type: 'bigint' })
     Cell: number;
 
     @ManyToOne(() => Col, col => col.cells)
@@ -16,12 +16,15 @@ export class Cell {
     @JoinColumn({ name: 'Row' })
     Row: Row;
 
-    @Column({ type: 'bigint', name: 'Data-Type', nullable: true })
-    DataType: number;
+    @Column({ type: 'bigint', nullable: true })
+    'Data-Type': number;
 
-    @Column({ type: 'jsonb', name: 'DropDown-Source', nullable: true })
-    DropDownSource: any;
+    @Column({ type: 'jsonb', nullable: true })
+    'DropDown-Source': any;
 
-    @Column({ type: 'bigint', array: true, name: 'Items', nullable: true })
+    @Column({ type: 'bigint', array: true, nullable: true })
     Items: number[];
+
+    @OneToMany(() => Item, item => item.Cell)
+    items: Item[];
 }
