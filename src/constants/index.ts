@@ -2,15 +2,14 @@ export const TOKEN_CONSTANTS = {
     PAGE_TYPE: 3000000328,
     PAGE_EDITION: 3000000334,
     PAGE_OWNER: 3000000099,
-    ROW_TYPE: 3000000346,
+    ROW_TYPE: 3000000340,
     COL_ROW: 3000000340,
-    SECTION_HEAD: 3000000352,
-    DEFAULT: 3000000360,
     COUNTRY: 3000000359,
     REGION: 3000000365,
     STATE: 3000000367,
     COMPANY: 3000000358,
-    BRAND: 3000000357,
+    DEFAULT: 3000000346,
+    NODE: 3000000352,
 };
 
 export const STATUSES = {
@@ -24,6 +23,7 @@ export const STATUSES = {
     DDS_PAGE: 3000000218,
     UNIQUE: 3000000220,
     NESTED: 3000000221,
+    SECTION_HEAD: 3000000220,
 };
 
 export const SYSTEM_INITIAL = {
@@ -37,8 +37,8 @@ export const SYSTEM_INITIAL = {
 
 export const COL_DATA_TYPES = {
     Row_ID: 3000000261,
-    Drop_Down: 3000000279,
-    ML_Text: 3000000249,
+    Drop_Down: 3000000281,
+    ML_Text: 3000000251,
     Value_Data_Type: 3000000246,
     Percentage: 3000000253,
     Amount: 3000000285,
@@ -70,9 +70,15 @@ export const COLUMN_NAMES = {
     Col_Name: 'Col_Name',
     Col_Data_Type: 'Col_Data_Type',
     Col_DropDown_Source: 'Col_DropDown_Source',
-    LANGUAGE: 'LANGUAGE',
-    REGION: 'REGION',
-
+    Language: 'Language',
+    Region: 'Region',
+    TOKEN: 'TOKEN',
+    Row_Type: 'Row_Type',
+    Supplier: 'Supplier',
+    Model: 'Model',
+    Release_Date: 'Release_Date',
+    Unit: 'Unit',
+    Unit_Factor: 'Unit_Factor',
 };
 
 // export const Col_DROPDOWN_SOURCE = {

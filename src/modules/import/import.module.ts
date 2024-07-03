@@ -8,15 +8,19 @@ import { ColService } from '../col/col.service';
 import { CellService } from '../cell/cell.service';
 import { ItemService } from '../item/item.service';
 import { FormatService } from '../format/format.service';
+import { UserService } from '../user/user.service';
 import { Page } from '../page/page.entity';
 import { Row } from '../row/row.entity';
 import { Col } from '../col/col.entity';
 import { Cell } from '../cell/cell.entity';
 import { Item } from '../item/item.entity';
 import { Format } from '../format/format.entity';
+import { User } from '../user/user.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Page, Row, Col, Cell, Item, Format])],
+    imports: [
+        TypeOrmModule.forFeature([Page, Row, Col, Cell, Item, Format, User]),
+    ],
     controllers: [ImportController],
     providers: [
         ImportService,
@@ -26,6 +30,7 @@ import { Format } from '../format/format.entity';
         CellService,
         ItemService,
         FormatService,
+        UserService,
     ],
 })
 export class ImportModule {}

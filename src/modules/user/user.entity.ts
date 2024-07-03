@@ -1,6 +1,7 @@
 import {
     Entity,
     PrimaryGeneratedColumn,
+    PrimaryColumn,
     ManyToOne,
     JoinColumn,
     OneToMany,
@@ -11,7 +12,7 @@ import { Tx } from '../tx/tx.entity';
 
 @Entity('t-User')
 export class User {
-    @PrimaryGeneratedColumn()
+    @PrimaryColumn()
     User: number;
 
     @ManyToOne(() => Row, { nullable: false })

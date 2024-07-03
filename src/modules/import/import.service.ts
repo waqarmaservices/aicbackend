@@ -6,6 +6,7 @@ import { ColService } from '../col/col.service';
 import { CellService } from '../cell/cell.service';
 import { ItemService } from '../item/item.service';
 import { FormatService } from '../format/format.service';
+import { UserService } from '../user/user.service';
 import {
     TOKEN_CONSTANTS,
     COL_DATA_TYPES,
@@ -23,32 +24,35 @@ export class ImportService {
         private readonly cellService: CellService,
         private readonly itemService: ItemService,
         private readonly formatService: FormatService,
+        private readonly userService: UserService,
     ) {}
 
     async importSheet(filePath: string) {
+        const pageWorkbook = XLSX.readFile(filePath, { sheetRows: 18 });
+        const allPagesWorkbook = pageWorkbook.Sheets['All Pages'];
+        const allPagesSheetData = this.readSheetData(allPagesWorkbook);
 
-        // const pageWorkbook = XLSX.readFile(filePath, { sheetRows: 18 });
-        // const allPagesWorkbook = pageWorkbook.Sheets['All Pages'];
-        // const allPagesSheetData = this.readSheetData(allPagesWorkbook);
+        const pageIds = this.extractColHeaderValue(allPagesSheetData, 1);
+        await this.insertRecordIntotPG(pageIds);
 
-        // const pageIds = this.extractColHeaderValue(allPagesSheetData, 1);
-        // await this.insertRecordIntotPG(pageIds);
+        const colWorkbook = XLSX.readFile(filePath);
+        const allColsWorkbook = colWorkbook.Sheets['All Cols'];
+        const allColsSheetData = this.readSheetData(allColsWorkbook);
 
-        // const colWorkbook = XLSX.readFile(filePath);
-        // const allColsWorkbook = colWorkbook.Sheets['All Cols'];
-        // const allColsSheetData = this.readSheetData(allColsWorkbook);
+        const colIds = this.extractColHeaderValue(allColsSheetData, 2);
+        await this.insertRecordIntotCol(colIds);
 
-        // const colIds = this.extractColHeaderValue(allColsSheetData, 2);
-        // await this.insertRecordIntotCol(colIds);
+        await this.insertAllTokensData(filePath);
+        await this.insertAllPagesSheetData(filePath);
+        await this.insertAllColsSheetData(filePath);
+        await this.insertAllLanguagesSheetData(filePath);
+        await this.insertAllRegionsSheetData(filePath);
+        await this.insertAllSuppliersSheetData(filePath);
+        await this.insertAllModelsSheetData(filePath);
+        await this.insertAllUnitsSheetData(filePath);
+        await this.insertAllLabelsSheetData(filePath);
 
-        // await this.insertAllTokensData(filePath);
-        // await this.insertAllPagesSheetData(filePath);
-        // await this.insertAllColsSheetData(filePath);
-        // await this.insertAllLanguagesSheetData(filePath);
-        // await this.insertAllRegionsSheetData(filePath);
-        const supplier = await this.insertAllSuppliersSheetData(filePath);
-
-        return supplier;
+        return 'success';
     }
 
     private async insertRecordIntotPG(pageIds: string[]) {
@@ -95,38 +99,25 @@ export class ImportService {
         );
         for (const pageEl of pagesData) {
             const page = await this.pageService.findOne(pageEl.Page_ID);
+            const pageIdRowId = await this.getRowId('JSON', 'Page-ID');
+            const dataTypeRowId = await this.getRowId('JSON', 'Row-ID');
+            const systemRowId = await this.getRowId('JSON', 'System');
+            const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
+            const dropDownRowId = await this.getRowId('JSON', 'Drop-Down');
+            const urlRowId = await this.getRowId('JSON', 'URL');
+            const pgRowId = await this.getRowId('JSON', 'PG-Row');
             const createdRow = await this.rowService.createRow({
                 Row: pageEl.Row,
                 PG: page.PG,
                 RowLevel: 1,
-                RowType: TOKEN_CONSTANTS.ROW_TYPE,
-                Status: STATUSES[pageEl.Page_Status],
             });
             // PG Format
+            const statuses = await this.processStatus(pageEl, 'Page_Status');
             await this.formatService.createFormat({
                 User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: COL_DATA_TYPES.Page_ID,
+                ObjectType: pageIdRowId,
                 Object: page.PG,
-                Owner: SYSTEM_INITIAL.USER_ID,
-                Status: pageEl.Page_Status
-                    ? this.isSemicolonSeparated(pageEl.Page_Status)
-                        ? pageEl.Page_Status.split(';').map(
-                              (status) =>
-                                  STATUSES[
-                                      status
-                                          .trim()
-                                          .toUpperCase()
-                                          .replace(/\s+/g, '_')
-                                  ],
-                          )
-                        : [
-                              STATUSES[
-                                  pageEl.Page_Status.trim()
-                                      .toUpperCase()
-                                      .replace(/\s+/g, '_')
-                              ],
-                          ]
-                    : null,
+                Status: statuses,
                 Comment: pageEl.Page_Comment
                     ? { [SYSTEM_INITIAL.ENGLISH]: pageEl.Page_Comment }
                     : null,
@@ -134,13 +125,14 @@ export class ImportService {
             // Row Format
             await this.formatService.createFormat({
                 User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: COL_DATA_TYPES.Row_ID,
+                ObjectType: dataTypeRowId,
                 Object: createdRow.Row,
                 Owner: SYSTEM_INITIAL.USER_ID,
+                Status: [systemRowId.Row],
             });
             if (COLUMN_NAMES.Page_ID in pageEl) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.Page_ID,
+                    DataType: pageIdRowId,
                     Object: page.PG,
                 });
                 await this.cellService.createCell({
@@ -151,7 +143,7 @@ export class ImportService {
             }
             if (COLUMN_NAMES.Page_Name in pageEl) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.ML_Text,
+                    DataType: mlTextRowId,
                     JSON: { 3000000100: pageEl.Page_Name },
                 });
                 await this.cellService.createCell({
@@ -160,21 +152,34 @@ export class ImportService {
                     Items: [createdItem.Item],
                 });
             }
-            if (COLUMN_NAMES.Page_Type in pageEl) {
-                const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.Drop_Down,
-                    Object: 3000000328,
-                });
-                await this.cellService.createCell({
-                    Col: 2000000039,
-                    Row: createdRow.Row,
-                    Items: [createdItem.Item],
-                });
+            if (
+                COLUMN_NAMES.Page_Type in pageEl &&
+                COLUMN_NAMES.Page_Type != null
+            ) {
+                const objectRowId = await this.getRowId(
+                    'JSON',
+                    pageEl.Page_Type,
+                );
+                if (objectRowId) {
+                    const createdItem = await this.itemService.createItem({
+                        DataType: dropDownRowId,
+                        Object: objectRowId.Row,
+                    });
+                    await this.cellService.createCell({
+                        Col: 2000000039,
+                        Row: createdRow.Row,
+                        Items: [createdItem.Item],
+                    });
+                }
             }
             if (COLUMN_NAMES.Page_Edition in pageEl) {
+                const objectRowId = await this.getRowId(
+                    'JSON',
+                    pageEl.Page_Edition,
+                );
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.Drop_Down,
-                    Object: 3000000334,
+                    DataType: dropDownRowId,
+                    Object: objectRowId.Row,
                 });
                 await this.cellService.createCell({
                     Col: 2000000040,
@@ -184,7 +189,7 @@ export class ImportService {
             }
             if (COLUMN_NAMES.Page_URL in pageEl) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.URL,
+                    DataType: urlRowId,
                     JSON: {
                         3000000396: `http://aic.com/${page.PG}/${pageEl.Page_Name}`,
                     },
@@ -201,7 +206,7 @@ export class ImportService {
                     const itemIds = [];
                     for (const seo of seos) {
                         const createdItem = await this.itemService.createItem({
-                            DataType: COL_DATA_TYPES.ML_Text,
+                            DataType: mlTextRowId,
                             JSON: { [SYSTEM_INITIAL.ENGLISH]: seo },
                         });
                         itemIds.push(createdItem.Item);
@@ -213,7 +218,55 @@ export class ImportService {
                     });
                 }
             }
+            if (COLUMN_NAMES.Row_Type in pageEl) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: dropDownRowId,
+                    Object: pgRowId.Row,
+                });
+                await this.cellService.createCell({
+                    Col: 2000000040,
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
         }
+    }
+
+    private async processStatus(el: any, key: string) {
+        if (!el[key]) {
+            return null;
+        }
+
+        const statuses = await (this.isSemicolonSeparated(el[key])
+            ? Promise.all(
+                  el[key]
+                      .split(';')
+                      .map(
+                          async (status) =>
+                              (await this.getRowId('JSON', status.trim()))?.Row,
+                      ),
+              )
+            : [(await this.getRowId('JSON', el[key].trim()))?.Row]);
+        return statuses;
+    }
+
+    private async processStringToRowIds(itemString: string) {
+        if (!itemString) {
+            return null;
+        }
+
+        const rowIds = await (this.isSemicolonSeparated(itemString)
+            ? Promise.all(
+                  itemString
+                      .split(';')
+                      .map(
+                          async (singleString) =>
+                              (await this.getRowId('JSON', singleString.trim()))
+                                  ?.Row,
+                      ),
+              )
+            : [(await this.getRowId('JSON', itemString.trim()))?.Row]);
+        return rowIds;
     }
 
     private async insertAllColsSheetData(filePath: string) {
@@ -239,41 +292,32 @@ export class ImportService {
             .map((colName) => colName.trim())
             .filter((colName) => colName !== '')
             .map((colName) => colName.replace(/[\s-]+/g, '_'));
-
         const colsData: any = filteredColsData.map((row) =>
             filteredColsColumns.reduce((acc, colName, index) => {
                 acc[colName] = row[index];
                 return acc;
             }, {}),
         );
-
         for (const colEl of colsData) {
             const col = await this.colService.findOne(colEl.Col_ID);
+            const pageIdRowId = await this.getRowId('JSON', 'Page-ID');
+            const colIdRowId = await this.getRowId('JSON', 'Col-ID');
+            const rowId = await this.getRowId('JSON', 'Row-ID');
+            const colStatuses = await this.processStatus(colEl, 'Col_Status');
+            const rowStatuses = await this.processStatus(colEl, 'Row_Status');
+            const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
+            const dropDownRowId = await this.getRowId('JSON', 'Drop-Down');
+            const dropDownSourceRowId = await this.getRowId(
+                'JSON',
+                'DropDown-Source',
+            );
+            const colRowRowId = await this.getRowId('JSON', 'Col-Row');
             // Col Format
             await this.formatService.createFormat({
                 User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: COL_DATA_TYPES.Col_ID,
+                ObjectType: colIdRowId,
                 Object: col.Col,
-                Owner: SYSTEM_INITIAL.USER_ID,
-                Status: colEl.Col_Status
-                    ? this.isSemicolonSeparated(colEl.Col_Status)
-                        ? colEl.Col_Status.split(';').map(
-                              (status) =>
-                                  STATUSES[
-                                      status
-                                          .trim()
-                                          .toUpperCase()
-                                          .replace(/\s+/g, '_')
-                                  ],
-                          )
-                        : [
-                              STATUSES[
-                                  colEl.Col_Status.trim()
-                                      .toUpperCase()
-                                      .replace(/\s+/g, '_')
-                              ],
-                          ]
-                    : null,
+                Status: colStatuses,
                 Formula: colEl.Col_Formula
                     ? { 3000000380: colEl.Col_Formula }
                     : null,
@@ -283,24 +327,25 @@ export class ImportService {
             });
             const createdRow = await this.rowService.createRow({
                 Row: colEl.Row,
-                PG: SYSTEM_INITIAL.ALL_COLS,
                 RowLevel: 1,
-                RowType: TOKEN_CONSTANTS.COL_ROW,
-                Status: [STATUSES.SYSTEM],
             });
             // Row Format
             await this.formatService.createFormat({
                 User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: COL_DATA_TYPES.Row_ID,
+                ObjectType: rowId,
                 Object: createdRow.Row,
                 Owner: SYSTEM_INITIAL.USER_ID,
-                Status: [STATUSES.SYSTEM],
+                Status: rowStatuses,
             });
 
-            if (COLUMN_NAMES.Page_Type in colEl) {
+            if (COLUMN_NAMES.Page_Type in colEl && colEl.Page_Type != null) {
+                const pageTypeObjectId = await this.getRowId(
+                    'JSON',
+                    colEl.Page_Type,
+                );
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.Drop_Down,
-                    Object: 3000000327,
+                    DataType: dropDownRowId,
+                    Object: pageTypeObjectId.Row,
                 });
                 await this.cellService.createCell({
                     Col: 2000000047,
@@ -309,10 +354,10 @@ export class ImportService {
                 });
             }
 
-            if (COLUMN_NAMES.Page_ID in colEl) {
+            if (COLUMN_NAMES.Page_ID in colEl && colEl.Page_ID != null) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.Page_ID,
-                    Object: colEl.Page_ID ? colEl.Page_ID : null,
+                    DataType: pageIdRowId,
+                    Object: colEl.Page_ID,
                 });
                 await this.cellService.createCell({
                     Col: 2000000048,
@@ -321,9 +366,9 @@ export class ImportService {
                 });
             }
 
-            if (COLUMN_NAMES.Col_Name in colEl) {
+            if (COLUMN_NAMES.Col_Name in colEl && colEl.Col_Name != null) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.ML_Text,
+                    DataType: mlTextRowId,
                     JSON: { [SYSTEM_INITIAL.ENGLISH]: colEl.Col_Name },
                 });
                 await this.cellService.createCell({
@@ -332,12 +377,17 @@ export class ImportService {
                     Items: [createdItem.Item],
                 });
             }
-            if (COLUMN_NAMES.Col_Data_Type in colEl) {
+            if (
+                COLUMN_NAMES.Col_Data_Type in colEl &&
+                colEl.Col_Data_Type != null
+            ) {
+                const colDataTypeObjectId = await this.getRowId(
+                    'JSON',
+                    colEl.Col_Data_Type,
+                );
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.Drop_Down,
-                    Object: COL_DATA_TYPES[
-                        colEl.Col_Data_Type.trim().replace(/[-\s]/g, '_')
-                    ],
+                    DataType: dropDownRowId,
+                    Object: colDataTypeObjectId.Row,
                 });
                 await this.cellService.createCell({
                     Col: 2000000050,
@@ -345,13 +395,33 @@ export class ImportService {
                     Items: [createdItem.Item],
                 });
             }
-            if (COLUMN_NAMES.Col_DropDown_Source in colEl) {
+            if (
+                COLUMN_NAMES.Col_DropDown_Source in colEl &&
+                colEl.Col_DropDown_Source != null
+            ) {
+                const colDropDownSourceJson = await this.getRowId(
+                    'JSON',
+                    colEl.Col_DropDown_Source,
+                );
+                if (colDropDownSourceJson) {
+                    const createdItem = await this.itemService.createItem({
+                        DataType: dropDownSourceRowId,
+                        JSON: { 3000000375: colDropDownSourceJson.Row },
+                    });
+                    await this.cellService.createCell({
+                        Col: 2000000051,
+                        Row: createdRow.Row,
+                        Items: [createdItem.Item],
+                    });
+                }
+            }
+            if (COLUMN_NAMES.Row_Type in colEl && colEl.Row_Type != null) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.DropDown_Source,
-                    JSON: { 3000000375: 3000000338 },
+                    DataType: dropDownRowId,
+                    Object: colRowRowId.Row,
                 });
                 await this.cellService.createCell({
-                    Col: 2000000051,
+                    Col: 2000000004,
                     Row: createdRow.Row,
                     Items: [createdItem.Item],
                 });
@@ -366,66 +436,71 @@ export class ImportService {
         const allTokenData = [];
         for (const [rowIndex, row] of allTokensSheetData.entries()) {
             allTokenData[rowIndex] = {
-                row_id: row[0],
-                token:
-                    row[1] != null
-                        ? row[1]
-                        : row[2] != null
-                          ? row[2]
-                          : row[3] != null
-                            ? row[3]
-                            : row[4] != null
-                              ? row[4]
-                              : row[5],
-                row_type: row[7] == null ? row[6] : row[7],
-                row_comment: row[8] == null ? '' : row[8],
-                row_level: await this.calculateRowLevel(row, 'All Tokens'),
+                Row: row[0],
+                TOKEN: row.slice(1, 6).find((value) => value != null),
+                Row_Type: row[7] ?? row[7],
+                Row_Status: row[8] ?? row[8],
+                Row_Comment: row[9] ?? row[9],
+                Row_level: await this.calculateRowLevel(row, 'All Tokens'),
             };
         }
-        for (const token of allTokenData) {
-            let createdRow = await this.rowService.findOne(token.row_id);
+        for (const tokenEl of allTokenData) {
+            let createdRow = await this.rowService.findOne(tokenEl.Row);
             if (!createdRow) {
                 createdRow = await this.rowService.createRow({
-                    Row: token.row_id,
-                    RowLevel: token.row_level,
+                    Row: tokenEl.Row,
+                    RowLevel: tokenEl.Row_level,
                 });
             }
-
-            for (const [key, val] of Object.entries(token)) {
-                if (key == 'token' && val !== null) {
-                    const createdItem = await this.itemService.createItem({
-                        DataType: createdRow.Row,
-                        JSON: { 3000000100: val },
-                    });
-                    await this.cellService.createCell({
-                        Col: 2000000077,
-                        Row: createdRow.Row,
-                        Items: [createdItem.Item],
-                    });
-                }
+            if (COLUMN_NAMES.TOKEN in tokenEl) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: createdRow.Row,
+                    JSON: { 3000000100: tokenEl.TOKEN },
+                });
+                await this.cellService.createCell({
+                    Col: 2000000077,
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
             }
+        }
+        await this.insertRecordIntoUserTable();
+        await this.rowFormatRecord(allTokenData);
+        await this.updateRowType(allTokenData);
+        await this.populateSiblingRowColumn();
+        await this.populateParentRowColumn();
+    }
 
+    private async insertRecordIntoUserTable() {
+        const userIdRowId = await this.getRowId('JSON', 'User-ID');
+        await this.userService.createUser({
+            User: 3000000099,
+            UserType: userIdRowId,
+        });
+    }
+
+    private async rowFormatRecord(allTokenData: any[]) {
+        const objectTypeRowId = await this.getRowId('JSON', 'Row-ID');
+        const sectionHeadRowId = await this.getRowId('JSON', 'Section-Head');
+        for (const tokenEl of allTokenData) {
+            const row = await this.rowService.findOne(tokenEl.Row);
             await this.formatService.createFormat({
                 User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: createdRow.Row,
-                Object: createdRow.Row,
+                ObjectType: objectTypeRowId,
+                Object: row.Row,
                 Owner: SYSTEM_INITIAL.USER_ID,
-                Comment: token.row_comment
-                    ? { 3000000100: token.row_comment }
+                Status: tokenEl.Row_Status ? [sectionHeadRowId.Row] : null,
+                Comment: tokenEl.Row_Comment
+                    ? { 3000000100: tokenEl.Row_Comment }
                     : null,
             });
         }
-        await this.updateRowType(allTokenData);
-        // await this.updateItemDataType();
-        await this.populateSiblingRowColumn();
-        await this.populateParentRowColumn();
     }
 
     private async calculateRowLevel(
         rowArray: Array<any>,
         sheetName?: string,
     ): Promise<number> {
-        //console.log('Row in Calculate Level: ', rowArray)
         if (sheetName && sheetName == 'All Tokens') {
             if (rowArray[1]) {
                 return 1;
@@ -485,9 +560,6 @@ export class ImportService {
             outerIndex++;
             let innerIndex = outerIndex;
             while (innerIndex < allTokens.length) {
-                if (outerRow.RowLevel < allTokens[innerIndex].RowLevel) {
-                    break;
-                }
                 if (
                     outerRow.Row != allTokens[innerIndex].Row &&
                     outerRow.Row > allTokens[innerIndex].Row &&
@@ -512,20 +584,12 @@ export class ImportService {
             (row) => !this.isAllNull(row),
         );
 
-        const updatedLanguagesData = filteredAllLanguagesData.map((row) => {
-            if (row[0] !== null) {
-                row[0] = null;
-                row[1] = 'All Languages';
-            }
-            return row;
-        });
-
-        const validLanguagesColumns = updatedLanguagesData[0].map(
+        const validLanguagesColumns = filteredAllLanguagesData[0].map(
             (_, colIndex) =>
-                updatedLanguagesData.some((row) => row[colIndex] !== null),
+                filteredAllLanguagesData.some((row) => row[colIndex] !== null),
         );
 
-        const filteredLanguagesData = updatedLanguagesData.map((row) =>
+        const filteredLanguagesData = filteredAllLanguagesData.map((row) =>
             row.filter((_, colIndex) => validLanguagesColumns[colIndex]),
         );
 
@@ -543,6 +607,12 @@ export class ImportService {
                 return acc;
             }, {}),
         );
+        const dataTypeRowId = await this.getRowId('JSON', 'Row-ID');
+        const rowStatuses = await this.processStatus(
+            languagesData[0],
+            'Row_Status',
+        );
+        const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
         for (const langEL of languagesData) {
             let nextRowPk = 0;
             const lastRowInserted =
@@ -551,20 +621,24 @@ export class ImportService {
             const createdRow = await this.rowService.createRow({
                 Row: nextRowPk,
                 RowLevel: 1,
-                RowType: langEL.Row_Type
-                    ? TOKEN_CONSTANTS[
-                          langEL.Row_Type.trim()
-                              .toUpperCase()
-                              .replace(/\s+/g, '_')
-                              .replace(/-/g, '_')
-                      ]
+            });
+
+            // Row Format
+            await this.formatService.createFormat({
+                User: SYSTEM_INITIAL.USER_ID,
+                ObjectType: dataTypeRowId,
+                Object: createdRow.Row,
+                Owner: SYSTEM_INITIAL.USER_ID,
+                Status: langEL.Row_Status ? rowStatuses : null,
+                Comment: langEL.Row_Comment
+                    ? { [SYSTEM_INITIAL.ENGLISH]: langEL.Row_Comment }
                     : null,
             });
 
-            if (COLUMN_NAMES.LANGUAGE in langEL) {
+            if (COLUMN_NAMES.Language in langEL && langEL.Language != null) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.ML_Text,
-                    JSON: { [SYSTEM_INITIAL.ENGLISH]: langEL.LANGUAGE },
+                    DataType: mlTextRowId,
+                    JSON: { [SYSTEM_INITIAL.ENGLISH]: langEL.Language },
                 });
                 await this.cellService.createCell({
                     Col: 2000000086,
@@ -572,21 +646,22 @@ export class ImportService {
                     Items: [createdItem.Item],
                 });
             }
-
-            // Row Format
-            await this.formatService.createFormat({
-                User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: COL_DATA_TYPES.Row_ID,
-                Object: createdRow.Row,
-                Owner: SYSTEM_INITIAL.USER_ID,
-                Comment: langEL.Row_Comment
-                    ? { [SYSTEM_INITIAL.ENGLISH]: langEL.Row_Comment }
-                    : null,
-            });
+            if (COLUMN_NAMES.Row_Type in langEL && langEL.Row_Type != null) {
+                const defaultRowId = await this.getRowId('JSON', 'Default');
+                const createdItem = await this.itemService.createItem({
+                    DataType: mlTextRowId,
+                    Object: defaultRowId.Row,
+                });
+                await this.cellService.createCell({
+                    Col: 2000000004,
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
         }
     }
 
-    private async insertAllRegionsSheetData(filePath: string){
+    private async insertAllRegionsSheetData(filePath: string) {
         const regionsWorkbook = XLSX.readFile(filePath);
         const allRegionsWorkbook = regionsWorkbook.Sheets['All Regions'];
         const allRegionsSheetData = this.readSheetData(allRegionsWorkbook);
@@ -598,22 +673,20 @@ export class ImportService {
         const allRegionsData = [];
         for (const [rowIndex, row] of filteredAllRegionsData.entries()) {
             allRegionsData[rowIndex] = {
-                Region:
-                    row[1] != null
-                    ? row[1]
-                    : row[2] != null
-                    ? row[2]
-                    : row[3] != null
-                        ? row[3]
-                        : row[4] != null
-                        ? row[4]
-                        : row[5],
-                Row_Type: row[7] == null ? row[6] : row[7],
-                Row_Comment: row[8] == null ? '' : row[8],
-                Row_Level: await this.calculateRowLevel(row),
+                Region: row.slice(0, 6).find((value) => value != null),
+                Row_Type: row[7] ?? row[7],
+                Row_Status: row[8] ?? row[8],
+                Row_Comment: row[9] ?? row[9],
+                Row_Level: await this.calculateRowLevel(row, 'All Tokens'),
             };
         }
 
+        const dataTypeRowId = await this.getRowId('JSON', 'Row-ID');
+        const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
+        const rowStatuses = await this.processStatus(
+            allRegionsData[0],
+            'Row_Status',
+        );
         for (const regionEl of allRegionsData) {
             let nextRowPk = 0;
             const lastRowInserted =
@@ -622,15 +695,24 @@ export class ImportService {
             const createdRow = await this.rowService.createRow({
                 Row: nextRowPk,
                 RowLevel: regionEl.Row_Level,
-                RowType: regionEl.Row_Type
-                    ? TOKEN_CONSTANTS[regionEl.Row_Type.trim()]
+            });
+
+            // Row Format
+            await this.formatService.createFormat({
+                User: SYSTEM_INITIAL.USER_ID,
+                ObjectType: dataTypeRowId,
+                Object: createdRow.Row,
+                Owner: SYSTEM_INITIAL.USER_ID,
+                Status: regionEl.Row_Status ? rowStatuses : null,
+                Comment: regionEl.Row_Comment
+                    ? { [SYSTEM_INITIAL.ENGLISH]: regionEl.Row_Comment }
                     : null,
             });
 
-            if (COLUMN_NAMES.REGION in regionEl) {
+            if (COLUMN_NAMES.Region in regionEl && regionEl.Region != null) {
                 const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.ML_Text,
-                    JSON: { [SYSTEM_INITIAL.ENGLISH]: regionEl.REGION },
+                    DataType: mlTextRowId,
+                    JSON: { [SYSTEM_INITIAL.ENGLISH]: regionEl.Region },
                 });
                 await this.cellService.createCell({
                     Col: 2000000087,
@@ -638,17 +720,24 @@ export class ImportService {
                     Items: [createdItem.Item],
                 });
             }
-
-            // Row Format
-            await this.formatService.createFormat({
-                User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: COL_DATA_TYPES.Row_ID,
-                Object: createdRow.Row,
-                Owner: SYSTEM_INITIAL.USER_ID,
-                Comment: regionEl.Row_Comment
-                    ? { [SYSTEM_INITIAL.ENGLISH]: regionEl.Row_Comment }
-                    : null,
-            });
+            if (
+                COLUMN_NAMES.Row_Type in regionEl &&
+                regionEl.Row_Type != null
+            ) {
+                const rowTypeRowId = await this.getRowId(
+                    'JSON',
+                    regionEl.Row_Type,
+                );
+                const createdItem = await this.itemService.createItem({
+                    DataType: mlTextRowId,
+                    Object: rowTypeRowId.Row,
+                });
+                await this.cellService.createCell({
+                    Col: 2000000004,
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
         }
 
         await this.populateSiblingRowColumn();
@@ -667,108 +756,483 @@ export class ImportService {
         const allSuppliersData = [];
         for (const [rowIndex, row] of filteredAllSuppliersData.entries()) {
             allSuppliersData[rowIndex] = {
-                Supplier:
-                    row[1] != null
-                    ? row[1]
-                    : row[2] != null
-                    ? row[2]
-                    : row[3] != null
-                        ? row[3]
-                        : row[4] != null
-                        ? row[4]
-                        : row[5],
-                Row_Type: row[7] == null ? row[6] : row[7],
-                Row_Comment: row[8] == null ? '' : row[8],
+                Supplier: row.slice(0, 7).find((value) => value != null),
+                Row_Type: row[8] ?? row[8],
+                Row_Status: row[9] ?? row[9],
+                Row_Comment: row[10] ?? row[10],
                 Row_Level: await this.calculateRowLevel(row),
             };
         }
 
-        for (const regionEl of allSuppliersData) {
+        const dataTypeRowId = await this.getRowId('JSON', 'Row-ID');
+        const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
+        const rowStatuses = await this.processStatus(
+            allSuppliersData[0],
+            'Row_Status',
+        );
+
+        for (const supplierEl of allSuppliersData) {
             let nextRowPk = 0;
             const lastRowInserted =
                 await this.rowService.getLastInsertedRecord();
             nextRowPk = +lastRowInserted.Row + 1;
             const createdRow = await this.rowService.createRow({
                 Row: nextRowPk,
-                RowLevel: regionEl.Row_Level,
-                RowType: regionEl.Row_Type
-                    ? TOKEN_CONSTANTS[regionEl.Row_Type.trim()]
-                    : null,
+                RowLevel: supplierEl.Row_Level,
             });
-
-            if (COLUMN_NAMES.REGION in regionEl) {
-                const createdItem = await this.itemService.createItem({
-                    DataType: COL_DATA_TYPES.ML_Text,
-                    JSON: { [SYSTEM_INITIAL.ENGLISH]: regionEl.REGION },
-                });
-                await this.cellService.createCell({
-                    Col: 2000000087,
-                    Row: createdRow.Row,
-                    Items: [createdItem.Item],
-                });
-            }
 
             // Row Format
             await this.formatService.createFormat({
                 User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: COL_DATA_TYPES.Row_ID,
+                ObjectType: dataTypeRowId,
                 Object: createdRow.Row,
                 Owner: SYSTEM_INITIAL.USER_ID,
-                Comment: regionEl.Row_Comment
-                    ? { [SYSTEM_INITIAL.ENGLISH]: regionEl.Row_Comment }
+                Status: supplierEl.Row_Status ? rowStatuses : null,
+                Comment: supplierEl.Row_Comment
+                    ? { [SYSTEM_INITIAL.ENGLISH]: supplierEl.Row_Comment }
                     : null,
             });
+
+            if (
+                COLUMN_NAMES.Supplier in supplierEl &&
+                supplierEl.Supplier != null
+            ) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: mlTextRowId,
+                    JSON: { [SYSTEM_INITIAL.ENGLISH]: supplierEl.Supplier },
+                });
+                await this.cellService.createCell({
+                    Col: 2000000088,
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
+            if (
+                COLUMN_NAMES.Row_Type in supplierEl &&
+                supplierEl.Row_Type != null
+            ) {
+                const rowTypeRowIds = await this.processStatus(
+                    supplierEl,
+                    'Row_Type',
+                );
+                if (rowTypeRowIds != null && rowTypeRowIds.length > 0) {
+                    const itemIds = [];
+                    for (const rowTypeId of rowTypeRowIds) {
+                        const createdItem = await this.itemService.createItem({
+                            DataType: mlTextRowId,
+                            Object: rowTypeId,
+                        });
+                        itemIds.push(createdItem.Item);
+                    }
+                    await this.cellService.createCell({
+                        Col: 2000000004,
+                        Row: createdRow.Row,
+                        Items: itemIds,
+                    });
+                }
+            }
         }
 
         await this.populateSiblingRowColumn();
         await this.populateParentRowColumn();
     }
 
-    private async updateRowType(tokenData: any[]) {
-        for (const token of tokenData) {
-            if (token.row_type) {
-                const item = await this.itemService.findOneByColumnName(
-                    'JSON',
-                    token.row_type,
+    private async insertAllModelsSheetData(filePath: string) {
+        const modelsWorkbook = XLSX.readFile(filePath);
+        const allModelsWorkbook = modelsWorkbook.Sheets['All Models'];
+        const allModelsSheetData = this.readSheetData(allModelsWorkbook);
+
+        const filteredAllModelsData = allModelsSheetData.filter(
+            (row) => !this.isAllNull(row),
+        );
+
+        const allModelsData = [];
+        for (const [rowIndex, row] of filteredAllModelsData.entries()) {
+            allModelsData[rowIndex] = {
+                Model: row.slice(0, 7).find((value) => value != null),
+                Release_Date: row[8] ?? row[8],
+                Row_Type: row[9] ?? row[9],
+                Row_Status: row[10] ?? row[10],
+                Row_Comment: row[11] ?? row[11],
+                Row_Level: await this.calculateRowLevel(row),
+            };
+        }
+
+        const dataTypeRowId = await this.getRowId('JSON', 'Row-ID');
+        const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
+        const dateRowId = await this.getRowId('JSON', 'Date');
+        const rowStatuses = await this.processStatus(
+            allModelsData[0],
+            'Row_Status',
+        );
+
+        for (const modelEl of allModelsData) {
+            let nextRowPk = 0;
+            const lastRowInserted =
+                await this.rowService.getLastInsertedRecord();
+            nextRowPk = +lastRowInserted.Row + 1;
+            const createdRow = await this.rowService.createRow({
+                Row: nextRowPk,
+                RowLevel: modelEl.Row_Level,
+            });
+
+            // Row Format
+            await this.formatService.createFormat({
+                User: SYSTEM_INITIAL.USER_ID,
+                ObjectType: dataTypeRowId,
+                Object: createdRow.Row,
+                Owner: SYSTEM_INITIAL.USER_ID,
+                Status: modelEl.Row_Status ? rowStatuses : null,
+                Comment: modelEl.Row_Comment
+                    ? { [SYSTEM_INITIAL.ENGLISH]: modelEl.Row_Comment }
+                    : null,
+            });
+
+            if (COLUMN_NAMES.Model in modelEl && modelEl.Model != null) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: mlTextRowId,
+                    JSON: { [SYSTEM_INITIAL.ENGLISH]: modelEl.Model },
+                });
+                await this.cellService.createCell({
+                    Col: 2000000089,
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
+            if (
+                COLUMN_NAMES.Release_Date in modelEl &&
+                modelEl.Release_Date != null
+            ) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: dateRowId,
+                    DateTime: new Date(modelEl.Release_Date).toISOString(),
+                });
+                await this.cellService.createCell({
+                    Col: 2000000089,
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
+            if (COLUMN_NAMES.Row_Type in modelEl && modelEl.Row_Type != null) {
+                const rowTypeRowIds = await this.processStatus(
+                    modelEl,
+                    'Row_Type',
                 );
-                if (item) {
-                    const cell = await this.cellService.findOneByColumnName(
-                        'Items',
-                        item.Item,
-                    );
-                    if (cell.Row?.Row) {
-                        const rowEntity = await this.rowService.findOne(
-                            cell.Row.Row,
-                        );
-                        await this.rowService.updateRow(token.row_id, {
-                            RowType: rowEntity,
+                if (rowTypeRowIds != null && rowTypeRowIds.length > 0) {
+                    const itemIds = [];
+                    for (const rowTypeId of rowTypeRowIds) {
+                        const createdItem = await this.itemService.createItem({
+                            DataType: mlTextRowId,
+                            Object: rowTypeId,
                         });
+                        itemIds.push(createdItem.Item);
                     }
+                    await this.cellService.createCell({
+                        Col: 2000000004,
+                        Row: createdRow.Row,
+                        Items: itemIds,
+                    });
+                }
+            }
+        }
+
+        await this.populateSiblingRowColumn();
+        await this.populateParentRowColumn();
+    }
+
+    private async insertAllUnitsSheetData(filePath: string) {
+        const unitWorkbook = XLSX.readFile(filePath);
+        const allUnitsWorkbook = unitWorkbook.Sheets['All Units'];
+        const allUnitsSheetData = this.readSheetData(allUnitsWorkbook);
+
+        const allUnitsData = [];
+        for (const [rowIndex, row] of allUnitsSheetData.entries()) {
+            allUnitsData[rowIndex] = {
+                Unit: row.slice(1, 2).find((value) => value != null),
+                Unit_Factor: row[3] ?? row[3],
+                Row_Type: row[4] ?? row[4],
+                Row_Status: row[5] ?? row[5],
+                Row_Comment: row[6] ?? row[6],
+                Row_Level: 1,
+            };
+        }
+        for (const unitEl of allUnitsData) {
+            let nextRowPk = 0;
+            const lastRowInserted =
+                await this.rowService.getLastInsertedRecord();
+            nextRowPk = +lastRowInserted.Row + 1;
+            const rowId = await this.getRowId('JSON', 'Row-ID');
+            const stdUnitRowId = await this.getRowId('JSON', 'Std-Unit');
+            const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
+            const numberRowId = await this.getRowId('JSON', 'Number')
+            const dropDownRowId = await this.getRowId('JSON', 'Drop-Down');
+            const rowStatuses = await this.processStringToRowIds(
+                unitEl.Row_Status,
+            );
+
+            // Creating Row
+            const createdRow = await this.rowService.createRow({
+                Row: nextRowPk,
+                RowLevel: 1,
+            });
+            // Row Format
+            await this.formatService.createFormat({
+                User: SYSTEM_INITIAL.USER_ID,
+                ObjectType: rowId,
+                Object: createdRow.Row,
+                Owner: SYSTEM_INITIAL.USER_ID,
+                Status: unitEl.Row_Status ? rowStatuses : null,
+                Comment: unitEl.Row_Comment
+                    ? { 3000000100: unitEl.Row_Comment }
+                    : null,
+            });
+
+            if (COLUMN_NAMES.Unit in unitEl && unitEl.Unit) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: mlTextRowId,
+                    JSON: { 3000000100: unitEl.Unit },
+                });
+                await this.cellService.createCell({
+                    Col: 2000000084, // column id of "Unit"
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
+
+            if (COLUMN_NAMES.Unit_Factor in unitEl && unitEl.Unit_Factor) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: numberRowId,
+                    Num: unitEl.Unit_Factor,
+                });
+                await this.cellService.createCell({
+                    Col: 2000000085, // column id of "Unit Factor"
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
+
+            if (COLUMN_NAMES.Row_Type in unitEl && unitEl.ROW_TYPE) {
+                const createdItem = await this.itemService.createItem({
+                    DataType: dropDownRowId,
+                    Object: stdUnitRowId,
+                });
+                await this.cellService.createCell({
+                    Col: 2000000004, // column id of "Row Type"
+                    Row: createdRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
+        }
+    }
+
+    private async insertAllLabelsSheetData(filePath: string) {
+        const suppliersWorkbook = XLSX.readFile(filePath);
+        const allLabelsWorkbook = suppliersWorkbook.Sheets['All Labels'];
+        const allLabelsSheetData = this.readSheetData(allLabelsWorkbook);
+
+        const filteredAllLabelsData = allLabelsSheetData.filter(
+            (row) => !this.isAllNull(row),
+        );
+
+        const allLabelsData = [];
+        for (const [rowIndex, row] of filteredAllLabelsData.entries()) {
+            allLabelsData[rowIndex] = {
+                Label:
+                    row[0] != null
+                        ? row[0]
+                        : row[1] != null
+                          ? row[1]
+                          : row[2] != null
+                            ? row[2]
+                            : row[3] != null
+                              ? row[3]
+                              : row[4],
+                Value_Data_Type: row[6] == null ? '' : row[6],
+                Value_DropDown_Source: row[7] == null ? '' : row[7],
+                Value_Default_Data: row[8] == null ? '' : row[8],
+                Value_Status: row[9] == null ? '' : row[9],
+                Value_Formula: row[10] == null ? '' : row[10],
+                Row_Type: row[11] == null ? '' : row[11],
+                Row_Status: row[12] == null ? '' : row[12],
+                Row_Comment: row[13] == null ? '' : row[13],
+                Row_Level: await this.calculateRowLevel(row),
+            };
+        }
+
+        for (const labelEl of allLabelsData) {
+            console.log(labelEl);
+            let nextRowPk = 0;
+            const lastRowInserted =
+                await this.rowService.getLastInsertedRecord();
+            nextRowPk = lastRowInserted ? +lastRowInserted.Row + 1 : 3000000201;
+            const createdRow = await this.rowService.createRow({
+                Row: nextRowPk,
+                RowLevel: labelEl.Row_Level,
+            });
+            const createdFormat = await this.formatService.createFormat({
+                User: SYSTEM_INITIAL.USER_ID,
+                ObjectType: createdRow.Row,
+                Object: createdRow.Row,
+                Owner: SYSTEM_INITIAL.USER_ID,
+            });
+
+            for (const [key, val] of Object.entries(labelEl)) {
+                if (key == 'Label' && val !== null) {
+                    const createdItem = await this.itemService.createItem({
+                        DataType: createdRow.Row,
+                        JSON: { 3000000100: val },
+                    });
+                    await this.cellService.createCell({
+                        Col: 2000000078, // column id of "Label"
+                        Row: createdRow.Row,
+                        Items: [createdItem.Item],
+                    });
+
+                } else if (key == 'Value-Data-Type' && val !== null) {
+                    const createdItem = await this.itemService.createItem({
+                        DataType: COL_DATA_TYPES.Drop_Down, // changed in all tokens, we should find it dynamically
+                        Object: COL_DATA_TYPES.Category_ID, // changed in all tokens, we should find it dynamically
+                    });
+                    await this.cellService.createCell({
+                        Col: 2000000079, // column id of "Value Data-Type"
+                        Row: createdRow.Row,
+                        Items: [createdItem.Item],
+                    });
+
+                } else if (key == 'Value_DropDown_Source' && val) {
+                    const rowsIds = await this.processStringToRowIds(
+                        val as string,
+                    );
+                    const createdItemIds = []
+                    for (const rowId of rowsIds) {
+                        const createdItem = await this.itemService.createItem({
+                            DataType: COL_DATA_TYPES.DropDown_Source, // changed in all tokens, we should find it dynamically
+                            JSON: { 3000000375: rowId },
+                        });
+                        createdItemIds.push(createdItem.Item);
+                    }
+                    await this.cellService.createCell({
+                        Col: 2000000080, // column id of "Value DropDown-Source"
+                        Row: createdRow.Row,
+                        Items: createdItemIds,
+                    });
+
+                } else if (key == 'Value_Default_Data' && val) {
+                    const createdItem = await this.itemService.createItem({
+                        DataType: COL_DATA_TYPES.Value_Data_Type, // changed in all tokens, we should find it dynamically
+                        JSON: { 3000000100: val },
+                    });
+                    const createdCell = await this.cellService.createCell({
+                        Col: 2000000081, // column id of "Value Default-Data"
+                        Row: 3000000201, // as per setup sheet - Row.Row = 0
+                        Items: [createdItem.Item],
+                    });
+                    await this.formatService.updateFormat(
+                        createdFormat.Format,
+                        {
+                            Default: createdCell, // putting cell id
+                        },
+                    );
+                } else if (key == 'Value_Status' && val) {
+                    const valueStatusRows = await this.processStringToRowIds(
+                        val as string,
+                    );
+                    const createdItemIds = [];
+                    for (const rowId of valueStatusRows) {
+                        const createdItem = await this.itemService.createItem({
+                            DataType: COL_DATA_TYPES.Drop_Down, // changed in all tokens, we should find it dynamically
+                            Object: rowId,
+                        });
+                        createdItemIds.push(createdItem.Item);
+                    }
+                    await this.cellService.createCell({
+                        Col: 2000000081, // column id of "Value Default-Data"
+                        Row: createdRow.Row,
+                        Items: createdItemIds,
+                    });
+                } else if (key == 'Value_Formula' && val) {
+                    const createdItem = await this.itemService.createItem({
+                        DataType: COL_DATA_TYPES.Formula, // changed in all tokens, we should find it dynamically
+                        JSON: { 3000000382: val },
+                    });
+                    await this.cellService.createCell({
+                        Col: 2000000083, // column id of "Value Formula"
+                        Row: createdRow.Row,
+                        Items: [createdItem.Item],
+                    });
+                } else if (key == 'Row_Type' && val) {
+                    const rowTypes = await this.processStringToRowIds(
+                        val as string,
+                    );
+                    const createdItemIds = [];
+                    for (const rowId of rowTypes) {
+                        const createdItem = await this.itemService.createItem({
+                            DataType: COL_DATA_TYPES.Drop_Down, // changed in all tokens, we should find it dynamically
+                            Object: rowId,
+                        });
+                        createdItemIds.push(createdItem.Item);
+                    }
+                    await this.cellService.createCell({
+                        Col: 2000000004, // column id of "Row Type"
+                        Row: createdRow.Row,
+                        Items: createdItemIds,
+                    });
+                } else if (key == 'Row_Status' && val) {
+                    await this.formatService.updateFormat(
+                        createdFormat.Format,
+                        {
+                            Status: [STATUSES.SECTION_HEAD], // changed in all tokens, we should find it dynamically
+                        },
+                    );
+                } else if (key == 'Row_Comment' && val !== null) {
+                    await this.formatService.updateFormat(
+                        createdFormat.Format,
+                        {
+                            Comment: { 3000000100: val },
+                        },
+                    );
                 }
             }
         }
     }
 
-    private async updateItemDataType() {
-        const MLTextItem = await this.itemService.findOneByColumnName(
-            'JSON',
-            'ML-Text',
+    private async updateRowType(allTokenData: any[]) {
+        const dropDownRowId = await this.getRowId('JSON', 'Drop-Down');
+        const nodeRowId = await this.getRowId('JSON', 'Node');
+        const defaultRowId = await this.getRowId('JSON', 'Default');
+        for (const tokenEl of allTokenData) {
+            const tokenRow = await this.rowService.findOne(tokenEl.Row);
+            if (tokenEl.Row_Type != null) {
+                const object =
+                    tokenEl.Row_Type == 'Node'
+                        ? nodeRowId.Row
+                        : defaultRowId.Row;
+                const createdItem = await this.itemService.createItem({
+                    DataType: dropDownRowId,
+                    Object: tokenEl.Row_Type ? object : null,
+                });
+                await this.cellService.createCell({
+                    Col: 2000000004,
+                    Row: tokenRow.Row,
+                    Items: [createdItem.Item],
+                });
+            }
+        }
+    }
+
+    private async getRowId(colName, colValue) {
+        const item = await this.itemService.findOneByColumnName(
+            colName,
+            colValue,
         );
-        if (MLTextItem) {
-            const items = await this.itemService.findAll();
-            for (const item of items) {
-                const cell = await this.cellService.findOneByColumnName(
-                    'Items',
-                    MLTextItem.Item,
-                );
-                if (cell.Row?.Row) {
-                    const rowEntity = await this.rowService.findOne(
-                        cell.Row.Row,
-                    );
-                    await this.itemService.updateItem(item.Item, {
-                        DataType: rowEntity,
-                    });
-                }
+        if (item) {
+            const cell = await this.cellService.findOneByColumnName(
+                'Items',
+                item.Item,
+            );
+            if (cell.Row?.Row) {
+                const rowEntity = await this.rowService.findOne(cell.Row.Row);
+                return rowEntity;
             }
         }
     }

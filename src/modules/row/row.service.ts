@@ -57,37 +57,37 @@ import { Row } from './row.entity';  // Ensure this matches your structure
 
 @Injectable()
 export class RowService {
-  constructor(
-    @InjectRepository(Row)
-    private readonly rowRepository: Repository<Row>,
-  ) {}
+    constructor(
+        @InjectRepository(Row)
+        private readonly rowRepository: Repository<Row>,
+    ) {}
 
-   createRow(payload: any): Promise<Row> {
-    const rowData = this.rowRepository.create(payload as Partial<Row>);
-    return this.rowRepository.save(rowData);
-  }
+    createRow(payload: any): Promise<Row> {
+        const rowData = this.rowRepository.create(payload as Partial<Row>);
+        return this.rowRepository.save(rowData);
+    }
 
-  async findAll(): Promise<Row[]> {
-    return this.rowRepository.find({
-        relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
-    });
-  }
+    async findAll(): Promise<Row[]> {
+        return this.rowRepository.find({
+            relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+        });
+    }
 
-  async findOne(id: number): Promise<Row> {
-    return this.rowRepository.findOne({
-      where: { Row: id },
-      relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
-    });
-  }
+    async findOne(id: number): Promise<Row> {
+        return this.rowRepository.findOne({
+            where: { Row: id },
+            relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+        });
+    }
 
-  async updateRow(id: number, updateData: Partial<Row>): Promise<Row> {
-    await this.rowRepository.update(id, updateData);
-    return this.findOne(id);
-  }
+    async updateRow(id: number, updateData: Partial<Row>): Promise<Row> {
+        await this.rowRepository.update(id, updateData);
+        return this.findOne(id);
+    }
 
-  async deleteRow(id: number): Promise<void> {
-    await this.rowRepository.delete(id);
-  }
+    async deleteRow(id: number): Promise<void> {
+        await this.rowRepository.delete(id);
+    }
 
     async findAllOrderByIdAsc(): Promise<Row[]> {
         return this.rowRepository.find({
