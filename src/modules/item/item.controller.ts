@@ -74,7 +74,6 @@ export class ItemController {
       );
     }
   }
-
   @Put(':id')
   async updateItem(@Param('id') id: number, @Body() updateData: Partial<Item>): Promise<ApiResponse<Item>> {
     try {

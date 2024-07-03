@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Col } from '../col/col.entity';
-import { Row } from '../row/row.entity';
-import { Item } from '../item/item.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Col } from 'modules/col/col.entity';
+import { Row } from 'modules/row/row.entity';
+import { Item } from 'modules/item/item.entity';
 
 @Entity('t-Cell')
 export class Cell {
@@ -22,9 +22,7 @@ export class Cell {
     @Column({ type: 'jsonb', nullable: true })
     'DropDown-Source': any;
 
-    @Column({ type: 'bigint', array: true, nullable: true })
+    @Column('bigint', { array: true })
     Items: number[];
 
-    @OneToMany(() => Item, item => item.Cell)
-    items: Item[];
 }
