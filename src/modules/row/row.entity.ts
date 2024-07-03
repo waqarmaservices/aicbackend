@@ -20,59 +20,55 @@ export class Row {
     @JoinColumn({ name: 'PG' })
     PG: Page;
 
-    @ManyToOne(() => Row, { nullable: true })
-    @JoinColumn({ name: 'Share' })
+    @Column({ type: 'bigint', name: 'Share', nullable: true })
     Share: Row;
 
     @Column({ type: 'bigint', array: true, nullable: true })
     Inherit: number[];
 
-    @ManyToOne(() => Row, { nullable: true })
-    @JoinColumn({ name: 'Row-Type' })
-    RowType: Row;
-
     @Column({ name: 'Row-Level', type: 'smallint' })
     RowLevel: number;
 
-    @ManyToOne(() => Row, { nullable: true })
-    @JoinColumn({ name: 'Parent-Row' })
-    ParentRow: Row;
+    @Column({ type: 'bigint', name: 'Parent-Row',  nullable: true })
+    ParentRow: number;
 
-    @ManyToOne(() => Row, { nullable: true })
-    @JoinColumn({ name: 'Sibling-Row' })
-    SiblingRow: Row;
+    @Column({ type: 'bigint', name: 'Sibling-Row', nullable: true })
+    SiblingRow: number;
 
-    @OneToMany(() => Cell, (cell) => cell.Row)
+    @OneToMany(() => Cell, cell => cell.Row)
     cells: Cell[];
 
     @OneToMany(() => Item, (item) => item["Data-Type"])
     items: Item[];
 
-    @OneToMany(() => Row, (row) => row.Share)
-    shareRows: Row[];
+    // @OneToMany(() => Row, (row) => row.Share)
+    // shareRows: Row[];
 
-    @OneToMany(() => Row, (row) => row.ParentRow)
-    inheritRows: Row[];
+    // @OneToMany(() => Row, (row) => row.ParentRow)
+    // inheritRows: Row[];
 
-    @OneToMany(() => Row, (row) => row.SiblingRow)
-    siblingRows: Row[];
+    // @OneToMany(() => Row, (row) => row.SiblingRow)
+    // siblingRows: Row[];
 
-    @OneToMany(() => Row, (row) => row.RowType)
-    rowTypes: Row[];
+    // @OneToMany(() => Row, (row) => row.RowType)
+    // rowTypes: Row[];
 
-    @OneToMany(() => Format, (format) => format.RowSetTick)
-    RowSetTickFormats: Format[];
+    // @OneToMany(() => Format, (format) => format.RowSetTick)
+    // RowSetTickFormats: Format[];
 
-    @OneToMany(() => Format, (format) => format.Unit)
-    UnitFormats: Format[];
+    // @OneToMany(() => Format, (format) => format.Unit)
+    // UnitFormats: Format[];
 
-    @OneToMany(() => Format, (format) => format.Deleted)
-    DeletedFormats: Format[];
+    // @OneToMany(() => Format, (format) => format.Deleted)
+    // DeletedFormats: Format[];
 
-    @OneToMany(() => Format, (format) => format.ObjectType)
-    ObjectTypeFormats: Format[];
+    // @OneToMany(() => Format, (format) => format.ObjectType)
+    // ObjectTypeFormats: Format[];
 
-    @OneToMany(() => Item, (item) => item["Std-Unit"])
-    StdUnitItems: Item[];
+    // @OneToMany(() => Item, (item) => item["Std-Unit"])
+    // StdUnitItems: Item[];
+     // @ManyToOne(() => Row, { nullable: true })
+    // @JoinColumn({ name: 'Row-Type' })
+    // RowType: Row;
 }
 

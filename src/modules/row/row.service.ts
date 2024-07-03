@@ -16,16 +16,15 @@ export class RowService {
     return this.rowRepository.save(rowData);
   }
 
-  async findAll(): Promise<Row[]> {
+  async findAll(): Promise<any> {
     return this.rowRepository.find({
-      relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+  
     });
   }
 
   async findOne(id: number): Promise<Row> {
     return this.rowRepository.findOne({
       where: { Row: id },
-      relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
     });
   }
 

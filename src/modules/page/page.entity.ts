@@ -1,7 +1,5 @@
-
-import { Row } from 'modules/row/row.entity';
 import { Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-
+import { Row } from '../row/row.entity';
 
 @Entity('t-PG')
 export class Page {
