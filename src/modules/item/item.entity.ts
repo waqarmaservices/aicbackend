@@ -12,7 +12,7 @@ export class Item {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     Item: number;
 
-    @Column('bigint', { array: true, nullable: true })
+    @Column({ type: 'bigint', array: true, nullable: true })
     Inherit: number[];
 
     @ManyToOne(() => Row, (row) => row.items)
@@ -38,22 +38,20 @@ export class Item {
     DateTime: Date;
 
     @Column({ type: 'jsonb', nullable: true })
-    JSON: object;
+    JSON: any;
 
     @Column({ type: 'numeric', nullable: true })
     Qty: number;
 
-    @ManyToOne(() => Row, { nullable: true })
-    @JoinColumn({ name: 'Unit' })
-    Unit: Row;
+    @Column({ type: 'bigint', nullable: true })
+    Unit: number;
 
-    @Column({ name: 'Std-Qty', type: 'numeric', nullable: true })
-    StdQty: number;
+    @Column({ type: 'numeric', nullable: true })
+    'Std-Qty': number;
 
-    @ManyToOne(() => Row, { nullable: true })
-    @JoinColumn({ name: 'Std-Unit' })
-    StdUnit: Row;
+    @Column({ type: 'bigint', nullable: true })
+    'Std-Unit': number;
 
     @Column({ type: 'jsonb', nullable: true })
-    Foreign: object;
+    Foreign: any;
 }

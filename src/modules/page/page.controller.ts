@@ -5,7 +5,10 @@ import { Page } from './page.entity';
 
 @Controller('page')
 export class PageController {
-    constructor(private readonly pageService: PageService) { }
+    constructor(
+        private readonly pageService: PageService,
+
+    ) {}
 
     @Post()
     async createPage(): Promise<ApiResponse<Page>> {
@@ -23,9 +26,9 @@ export class PageController {
     }
 
     @Get()
-    async findAll(): Promise<ApiResponse<Page[]>> {
+    async findAll(): Promise<ApiResponse<any>> {
         try {
-            const pages = await this.pageService.findAll();
+            const pages = await this.pageService.getAllPagesData();
             return new ApiResponse(
                 true,
                 pages,
@@ -109,6 +112,16 @@ export class PageController {
             );
         }
     }
+    @Get('full/:pageId')
+    async getOnepage(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+        try {
+            const data = await this.pageService.getOnePage(pageId);
+            return new ApiResponse(true, data, '', 200);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+        }
+    }
+    
 }
 
 

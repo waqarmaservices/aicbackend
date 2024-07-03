@@ -42,7 +42,7 @@ export class Row {
     @OneToMany(() => Cell, (cell) => cell.Row)
     cells: Cell[];
 
-    @OneToMany(() => Item, (item) => item.DataType)
+    @OneToMany(() => Item, (item) => item['Data-Type'])
     items: Item[];
 
     @OneToMany(() => Row, (row) => row.Share)
@@ -66,6 +66,6 @@ export class Row {
     @OneToMany(() => Format, (format) => format.ObjectType)
     ObjectTypeFormats: Format[];
 
-    @OneToMany(() => Item, (item) => item.StdUnit)
+    @OneToMany(() => Item, (item) => item['Std-Unit'])
     StdUnitItems: Item[];
 }

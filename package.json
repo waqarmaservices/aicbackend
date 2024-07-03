@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "start": "nest start --host 0.0.0.0 --port 3000",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -35,6 +35,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "exceljs": "^4.4.0",
+    "nestjs-config": "^1.4.11",
     "pg": "^8.11.5",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",

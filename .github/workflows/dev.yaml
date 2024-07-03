@@ -1,0 +1,72 @@
+# This workflow will build a docker container, publish it to Google Container Registry, and deploy it to GKE when a release is created
+
+name: Build and Deploy to jobsingta GKE
+
+on:
+  push:
+    branches:
+      - 'dev'
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GKE_PROJECT: aicproject-424013
+  GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE: us-east1	
+  GKE_CLUSTER: aic-frontend
+  IMAGE: aic-backend-dev
+  REGISTRY_HOSTNAME: us.gcr.io
+  DEPLOYMENT_NAME: aic-backend-dev
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
+
+      - name: Fetch Secrets From GCP Secret Manager
+        run: bash ./devops/secrets/fetch-secrets-development.sh
+
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          # Set up docker to authenticate
+          # via gcloud command-line tool.
+          gcloud auth configure-docker
+
+      # Build the Docker image
+      - name: Build
+        run: |
+          docker build --tag "$REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE:$GITHUB_SHA" .
+
+      # Push the Docker image to Google Container Registry
+      - name: Publish
+        run: |
+          docker push $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+
+      # - name: Docker Scout
+      #   uses: docker/scout-action@v1.2.2
+
+      # Install helm
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+      # Deploy the Docker image to the GKE cluster
+      - name: Deploy
+        run: |
+          sudo apt-get update 
+          sudo apt-get install apt-transport-https ca-certificates gnupg curl sudo
+          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          sudo apt-get update && sudo apt-get install google-cloud-cli
+          sudo apt-get install google-cloud-sdk-gke-gcloud-auth-plugin
+          gcloud container clusters get-credentials $GKE_CLUSTER \
+            --zone $GKE_ZONE \
+            --project $GKE_PROJECT
+          helm upgrade --namespace aic-backend --set image.repository=us.gcr.io/aicproject-424013/aic-backend-dev,image.tag=$GITHUB_SHA  aic-backend-dev ./devops/helm-charts/aic-backend-dev

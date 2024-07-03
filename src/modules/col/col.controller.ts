@@ -17,14 +17,14 @@ export class ColController {
     constructor(private readonly colService: ColService) {}
 
     @Post()
-    async createCol(): Promise<ApiResponse<Col>> {
+    async createCol(): Promise<ApiResponse<any>> {
         try {
             const col = await this.colService.createCol();
-            return new ApiResponse(true, col, '', HttpStatus.CREATED);
+            return new ApiResponse(true, col, undefined, HttpStatus.CREATED);
         } catch (error) {
             return new ApiResponse(
                 false,
-                null,
+                undefined,
                 'Something went wrong. Please try again',
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
@@ -32,7 +32,7 @@ export class ColController {
     }
 
     @Get()
-    async findAll(): Promise<ApiResponse<Col[]>> {
+    async findAll(): Promise<ApiResponse<any>> {
         try {
             const cols = await this.colService.findAll();
             return new ApiResponse(true, cols, '', HttpStatus.OK);
