@@ -11,19 +11,9 @@ export class FormatController {
   async createFormat(@Body() payload: any): Promise<ApiResponse<Format>> {
     try {
       const format = await this.formatService.createFormat(payload);
-      return new ApiResponse(
-        true,
-        format,
-        '',
-        HttpStatus.CREATED,
-      );
+      return new ApiResponse(true, format, '', HttpStatus.CREATED);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -31,19 +21,9 @@ export class FormatController {
   async findAll(): Promise<ApiResponse<Format[]>> {
     try {
       const formats = await this.formatService.findAll();
-      return new ApiResponse(
-        true,
-        formats,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, formats, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -52,26 +32,11 @@ export class FormatController {
     try {
       const format = await this.formatService.findOne(id);
       if (!format) {
-        return new ApiResponse(
-          false,
-          null,
-          'Format not found',
-          HttpStatus.NOT_FOUND,
-        );
+        return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
       }
-      return new ApiResponse(
-        true,
-        format,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, format, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -79,19 +44,9 @@ export class FormatController {
   async updateFormat(@Param('id') id: number, @Body() updateData: Partial<Format>): Promise<ApiResponse<Format>> {
     try {
       const updatedFormat = await this.formatService.updateFormat(id, updateData);
-      return new ApiResponse(
-        true,
-        updatedFormat,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, updatedFormat, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -99,19 +54,9 @@ export class FormatController {
   async deleteFormat(@Param('id') id: number): Promise<ApiResponse<void>> {
     try {
       await this.formatService.deleteFormat(id);
-      return new ApiResponse(
-        true,
-        null,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, null, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

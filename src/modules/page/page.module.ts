@@ -5,12 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Page } from './page.entity';
 import { PageGateway } from './page.gateway';
 
-
-
 @Module({
-    imports: [TypeOrmModule.forFeature([Page])],
-    controllers: [PageController],
-    providers: [PageService ],
-    exports: [PageService]
+  imports: [TypeOrmModule.forFeature([Page])],
+  controllers: [PageController],
+  providers: [PageService],
+  exports: [PageService],
 })
 export class PageModule {}

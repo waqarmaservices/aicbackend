@@ -11,19 +11,9 @@ export class ItemController {
   async createItem(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
       const item = await this.itemService.createItem(payload);
-      return new ApiResponse(
-        true,
-        item,
-        '',
-        HttpStatus.CREATED,
-      );
+      return new ApiResponse(true, item, '', HttpStatus.CREATED);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -31,19 +21,9 @@ export class ItemController {
   async findAll(): Promise<ApiResponse<Item[]>> {
     try {
       const items = await this.itemService.findAll();
-      return new ApiResponse(
-        true,
-        items,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, items, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -52,45 +32,20 @@ export class ItemController {
     try {
       const item = await this.itemService.findOne(id);
       if (!item) {
-        return new ApiResponse(
-          false,
-          null,
-          'Item not found',
-          HttpStatus.NOT_FOUND,
-        );
+        return new ApiResponse(false, null, 'Item not found', HttpStatus.NOT_FOUND);
       }
-      return new ApiResponse(
-        true,
-        item,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, item, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
   @Put(':id')
   async updateItem(@Param('id') id: number, @Body() updateData: Partial<Item>): Promise<ApiResponse<Item>> {
     try {
       const updatedItem = await this.itemService.updateItem(id, updateData);
-      return new ApiResponse(
-        true,
-        updatedItem,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, updatedItem, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -98,19 +53,9 @@ export class ItemController {
   async deleteItem(@Param('id') id: number): Promise<ApiResponse<void>> {
     try {
       await this.itemService.deleteItem(id);
-      return new ApiResponse(
-        true,
-        null,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, null, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

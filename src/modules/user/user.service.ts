@@ -16,11 +16,16 @@ export class UserService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'] });
+    return this.userRepository.find({
+      relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'],
+    });
   }
 
   async findOne(id: number): Promise<User> {
-    return this.userRepository.findOne({ where: { User: id }, relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'] });
+    return this.userRepository.findOne({
+      where: { User: id },
+      relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'],
+    });
   }
 
   async updateUser(id: number, updateData: Partial<User>): Promise<User> {

@@ -1,14 +1,4 @@
-
-import {
-    Controller,
-    Get,
-    Post,
-    Put,
-    Delete,
-    Param,
-    Body,
-    HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus } from '@nestjs/common';
 import { RowService } from './row.service';
 import { ApiResponse } from '../../common/dtos/api-response.dto';
 import { Row } from './row.entity';
@@ -21,12 +11,7 @@ export class RowController {
   async createRow(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
       const row = await this.rowService.createRow(payload);
-      return new ApiResponse(
-        true,
-        row,
-        undefined,
-        HttpStatus.CREATED,
-      );
+      return new ApiResponse(true, row, undefined, HttpStatus.CREATED);
     } catch (error) {
       return new ApiResponse(
         false,
@@ -41,19 +26,9 @@ export class RowController {
   async findAll(): Promise<ApiResponse<any>> {
     try {
       const rows = await this.rowService.findAll();
-      return new ApiResponse(
-        true,
-        rows,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, rows, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
   @Get(':id')
@@ -61,26 +36,11 @@ export class RowController {
     try {
       const row = await this.rowService.findOne(id);
       if (!row) {
-        return new ApiResponse(
-          false,
-          null,
-          'Row not found',
-          HttpStatus.NOT_FOUND,
-        );
+        return new ApiResponse(false, null, 'Row not found', HttpStatus.NOT_FOUND);
       }
-      return new ApiResponse(
-        true,
-        row,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, row, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -88,19 +48,9 @@ export class RowController {
   async updateRow(@Param('id') id: number, @Body() updateData: Partial<Row>): Promise<ApiResponse<Row>> {
     try {
       const updatedRow = await this.rowService.updateRow(id, updateData);
-      return new ApiResponse(
-        true,
-        updatedRow,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, updatedRow, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -108,19 +58,9 @@ export class RowController {
   async deleteRow(@Param('id') id: number): Promise<ApiResponse<void>> {
     try {
       await this.rowService.deleteRow(id);
-      return new ApiResponse(
-        true,
-        null,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, null, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

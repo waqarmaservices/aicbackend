@@ -8,32 +8,32 @@ import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 const excludedPaths = [{ path: '/', method: RequestMethod.GET }];
 
 async function bootstrap() {
-    const logger = new Logger();
-    const { port } = appConfig();
-    const app = await NestFactory.create(AppModule, { cors: true });
-    // Get the underlying HTTP server and set the timeout
-    const server = app.getHttpServer();
-    server.setTimeout(300000); // 5 minutes in milliseconds
-    app.setGlobalPrefix('api', {
-        exclude: excludedPaths,
-    });
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalPipes(
-        new ValidationPipe({
-            whitelist: true,
-            disableErrorMessages: false,
-            forbidNonWhitelisted: true,
-        }),
-    );
-    const config = new DocumentBuilder()
-        .setTitle('AIC API DOCS')
-        .setDescription('AIC API description')
-        .setVersion('1.0')
-        .addTag('AIC')
-        .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
-    await app.listen(port);
-    logger.log(`Application running on port ${port}`);
+  const logger = new Logger();
+  const { port } = appConfig();
+  const app = await NestFactory.create(AppModule, { cors: true });
+  // Get the underlying HTTP server and set the timeout
+  const server = app.getHttpServer();
+  server.setTimeout(300000); // 5 minutes in milliseconds
+  app.setGlobalPrefix('api', {
+    exclude: excludedPaths,
+  });
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      disableErrorMessages: false,
+      forbidNonWhitelisted: true,
+    }),
+  );
+  const config = new DocumentBuilder()
+    .setTitle('AIC API DOCS')
+    .setDescription('AIC API description')
+    .setVersion('1.0')
+    .addTag('AIC')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+  await app.listen(port);
+  logger.log(`Application running on port ${port}`);
 }
 bootstrap();

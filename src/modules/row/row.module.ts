@@ -5,9 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Row } from './row.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Row])],
-    controllers: [RowController],
-    providers: [RowService],
-    exports: [RowService]
+  imports: [TypeOrmModule.forFeature([Row])],
+  controllers: [RowController],
+  providers: [RowService],
+  exports: [RowService],
 })
 export class RowModule {}

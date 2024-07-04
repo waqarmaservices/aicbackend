@@ -22,7 +22,6 @@
 //         // const importformateService = app.get(FormatService);
 //         // const importuserService = app.get(UserService);
 //         // const importTXService = app.get(TxService);
-        
 
 //         const filePath = './src/db.xlsx';
 
@@ -34,7 +33,6 @@
 //         // await importformateService.importData(filePath);
 //         // await importuserService.importData(filePath);
 //         // await importTXService.importData(filePath);
-        
 
 //         console.log('Import completed successfully.');
 //     } catch (error) {

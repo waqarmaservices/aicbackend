@@ -18,19 +18,8 @@ import { Format } from '../format/format.entity';
 import { User } from '../user/user.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Page, Row, Col, Cell, Item, Format, User]),
-    ],
-    controllers: [ImportController],
-    providers: [
-        ImportService,
-        PageService,
-        RowService,
-        ColService,
-        CellService,
-        ItemService,
-        FormatService,
-        UserService,
-    ],
+  imports: [TypeOrmModule.forFeature([Page, Row, Col, Cell, Item, Format, User])],
+  controllers: [ImportController],
+  providers: [ImportService, PageService, RowService, ColService, CellService, ItemService, FormatService, UserService],
 })
 export class ImportModule {}

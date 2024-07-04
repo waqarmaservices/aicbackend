@@ -12,19 +12,9 @@ export class UserController {
   async createUser(@Body() payload: any): Promise<ApiResponse<User[]>> {
     try {
       const user = await this.userService.createUser(payload);
-      return new ApiResponse(
-        true,
-        user,
-        '',
-        HttpStatus.CREATED,
-      );
+      return new ApiResponse(true, user, '', HttpStatus.CREATED);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -32,19 +22,9 @@ export class UserController {
   async findAll(): Promise<ApiResponse<User[]>> {
     try {
       const users = await this.userService.findAll();
-      return new ApiResponse(
-        true,
-        users,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, users, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -53,26 +33,11 @@ export class UserController {
     try {
       const user = await this.userService.findOne(id);
       if (!user) {
-        return new ApiResponse(
-          false,
-          null,
-          'User not found',
-          HttpStatus.NOT_FOUND,
-        );
+        return new ApiResponse(false, null, 'User not found', HttpStatus.NOT_FOUND);
       }
-      return new ApiResponse(
-        true,
-        user,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, user, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -80,19 +45,9 @@ export class UserController {
   async updateUser(@Param('id') id: number, @Body() updateData: Partial<User>): Promise<ApiResponse<User>> {
     try {
       const updatedUser = await this.userService.updateUser(id, updateData);
-      return new ApiResponse(
-        true,
-        updatedUser,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, updatedUser, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -100,19 +55,9 @@ export class UserController {
   async deleteUser(@Param('id') id: number): Promise<ApiResponse<void>> {
     try {
       await this.userService.deleteUser(id);
-      return new ApiResponse(
-        true,
-        null,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, null, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

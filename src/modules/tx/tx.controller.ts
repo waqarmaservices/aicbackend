@@ -11,19 +11,9 @@ export class TxController {
   async createTx(@Body() payload: any): Promise<ApiResponse<Tx[]>> {
     try {
       const tx = await this.txService.createTx(payload);
-      return new ApiResponse(
-        true,
-        tx,
-        '',
-        HttpStatus.CREATED,
-      );
+      return new ApiResponse(true, tx, '', HttpStatus.CREATED);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -31,19 +21,9 @@ export class TxController {
   async findAll(): Promise<ApiResponse<Tx[]>> {
     try {
       const txs = await this.txService.findAll();
-      return new ApiResponse(
-        true,
-        txs,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, txs, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -52,26 +32,11 @@ export class TxController {
     try {
       const tx = await this.txService.findOne(id);
       if (!tx) {
-        return new ApiResponse(
-          false,
-          null,
-          'Tx not found',
-          HttpStatus.NOT_FOUND,
-        );
+        return new ApiResponse(false, null, 'Tx not found', HttpStatus.NOT_FOUND);
       }
-      return new ApiResponse(
-        true,
-        tx,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, tx, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -79,19 +44,9 @@ export class TxController {
   async updateTx(@Param('id') id: number, @Body() updateData: Partial<Tx>): Promise<ApiResponse<Tx>> {
     try {
       const updatedTx = await this.txService.updateTx(id, updateData);
-      return new ApiResponse(
-        true,
-        updatedTx,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, updatedTx, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -99,19 +54,9 @@ export class TxController {
   async deleteTx(@Param('id') id: number): Promise<ApiResponse<void>> {
     try {
       await this.txService.deleteTx(id);
-      return new ApiResponse(
-        true,
-        null,
-        '',
-        HttpStatus.OK,
-      );
+      return new ApiResponse(true, null, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        null,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

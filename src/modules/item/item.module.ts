@@ -5,9 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Item } from './item.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Item])],
-    controllers: [ItemController],
-    providers: [ItemService],
-    exports: [ItemService]
+  imports: [TypeOrmModule.forFeature([Item])],
+  controllers: [ItemController],
+  providers: [ItemService],
+  exports: [ItemService],
 })
 export class ItemModule {}
