@@ -84,6 +84,9 @@ export class ImportService {
     await this.insertAllUnitsSheetData(allUnitsSheetData);
     await this.insertAllLabelsSheetData(allLabelsSheetData);
 
+    await this.populateSiblingRowColumn();
+    await this.populateParentRowColumn();
+
     return 'Data Imported Successfully!';
   }
 
@@ -419,8 +422,6 @@ export class ImportService {
     await this.insertRecordIntoUserTable();
     await this.rowFormatRecord(allTokenData);
     await this.updateRowType(allTokenData);
-    await this.populateSiblingRowColumn();
-    await this.populateParentRowColumn();
   }
 
   private async insertRecordIntoUserTable() {
@@ -621,9 +622,6 @@ export class ImportService {
         });
       }
     }
-
-    await this.populateSiblingRowColumn();
-    await this.populateParentRowColumn();
   }
 
   private async insertAllSuppliersSheetData(sheetData: any[]) {
@@ -692,9 +690,6 @@ export class ImportService {
         }
       }
     }
-
-    await this.populateSiblingRowColumn();
-    await this.populateParentRowColumn();
   }
 
   private async insertAllModelsSheetData(sheetData: any[]) {
@@ -776,9 +771,6 @@ export class ImportService {
         }
       }
     }
-
-    await this.populateSiblingRowColumn();
-    await this.populateParentRowColumn();
   }
 
   private async insertAllUnitsSheetData(sheetData: any[]) {
