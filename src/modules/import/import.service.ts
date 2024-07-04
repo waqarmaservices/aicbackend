@@ -951,8 +951,8 @@ export class ImportService {
             const lastRowInserted =
                 await this.rowService.getLastInsertedRecord();
             nextRowPk = +lastRowInserted.Row + 1;
+            
             const rowObjectRowId = await this.getRowId('JSON', 'Row');
-            const stdUnitRowId = await this.getRowId('JSON', 'Std-Unit');
             const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
             const numberRowId = await this.getRowId('JSON', 'Number')
             const dropDownRowId = await this.getRowId('JSON', 'Drop-Down');
@@ -983,7 +983,7 @@ export class ImportService {
                     JSON: { [SYSTEM_INITIAL.ENGLISH]: unitEl.Unit },
                 });
                 await this.cellService.createCell({
-                    Col: 2000000084, // column id of "Unit"
+                    Col: 2000000084, // Col-ID of "Unit"
                     Row: createdRow.Row,
                     Items: [createdItem.Item],
                 });
@@ -995,21 +995,26 @@ export class ImportService {
                     Num: unitEl.Unit_Factor,
                 });
                 await this.cellService.createCell({
-                    Col: 2000000085, // column id of "Unit Factor"
+                    Col: 2000000085, // Col-ID of "Unit Factor"
                     Row: createdRow.Row,
                     Items: [createdItem.Item],
                 });
             }
 
             if (COLUMN_NAMES.Row_Type in unitEl && unitEl.ROW_TYPE) {
-                const createdItem = await this.itemService.createItem({
-                    DataType: dropDownRowId,
-                    Object: stdUnitRowId,
-                });
+                const rowTypes = await this.processStringToRowIds(unitEl.ROW_TYPE as string);
+                const createdItemIds = [];
+                for (const rowId of rowTypes) {
+                    const createdItem = await this.itemService.createItem({
+                        DataType: dropDownRowId,
+                        Object: rowId,
+                    });
+                    createdItemIds.push(createdItem.Item);
+                }
                 await this.cellService.createCell({
-                    Col: 2000000004, // column id of "Row Type"
+                    Col: 2000000004, // Col-ID of "Row Type"
                     Row: createdRow.Row,
-                    Items: [createdItem.Item],
+                    Items: createdItemIds,
                 });
             }
         }
