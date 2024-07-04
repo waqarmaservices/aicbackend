@@ -501,10 +501,9 @@ export class ImportService {
     }
 
     private calculateRowLevel(
-        rowArray: Array<any>,
-        sheetName?: string,
+        rowArray: Array<any>
     ): number {
-        if (sheetName) {
+        if (rowArray.length > 0) {
             if (rowArray[0]) {
                 return 1;
             } else if (rowArray[1]) {
@@ -668,7 +667,7 @@ export class ImportService {
                 Row_Type: row[7] ?? row[7],
                 Row_Status: row[8] ?? row[8],
                 Row_Comment: row[9] ?? row[9],
-                Row_Level: this.calculateRowLevel(row, 'All Tokens'),
+                Row_Level: this.calculateRowLevel(row),
             };
         }
 
@@ -1023,7 +1022,7 @@ export class ImportService {
     private async insertAllLabelsSheetData(filePath: string) {
         const suppliersWorkbook = XLSX.readFile(filePath);
         const allLabelsWorkbook = suppliersWorkbook.Sheets['All Labels'];
-        const allLabelsSheetData = this.readSheetData(allLabelsWorkbook);
+        const allLabelsSheetData = this.readSheetData(allLabelsWorkbook, 5);
 
         const user = await this.userService.findOneUser(SYSTEM_INITIAL.USER_ID);
         const rowObjectRowId = await this.getRowId('JSON', 'Row');
@@ -1124,14 +1123,12 @@ export class ImportService {
                     });
 
                 } else if (key == 'Value_Default_Data' && val) {
-                    const rowsIds = await this.processStringToRowIds(
-                        val as string,
-                    );
+                    const colValues = String(val).split(';') // Items, Not Row-IDs
                     const createdItemIds = []
-                    for (const rowId of rowsIds) {
+                    for (const value of colValues) {
                         const createdItem = await this.itemService.createItem({
                             DataType: valueDataTypeRowId,
-                            JSON: { [SYSTEM_INITIAL.ENGLISH]: val },
+                            JSON: { [SYSTEM_INITIAL.ENGLISH]: value },
                         });
                         createdItemIds.push(createdItem.Item);
                     }
@@ -1241,13 +1238,13 @@ export class ImportService {
         }
     }
 
-    private readSheetData(sheet: XLSX.WorkSheet): any[] {
+    private readSheetData(sheet: XLSX.WorkSheet, skipRows: number = 3): any[] {
         if (!sheet) {
             throw new Error('Sheet not found');
         }
         return XLSX.utils
             .sheet_to_json(sheet, { header: 1, defval: null })
-            .slice(3);
+            .slice(skipRows);
     }
 
     private getSheetColumns(sheet: XLSX.WorkSheet): string[] {
