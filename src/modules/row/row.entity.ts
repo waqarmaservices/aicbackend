@@ -1,5 +1,6 @@
 import {
     Entity,
+    PrimaryGeneratedColumn,
     PrimaryColumn,
     Column,
     ManyToOne,
@@ -20,7 +21,8 @@ export class Row {
     @JoinColumn({ name: 'PG' })
     PG: Page;
 
-    @Column({ type: 'bigint', name: 'Share', nullable: true })
+    @ManyToOne(() => Row, { nullable: true })
+    @JoinColumn({ name: 'Share' })
     Share: Row;
 
     @Column({ type: 'bigint', array: true, nullable: true })
@@ -29,16 +31,18 @@ export class Row {
     @Column({ name: 'Row-Level', type: 'smallint' })
     RowLevel: number;
 
-    @Column({ type: 'bigint', name: 'Parent-Row',  nullable: true })
-    ParentRow: number;
+    @ManyToOne(() => Row, { nullable: true })
+    @JoinColumn({ name: 'Parent-Row' })
+    ParentRow: Row;
 
-    @Column({ type: 'bigint', name: 'Sibling-Row', nullable: true })
-    SiblingRow: number;
+    @ManyToOne(() => Row, { nullable: true })
+    @JoinColumn({ name: 'Sibling-Row' })
+    SiblingRow: Row;
 
-    @OneToMany(() => Cell, cell => cell.Row)
+    @OneToMany(() => Cell, (cell) => cell.Row)
     cells: Cell[];
 
-    @OneToMany(() => Item, (item) => item["Data-Type"])
+    @OneToMany(() => Item, (item) => item['Data-Type'])
     items: Item[];
 
     // @OneToMany(() => Row, (row) => row.Share)
@@ -50,11 +54,8 @@ export class Row {
     // @OneToMany(() => Row, (row) => row.SiblingRow)
     // siblingRows: Row[];
 
-    // @OneToMany(() => Row, (row) => row.RowType)
-    // rowTypes: Row[];
-
-    // @OneToMany(() => Format, (format) => format.RowSetTick)
-    // RowSetTickFormats: Format[];
+    @OneToMany(() => Format, (format) => format.RowSetTick)
+    RowSetTickFormats: Format[];
 
     // @OneToMany(() => Format, (format) => format.Unit)
     // UnitFormats: Format[];
@@ -65,10 +66,6 @@ export class Row {
     // @OneToMany(() => Format, (format) => format.ObjectType)
     // ObjectTypeFormats: Format[];
 
-    // @OneToMany(() => Item, (item) => item["Std-Unit"])
-    // StdUnitItems: Item[];
-     // @ManyToOne(() => Row, { nullable: true })
-    // @JoinColumn({ name: 'Row-Type' })
-    // RowType: Row;
+    @OneToMany(() => Item, (item) => item['Std-Unit'])
+    StdUnitItems: Item[];
 }
-

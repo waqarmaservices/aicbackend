@@ -25,7 +25,7 @@ async function bootstrap() {
     const config = new DocumentBuilder()
         .setTitle('AIC API DOCS')
         .setDescription('AIC API description')
-        .setVersion('1.0')
+        .setVersion('1.0')  
         .addTag('AIC')
         .build();
     const document = SwaggerModule.createDocument(app, config);

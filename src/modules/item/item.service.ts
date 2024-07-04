@@ -5,30 +5,39 @@ import { Item } from './item.entity';
 
 @Injectable()
 export class ItemService {
-  constructor(
-    @InjectRepository(Item)
-    private readonly itemRepository: Repository<Item>,
-  ) {}
+    constructor(
+        @InjectRepository(Item)
+        private readonly itemRepository: Repository<Item>,
+    ) {}
 
-  async createItem(payload: any): Promise<Item[]> {
-    const itemData = this.itemRepository.create(payload);
-    return this.itemRepository.save(itemData);
-  }
+    async createItem(payload: any): Promise<Item> {
+        const itemData = this.itemRepository.create(payload as Partial<Item>);
+        return this.itemRepository.save(itemData);
+    }
 
-  async findAll(): Promise<Item[]> {
-    return this.itemRepository.find();
-  }
+    async findAll(): Promise<Item[]> {
+        return this.itemRepository.find();
+    }
 
-  async findOne(id: number): Promise<Item> {
-    return this.itemRepository.findOne({ where: { Item: id } });
-  }
+    async findOne(id: number): Promise<Item> {
+        return this.itemRepository.findOne({ where: { Item: id } });
+    }
 
-  async updateItem(id: number, updateData: Partial<Item>): Promise<Item> {
-    await this.itemRepository.update(id, updateData);
-    return this.findOne(id);
-  }
+    async findOneByColumnName(
+        colName: string,
+        colValue: string,
+    ): Promise<Item> {
+        return this.itemRepository.findOne({
+            where: { [colName]: { 3000000100: colValue } },
+        });
+    }
 
-  async deleteItem(id: number): Promise<void> {
-    await this.itemRepository.delete(id);
-  }
+    async updateItem(id: number, updateData: Partial<Item>): Promise<Item> {
+        await this.itemRepository.update(id, updateData);
+        return this.findOne(id);
+    }
+
+    async deleteItem(id: number): Promise<void> {
+        await this.itemRepository.delete(id);
+    }
 }

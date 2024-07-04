@@ -1,15 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    JoinColumn,
+} from 'typeorm';
+import { Row } from '../row/row.entity';
 
 @Entity('t-Item')
 export class Item {
     @PrimaryGeneratedColumn({ name: 'Item' })
     Item: number;
 
-    @Column({ name: 'Inherit', type: 'bigint', array: true, nullable: true })
+    @Column({ type: 'bigint', array: true, nullable: true })
     Inherit: number[];
 
-    @Column({ name: 'Data-Type', type: 'text' })
-    'Data-Type': string;
+    @ManyToOne(() => Row, (row) => row.items)
+    @JoinColumn({ name: 'Data-Type' })
+    DataType: Row;
 
     @Column({ name: 'Object', type: 'bigint', nullable: true })
     Object: number;
@@ -39,10 +47,10 @@ export class Item {
     Unit: number;
 
     @Column({ name: 'Std-Qty', type: 'numeric', nullable: true })
-    'Std-Qty': number;
+    StdQty: number;
 
     @Column({ name: 'Std-Unit', type: 'bigint', nullable: true })
-    'Std-Unit': number;
+    StdUnit: number;
 
     @Column({ name: 'Foreign', type: 'jsonb', nullable: true })
     Foreign: any;

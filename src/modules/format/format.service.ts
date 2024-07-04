@@ -10,9 +10,11 @@ export class FormatService {
     private readonly formatRepository: Repository<Format>,
   ) {}
 
-  async createFormat(payload: any): Promise<Format[]> {
-    const formatData = this.formatRepository.create(payload);
-    return this.formatRepository.save(formatData);
+  async createFormat(payload: any): Promise<Format> {
+        const formatData = this.formatRepository.create(
+            payload as Partial<Format>,
+        );
+        return this.formatRepository.save(formatData);
   }
 
   async findAll(): Promise<Format[]> {
