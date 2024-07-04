@@ -19,8 +19,8 @@ export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
             synchronize: false,
             logging: true,
             extra: {
-                max: 50,
-                connectionTimeoutMillis: 5000,
+                max: 100,
+                connectionTimeoutMillis: 15000,
             },
         };
     },
