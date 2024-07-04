@@ -8,11 +8,12 @@ import { ItemService } from '../item/item.service';
 import { FormatService } from '../format/format.service';
 import { UserService } from '../user/user.service';
 import {
-    TOKEN_CONSTANTS,
     COL_DATA_TYPES,
     SYSTEM_INITIAL,
     STATUSES,
     COLUMN_NAMES,
+    SHEET_NAMES,
+    SHEET_READ_OPTIONS,
 } from '../../constants';
 
 @Injectable()
@@ -28,29 +29,71 @@ export class ImportService {
     ) {}
 
     async importSheet(filePath: string) {
-        const pageWorkbook = XLSX.readFile(filePath, { sheetRows: 18 });
-        const allPagesWorkbook = pageWorkbook.Sheets['All Pages'];
-        const allPagesSheetData = this.readSheetData(allPagesWorkbook);
+        const {
+            sheetData: allPagesSheetData,
+            sheetColumns: allPagesSheetColumns,
+        } = this.readSheetData(
+            filePath,
+            SHEET_NAMES.ALL_PAGES,
+            SHEET_READ_OPTIONS.ALL_PAGES,
+        );
+        const {
+            sheetData: allColsSheetData,
+            sheetColumns: allColsSheetColumns,
+        } = this.readSheetData(filePath, SHEET_NAMES.ALL_COLS);
+        const { sheetData: allTokensSheetData } = this.readSheetData(
+            filePath,
+            SHEET_NAMES.ALL_TOKENS,
+        );
+        const {
+            sheetData: allLanguagesSheetData,
+            sheetColumns: allLanguagesSheetColumns,
+        } = this.readSheetData(filePath, SHEET_NAMES.ALL_LANGUAGES);
+        const { sheetData: allRegionsSheetData } = this.readSheetData(
+            filePath,
+            SHEET_NAMES.ALL_REGIONS,
+        );
+        const { sheetData: allSuppliersSheetData } = this.readSheetData(
+            filePath,
+            SHEET_NAMES.ALL_SUPPLIERS,
+        );
+        const { sheetData: allModelsSheetData } = this.readSheetData(
+            filePath,
+            SHEET_NAMES.ALL_MODELS,
+        );
+        const { sheetData: allUnitsSheetData } = this.readSheetData(
+            filePath,
+            SHEET_NAMES.ALL_UNITS,
+        );
+        const { sheetData: allLabelsSheetData } = this.readSheetData(
+            filePath,
+            SHEET_NAMES.ALL_LABELS,
+        );
 
         const pageIds = this.extractColHeaderValue(allPagesSheetData, 1);
         await this.insertRecordIntotPG(pageIds);
 
-        const colWorkbook = XLSX.readFile(filePath);
-        const allColsWorkbook = colWorkbook.Sheets['All Cols'];
-        const allColsSheetData = this.readSheetData(allColsWorkbook);
-
         const colIds = this.extractColHeaderValue(allColsSheetData, 2);
         await this.insertRecordIntotCol(colIds);
 
-        await this.insertAllTokensData(filePath);
-        await this.insertAllPagesSheetData(filePath);
-        await this.insertAllColsSheetData(filePath);
-        await this.insertAllLanguagesSheetData(filePath);
-        await this.insertAllRegionsSheetData(filePath);
-        await this.insertAllSuppliersSheetData(filePath);
-        await this.insertAllModelsSheetData(filePath);
-        await this.insertAllUnitsSheetData(filePath);
-        await this.insertAllLabelsSheetData(filePath);
+        await this.insertAllTokensData(allTokensSheetData);
+        await this.insertAllPagesSheetData(
+            allPagesSheetData,
+            allPagesSheetColumns,
+        );
+        await this.insertAllColsSheetData(
+            allColsSheetData,
+            allColsSheetColumns,
+        );
+        await this.insertAllLanguagesSheetData(
+            allLanguagesSheetData,
+            allLanguagesSheetColumns,
+        );
+        await this.insertAllRegionsSheetData(allRegionsSheetData);
+        await this.insertAllSuppliersSheetData(allSuppliersSheetData);
+        await this.insertAllModelsSheetData(allModelsSheetData);
+        await this.insertAllUnitsSheetData(allUnitsSheetData);
+        await this.insertAllLabelsSheetData(allLabelsSheetData);
 
         return 'Data Imported Successfully!';
     }
@@ -67,36 +110,41 @@ export class ImportService {
         }
     }
 
-    private async insertAllPagesSheetData(filePath: string) {
-        const pageWorkbook = XLSX.readFile(filePath, { sheetRows: 18 });
-        const allPagesWorkbook = pageWorkbook.Sheets['All Pages'];
-        const allPagesSheetData = this.readSheetData(allPagesWorkbook);
-
-        const filteredAllPagesData = allPagesSheetData.filter(
+    private async insertAllPagesSheetData(
+        sheetData: any[],
+        sheetColumns: string[],
+    ) {
+        // Filter out rows where all values are null
+        const filteredAllPagesData = sheetData.filter(
             (row) => !this.isAllNull(row),
         );
 
+        // Determine which columns have at least one non-null value
         const validPagesColumns = filteredAllPagesData[0].map((_, colIndex) =>
             filteredAllPagesData.some((row) => row[colIndex] !== null),
         );
 
+        // Filter columns based on the previously determined valid columns
         const filteredPagesData = filteredAllPagesData.map((row) =>
             row.filter((_, colIndex) => validPagesColumns[colIndex]),
         );
 
-        const allPagesSheetColumns = this.getSheetColumns(allPagesWorkbook);
-        const filteredPagesColumns = allPagesSheetColumns
+        // Get column names, trim and sanitize them
+        const filteredPagesColumns = sheetColumns
             .filter((colName) => colName !== null)
             .map((colName) => colName.trim())
             .filter((colName) => colName !== '')
             .map((colName) => colName.replace(/\s+/g, '_'));
 
+        // Map filtered data to an array of objects with column names as keys
         const pagesData: any = filteredPagesData.map((row) =>
             filteredPagesColumns.reduce((acc, colName, index) => {
                 acc[colName] = row[index];
                 return acc;
             }, {}),
         );
+
+        // Loop through each page element and process accordingly
         for (const pageEl of pagesData) {
             const page = await this.pageService.findOne(pageEl.Page_ID);
             const pageIdRowId = await this.getRowId('JSON', 'Page-ID');
@@ -269,12 +317,11 @@ export class ImportService {
         return rowIds;
     }
 
-    private async insertAllColsSheetData(filePath: string) {
-        const colWorkbook = XLSX.readFile(filePath);
-        const allColsWorkbook = colWorkbook.Sheets['All Cols'];
-        const allColsSheetData = this.readSheetData(allColsWorkbook);
-
-        const filteredAllColsData = allColsSheetData.filter(
+    private async insertAllColsSheetData(
+        sheetData: any[],
+        sheetColumns: string[],
+    ) {
+        const filteredAllColsData = sheetData.filter(
             (row) => !this.isAllNull(row),
         );
 
@@ -286,8 +333,7 @@ export class ImportService {
             row.filter((_, colIndex) => validColsColumns[colIndex]),
         );
 
-        const allPagesSheetColumns = this.getSheetColumns(allColsWorkbook);
-        const filteredColsColumns = allPagesSheetColumns
+        const filteredColsColumns = sheetColumns
             .filter((colName) => colName !== null)
             .map((colName) => colName.trim())
             .filter((colName) => colName !== '')
@@ -429,12 +475,9 @@ export class ImportService {
         }
     }
 
-    private async insertAllTokensData(filePath: string) {
-        const tokenWorkbook = XLSX.readFile(filePath);
-        const allTokensWorkbook = tokenWorkbook.Sheets['All Tokens'];
-        const allTokensSheetData = this.readSheetData(allTokensWorkbook);
+    private async insertAllTokensData(sheetData: any[]) {
         const allTokenData = [];
-        for (const [rowIndex, row] of allTokensSheetData.entries()) {
+        for (const [rowIndex, row] of sheetData.entries()) {
             allTokenData[rowIndex] = {
                 Row: row[0],
                 TOKEN: row.slice(1, 6).find((value) => value != null),
@@ -575,12 +618,11 @@ export class ImportService {
         });
     }
 
-    private async insertAllLanguagesSheetData(filePath: string) {
-        const languagesWorkbook = XLSX.readFile(filePath);
-        const allLanguagesWorkbook = languagesWorkbook.Sheets['All Languages'];
-        const allLanguagesSheetData = this.readSheetData(allLanguagesWorkbook);
-
-        const filteredAllLanguagesData = allLanguagesSheetData.filter(
+    private async insertAllLanguagesSheetData(
+        sheetData: any[],
+        sheetColumns: string[],
+    ) {
+        const filteredAllLanguagesData = sheetData.filter(
             (row) => !this.isAllNull(row),
         );
 
@@ -593,9 +635,7 @@ export class ImportService {
             row.filter((_, colIndex) => validLanguagesColumns[colIndex]),
         );
 
-        const allLanguagesSheetColumns =
-            this.getSheetColumns(allLanguagesWorkbook);
-        const filteredLanguagesColumns = allLanguagesSheetColumns
+        const filteredLanguagesColumns = sheetColumns
             .filter((colName) => colName !== null)
             .map((colName) => colName.trim())
             .filter((colName) => colName !== '')
@@ -661,12 +701,8 @@ export class ImportService {
         }
     }
 
-    private async insertAllRegionsSheetData(filePath: string) {
-        const regionsWorkbook = XLSX.readFile(filePath);
-        const allRegionsWorkbook = regionsWorkbook.Sheets['All Regions'];
-        const allRegionsSheetData = this.readSheetData(allRegionsWorkbook);
-
-        const filteredAllRegionsData = allRegionsSheetData.filter(
+    private async insertAllRegionsSheetData(sheetData: any[]) {
+        const filteredAllRegionsData = sheetData.filter(
             (row) => !this.isAllNull(row),
         );
 
@@ -744,12 +780,8 @@ export class ImportService {
         await this.populateParentRowColumn();
     }
 
-    private async insertAllSuppliersSheetData(filePath: string) {
-        const suppliersWorkbook = XLSX.readFile(filePath);
-        const allSuppliersWorkbook = suppliersWorkbook.Sheets['All Suppliers'];
-        const allSuppliersSheetData = this.readSheetData(allSuppliersWorkbook);
-
-        const filteredAllSuppliersData = allSuppliersSheetData.filter(
+    private async insertAllSuppliersSheetData(sheetData: any[]) {
+        const filteredAllSuppliersData = sheetData.filter(
             (row) => !this.isAllNull(row),
         );
 
@@ -837,12 +869,8 @@ export class ImportService {
         await this.populateParentRowColumn();
     }
 
-    private async insertAllModelsSheetData(filePath: string) {
-        const modelsWorkbook = XLSX.readFile(filePath);
-        const allModelsWorkbook = modelsWorkbook.Sheets['All Models'];
-        const allModelsSheetData = this.readSheetData(allModelsWorkbook);
-
-        const filteredAllModelsData = allModelsSheetData.filter(
+    private async insertAllModelsSheetData(sheetData: any[]) {
+        const filteredAllModelsData = sheetData.filter(
             (row) => !this.isAllNull(row),
         );
 
@@ -940,13 +968,9 @@ export class ImportService {
         await this.populateParentRowColumn();
     }
 
-    private async insertAllUnitsSheetData(filePath: string) {
-        const unitWorkbook = XLSX.readFile(filePath);
-        const allUnitsWorkbook = unitWorkbook.Sheets['All Units'];
-        const allUnitsSheetData = this.readSheetData(allUnitsWorkbook);
-
+    private async insertAllUnitsSheetData(sheetData: any[]) {
         const allUnitsData = [];
-        for (const [rowIndex, row] of allUnitsSheetData.entries()) {
+        for (const [rowIndex, row] of sheetData.entries()) {
             allUnitsData[rowIndex] = {
                 Unit: row.slice(1, 2).find((value) => value != null),
                 Unit_Factor: row[3] ?? row[3],
@@ -1025,12 +1049,8 @@ export class ImportService {
         }
     }
 
-    private async insertAllLabelsSheetData(filePath: string) {
-        const suppliersWorkbook = XLSX.readFile(filePath);
-        const allLabelsWorkbook = suppliersWorkbook.Sheets['All Labels'];
-        const allLabelsSheetData = this.readSheetData(allLabelsWorkbook);
-
-        const filteredAllLabelsData = allLabelsSheetData.filter(
+    private async insertAllLabelsSheetData(sheetData: any[]) {
+        const filteredAllLabelsData = sheetData.filter(
             (row) => !this.isAllNull(row),
         );
 
@@ -1237,21 +1257,52 @@ export class ImportService {
         }
     }
 
-    private readSheetData(sheet: XLSX.WorkSheet): any[] {
-        if (!sheet) {
-            throw new Error('Sheet not found');
+    private readSheetData(
+        filePath: string,
+        sheetName: string,
+        options?: { sheetRows?: number },
+    ): any {
+        const workbook = XLSX.readFile(filePath);
+        const workbookSheet = workbook.Sheets[sheetName];
+
+        if (!workbookSheet) {
+            throw new Error(`Sheet '${sheetName}' not found`);
         }
-        return XLSX.utils
-            .sheet_to_json(sheet, { header: 1, defval: null })
+
+        const { sheetRows } = options || {};
+        let sheetData = XLSX.utils
+            .sheet_to_json(workbookSheet, { header: 1, defval: null })
             .slice(3);
+
+        // Handle limiting rows
+        if (sheetRows && sheetRows > 0) {
+            sheetData = sheetData.slice(0, sheetRows);
+        }
+
+        let sheetColumns = XLSX.utils
+            .sheet_to_json(workbookSheet, { header: 1, defval: null })
+            .slice(2);
+        if (Array.isArray(sheetColumns[0])) {
+            const columns = (sheetColumns[0] as string[]).map((column) =>
+                column ? column.replace('*', '') : column,
+            );
+            sheetColumns = columns;
+        } else {
+            sheetColumns = [];
+        }
+        return { sheetData, sheetColumns };
     }
 
-    private getSheetColumns(sheet: XLSX.WorkSheet): string[] {
-        if (!sheet) {
-            throw new Error('Sheet not found');
+    private getSheetColumns(filePath: string, sheetName: string): string[] {
+        const workbook = XLSX.readFile(filePath);
+        const workbookSheet = workbook.Sheets[sheetName];
+
+        if (!workbookSheet) {
+            throw new Error(`Sheet '${sheetName}' not found`);
         }
+
         const sheetColumns = XLSX.utils
-            .sheet_to_json(sheet, { header: 1, defval: null })
+            .sheet_to_json(workbookSheet, { header: 1, defval: null })
             .slice(2);
         if (Array.isArray(sheetColumns[0])) {
             const columns = (sheetColumns[0] as string[]).map((column) =>

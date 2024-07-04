@@ -1,3 +1,19 @@
+export const SHEET_NAMES = {
+    ALL_PAGES: 'All Pages',
+    ALL_COLS: 'All Cols',
+    ALL_TOKENS: 'All Tokens',
+    ALL_LANGUAGES: 'All Languages',
+    ALL_REGIONS: 'All Regions',
+    ALL_SUPPLIERS: 'All Suppliers',
+    ALL_MODELS: 'All Models',
+    ALL_UNITS: 'All Units',
+    ALL_LABELS: 'All Labels',
+};
+
+export const SHEET_READ_OPTIONS = {
+    ALL_PAGES: { sheetRows: 15 },
+};
+
 export const TOKEN_CONSTANTS = {
     PAGE_TYPE: 3000000328,
     PAGE_EDITION: 3000000334,

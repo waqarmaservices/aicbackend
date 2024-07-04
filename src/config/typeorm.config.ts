@@ -18,10 +18,10 @@ export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
             entities: [__dirname + '/../**/*.entity.{js,ts}'],
             synchronize: false,
             logging: true,
-            extra: {
-                max: 100,
-                connectionTimeoutMillis: 15000,
-            },
+            // extra: {
+            //     max: 100,
+            //     connectionTimeoutMillis: 15000,
+            // },
         };
     },
 };
