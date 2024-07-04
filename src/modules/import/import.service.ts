@@ -932,6 +932,7 @@ export class ImportService {
         const unitWorkbook = XLSX.readFile(filePath);
         const allUnitsWorkbook = unitWorkbook.Sheets['All Units'];
         const allUnitsSheetData = this.readSheetData(allUnitsWorkbook);
+        const user = await this.userService.findOneUser(SYSTEM_INITIAL.USER_ID);
 
         const allUnitsData = [];
         for (const [rowIndex, row] of allUnitsSheetData.entries()) {
@@ -950,7 +951,7 @@ export class ImportService {
             const lastRowInserted =
                 await this.rowService.getLastInsertedRecord();
             nextRowPk = +lastRowInserted.Row + 1;
-            const rowId = await this.getRowId('JSON', 'Row-ID');
+            const rowObjectRowId = await this.getRowId('JSON', 'Row');
             const stdUnitRowId = await this.getRowId('JSON', 'Std-Unit');
             const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
             const numberRowId = await this.getRowId('JSON', 'Number')
@@ -966,20 +967,20 @@ export class ImportService {
             });
             // Row Format
             await this.formatService.createFormat({
-                User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: rowId,
+                User: user.User,
+                ObjectType: rowObjectRowId,
                 Object: createdRow.Row,
-                Owner: SYSTEM_INITIAL.USER_ID,
+                Owner: user.User,
                 Status: unitEl.Row_Status ? rowStatuses : null,
                 Comment: unitEl.Row_Comment
-                    ? { 3000000100: unitEl.Row_Comment }
+                    ? { [SYSTEM_INITIAL.ENGLISH] : unitEl.Row_Comment }
                     : null,
             });
 
             if (COLUMN_NAMES.Unit in unitEl && unitEl.Unit) {
                 const createdItem = await this.itemService.createItem({
                     DataType: mlTextRowId,
-                    JSON: { 3000000100: unitEl.Unit },
+                    JSON: { [SYSTEM_INITIAL.ENGLISH]: unitEl.Unit },
                 });
                 await this.cellService.createCell({
                     Col: 2000000084, // column id of "Unit"
