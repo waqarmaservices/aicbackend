@@ -930,15 +930,17 @@ export class ImportService {
           });
         } else if (key == COLUMN_NAMES.Value_Data_Type && val) {
           const objectRowId = await this.getRowId('JSON', val);
-          const createdItem = await this.itemService.createItem({
-            DataType: dropDownRowId,
-            Object: objectRowId,
-          });
-          await this.cellService.createCell({
-            Col: 2000000079, // Col-ID of "Value Data-Type"
-            Row: createdRow.Row,
-            Items: [createdItem.Item],
-          });
+          if (objectRowId) {
+            const createdItem = await this.itemService.createItem({
+              DataType: dropDownRowId,
+              Object: objectRowId.Row,
+            });
+            await this.cellService.createCell({
+              Col: 2000000079, // Col-ID of "Value Data-Type"
+              Row: createdRow.Row,
+              Items: [createdItem.Item],
+            });
+          }
         } else if (key == COLUMN_NAMES.Value_DropDown_Source && val) {
           const rowsIds = await this.processStringToRowIds(val as string);
           const createdItemIds = [];
