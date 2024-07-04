@@ -45,26 +45,26 @@ export class Row {
     @OneToMany(() => Item, (item) => item['Data-Type'])
     items: Item[];
 
-    @OneToMany(() => Row, (row) => row.Share)
-    shareRows: Row[];
+    // @OneToMany(() => Row, (row) => row.Share)
+    // shareRows: Row[];
 
-    @OneToMany(() => Row, (row) => row.ParentRow)
-    inheritRows: Row[];
+    // @OneToMany(() => Row, (row) => row.ParentRow)
+    // inheritRows: Row[];
 
-    @OneToMany(() => Row, (row) => row.SiblingRow)
-    siblingRows: Row[];
+    // @OneToMany(() => Row, (row) => row.SiblingRow)
+    // siblingRows: Row[];
 
     @OneToMany(() => Format, (format) => format.RowSetTick)
     RowSetTickFormats: Format[];
 
-    @OneToMany(() => Format, (format) => format.Unit)
-    UnitFormats: Format[];
+    // @OneToMany(() => Format, (format) => format.Unit)
+    // UnitFormats: Format[];
 
-    @OneToMany(() => Format, (format) => format.Deleted)
-    DeletedFormats: Format[];
+    // @OneToMany(() => Format, (format) => format.Deleted)
+    // DeletedFormats: Format[];
 
-    @OneToMany(() => Format, (format) => format.ObjectType)
-    ObjectTypeFormats: Format[];
+    // @OneToMany(() => Format, (format) => format.ObjectType)
+    // ObjectTypeFormats: Format[];
 
     @OneToMany(() => Item, (item) => item['Std-Unit'])
     StdUnitItems: Item[];

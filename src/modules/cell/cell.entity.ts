@@ -3,12 +3,10 @@ import {
     PrimaryGeneratedColumn,
     Column,
     ManyToOne,
-    OneToMany,
     JoinColumn,
 } from 'typeorm';
-import { Col } from '../col/col.entity';
-import { Row } from '../row/row.entity';
-import { Item } from '../item/item.entity';
+import { Col } from 'modules/col/col.entity';
+import { Row } from 'modules/row/row.entity';
 
 @Entity('t-Cell')
 export class Cell {
@@ -38,6 +36,6 @@ export class Cell {
     @Column({ name: 'DropDown-Source', type: 'jsonb' })
     DropDownSource: object;
 
-    @Column('bigint', { array: true, nullable: true })
+    @Column('bigint', { array: true })
     Items: number[];
 }

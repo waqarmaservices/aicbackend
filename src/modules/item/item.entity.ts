@@ -9,7 +9,7 @@ import { Row } from '../row/row.entity';
 
 @Entity('t-Item')
 export class Item {
-    @PrimaryGeneratedColumn({ type: 'bigint' })
+    @PrimaryGeneratedColumn({ name: 'Item' })
     Item: number;
 
     @Column({ type: 'bigint', array: true, nullable: true })
@@ -19,39 +19,39 @@ export class Item {
     @JoinColumn({ name: 'Data-Type' })
     DataType: Row;
 
-    @Column({ type: 'bigint', nullable: true })
+    @Column({ name: 'Object', type: 'bigint', nullable: true })
     Object: number;
 
-    @Column({ type: 'smallint', nullable: true })
+    @Column({ name: 'SmallInt', type: 'smallint', nullable: true })
     SmallInt: number;
 
-    @Column({ type: 'bigint', nullable: true })
+    @Column({ name: 'BigInt', type: 'bigint', nullable: true })
     BigInt: number;
 
-    @Column({ type: 'numeric', nullable: true })
+    @Column({ name: 'Num', type: 'numeric', nullable: true })
     Num: number;
 
-    @Column({ type: 'bytea', nullable: true })
+    @Column({ name: 'Color', type: 'bytea', nullable: true })
     Color: Buffer;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ name: 'DateTime', type: 'timestamp', nullable: true })
     DateTime: Date;
 
-    @Column({ type: 'jsonb', nullable: true })
+    @Column({ name: 'JSON', type: 'jsonb', nullable: true })
     JSON: any;
 
-    @Column({ type: 'numeric', nullable: true })
+    @Column({ name: 'Qty', type: 'numeric', nullable: true })
     Qty: number;
 
-    @Column({ type: 'bigint', nullable: true })
+    @Column({ name: 'Unit', type: 'bigint', nullable: true })
     Unit: number;
 
-    @Column({ type: 'numeric', nullable: true })
-    'Std-Qty': number;
+    @Column({ name: 'Std-Qty', type: 'numeric', nullable: true })
+    StdQty: number;
 
-    @Column({ type: 'bigint', nullable: true })
-    'Std-Unit': number;
+    @Column({ name: 'Std-Unit', type: 'bigint', nullable: true })
+    StdUnit: number;
 
-    @Column({ type: 'jsonb', nullable: true })
+    @Column({ name: 'Foreign', type: 'jsonb', nullable: true })
     Foreign: any;
 }

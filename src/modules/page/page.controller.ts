@@ -28,7 +28,7 @@ export class PageController {
     @Get()
     async findAll(): Promise<ApiResponse<any>> {
         try {
-            const pages = await this.pageService.getAllPagesData();
+            const pages = await this.pageService.getAllPages();
             return new ApiResponse(
                 true,
                 pages,

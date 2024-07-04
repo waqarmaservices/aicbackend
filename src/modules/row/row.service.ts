@@ -1,8 +1,7 @@
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Row } from './row.entity'; 
+import { Row } from './row.entity';
 
 @Injectable()
 export class RowService {
@@ -16,16 +15,13 @@ export class RowService {
         return this.rowRepository.save(rowData);
     }
 
-    async findAll(): Promise<Row[]> {
-        return this.rowRepository.find({
-            relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
-        });
+    async findAll(): Promise<any> {
+        return this.rowRepository.find({});
     }
 
     async findOne(id: number): Promise<Row> {
         return this.rowRepository.findOne({
             where: { Row: id },
-            relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
         });
     }
 

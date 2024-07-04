@@ -52,7 +52,7 @@ export class ImportService {
         await this.insertAllUnitsSheetData(filePath);
         await this.insertAllLabelsSheetData(filePath);
 
-        return 'success';
+        return 'Data Imported Successfully!';
     }
 
     private async insertRecordIntotPG(pageIds: string[]) {
