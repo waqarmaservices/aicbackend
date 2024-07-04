@@ -81,33 +81,7 @@ export class ImportService {
   }
 
   private async insertAllPagesSheetData(sheetData: any[], sheetColumns: string[]) {
-    // Filter out rows where all values are null
-    const filteredAllPagesData = sheetData.filter((row) => !this.isAllNull(row));
-
-    // Determine which columns have at least one non-null value
-    const validPagesColumns = filteredAllPagesData[0].map((_, colIndex) =>
-      filteredAllPagesData.some((row) => row[colIndex] !== null),
-    );
-
-    // Filter columns based on the previously determined valid columns
-    const filteredPagesData = filteredAllPagesData.map((row) =>
-      row.filter((_, colIndex) => validPagesColumns[colIndex]),
-    );
-
-    // Get column names, trim and sanitize them
-    const filteredPagesColumns = sheetColumns
-      .filter((colName) => colName !== null)
-      .map((colName) => colName.trim())
-      .filter((colName) => colName !== '')
-      .map((colName) => colName.replace(/\s+/g, '_'));
-
-    // Map filtered data to an array of objects with column names as keys
-    const pagesData: any = filteredPagesData.map((row) =>
-      filteredPagesColumns.reduce((acc, colName, index) => {
-        acc[colName] = row[index];
-        return acc;
-      }, {}),
-    );
+    const pagesData = await this.processSheetData(sheetData, sheetColumns);
 
     // Loop through each page element and process accordingly
     for (const pageEl of pagesData) {
@@ -259,25 +233,8 @@ export class ImportService {
   }
 
   private async insertAllColsSheetData(sheetData: any[], sheetColumns: string[]) {
-    const filteredAllColsData = sheetData.filter((row) => !this.isAllNull(row));
+    const colsData = await this.processSheetData(sheetData, sheetColumns);
 
-    const validColsColumns = filteredAllColsData[0].map((_, colIndex) =>
-      filteredAllColsData.some((row) => row[colIndex] !== null),
-    );
-
-    const filteredColsData = filteredAllColsData.map((row) => row.filter((_, colIndex) => validColsColumns[colIndex]));
-
-    const filteredColsColumns = sheetColumns
-      .filter((colName) => colName !== null)
-      .map((colName) => colName.trim())
-      .filter((colName) => colName !== '')
-      .map((colName) => colName.replace(/[\s-]+/g, '_'));
-    const colsData: any = filteredColsData.map((row) =>
-      filteredColsColumns.reduce((acc, colName, index) => {
-        acc[colName] = row[index];
-        return acc;
-      }, {}),
-    );
     for (const colEl of colsData) {
       const col = await this.colService.findOne(colEl.Col_ID);
       const pageIdRowId = await this.getRowId('JSON', 'Page-ID');
@@ -385,6 +342,28 @@ export class ImportService {
         });
       }
     }
+  }
+
+  private async processSheetData(sheetData: any[], sheetColumns: string[]) {
+    const filteredData = sheetData.filter((row) => !this.isAllNull(row));
+
+    const validColumns = filteredData[0].map((_, colIndex) => filteredData.some((row) => row[colIndex] !== null));
+
+    const filteredRows = filteredData.map((row) => row.filter((_, colIndex) => validColumns[colIndex]));
+
+    const filteredColumns = sheetColumns
+      .filter((colName) => colName !== null)
+      .map((colName) => colName.trim())
+      .filter((colName) => colName !== '')
+      .map((colName) => colName.replace(/[\s-]+/g, '_'));
+
+    const processedData: any = filteredRows.map((row) =>
+      filteredColumns.reduce((acc, colName, index) => {
+        acc[colName] = row[index];
+        return acc;
+      }, {}),
+    );
+    return processedData;
   }
 
   private async insertAllTokensData(sheetData: any[]) {
@@ -526,28 +505,8 @@ export class ImportService {
   }
 
   private async insertAllLanguagesSheetData(sheetData: any[], sheetColumns: string[]) {
-    const filteredAllLanguagesData = sheetData.filter((row) => !this.isAllNull(row));
+    const languagesData = await this.processSheetData(sheetData, sheetColumns);
 
-    const validLanguagesColumns = filteredAllLanguagesData[0].map((_, colIndex) =>
-      filteredAllLanguagesData.some((row) => row[colIndex] !== null),
-    );
-
-    const filteredLanguagesData = filteredAllLanguagesData.map((row) =>
-      row.filter((_, colIndex) => validLanguagesColumns[colIndex]),
-    );
-
-    const filteredLanguagesColumns = sheetColumns
-      .filter((colName) => colName !== null)
-      .map((colName) => colName.trim())
-      .filter((colName) => colName !== '')
-      .map((colName) => colName.replace(/[\s-]+/g, '_'));
-
-    const languagesData: any = filteredLanguagesData.map((row) =>
-      filteredLanguagesColumns.reduce((acc, colName, index) => {
-        acc[colName] = row[index];
-        return acc;
-      }, {}),
-    );
     const dataTypeRowId = await this.getRowId('JSON', 'Row-ID');
     const rowStatuses = await this.processStatus(languagesData[0], 'Row_Status');
     const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
@@ -1120,7 +1079,6 @@ export class ImportService {
   }
 
   private async findRowOfObjectType(allColsColumns: any[]) {
-    const colNames = this.extractColHeaderValue(allColsColumns, 5);
     const colDataTypes = this.extractColHeaderValue(allColsColumns, 6);
     const uniqueColDataTypes = [...new Set(colDataTypes)];
     return uniqueColDataTypes;
