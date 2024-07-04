@@ -1020,6 +1020,16 @@ export class ImportService {
         const allLabelsWorkbook = suppliersWorkbook.Sheets['All Labels'];
         const allLabelsSheetData = this.readSheetData(allLabelsWorkbook);
 
+        const user = await this.userService.findOneUser(SYSTEM_INITIAL.USER_ID);
+        const rowObjectRowId = await this.getRowId('JSON', 'Row');
+        const dropDownRowId = await this.getRowId('JSON', 'Drop-Down');
+        const dropDownSourceRowId = await this.getRowId('JSON', 'DropDown-Source');
+        const mlTextRowId = await this.getRowId('JSON', 'ML-Text');
+        const ddsTypeRowId = (await this.getRowId('JSON', 'DDS-Type')).Row; // DDS-Type as 3000000375
+        const valueDataTypeRowId = await this.getRowId('JSON', 'Value Data-Type');
+        const formulaRowId = await this.getRowId('JSON', 'Formula');
+        const validateDataRowId = (await this.getRowId('JSON', 'Formula')).Row; // Validate Data as 3000000382
+
         const filteredAllLabelsData = allLabelsSheetData.filter(
             (row) => !this.isAllNull(row),
         );
@@ -1049,42 +1059,43 @@ export class ImportService {
             };
         }
 
+        
         for (const labelEl of allLabelsData) {
-            console.log(labelEl);
             let nextRowPk = 0;
             const lastRowInserted =
                 await this.rowService.getLastInsertedRecord();
-            nextRowPk = lastRowInserted ? +lastRowInserted.Row + 1 : 3000000201;
+            nextRowPk = +lastRowInserted.Row + 1;
             const createdRow = await this.rowService.createRow({
                 Row: nextRowPk,
                 RowLevel: labelEl.Row_Level,
             });
             const createdFormat = await this.formatService.createFormat({
-                User: SYSTEM_INITIAL.USER_ID,
-                ObjectType: createdRow.Row,
+                User: user.User,
+                ObjectType: rowObjectRowId,
                 Object: createdRow.Row,
-                Owner: SYSTEM_INITIAL.USER_ID,
+                Owner: user.User,
             });
 
             for (const [key, val] of Object.entries(labelEl)) {
                 if (key == 'Label' && val !== null) {
                     const createdItem = await this.itemService.createItem({
-                        DataType: createdRow.Row,
-                        JSON: { 3000000100: val },
+                        DataType: mlTextRowId,
+                        JSON: { [SYSTEM_INITIAL.ENGLISH]: val },
                     });
                     await this.cellService.createCell({
-                        Col: 2000000078, // column id of "Label"
+                        Col: 2000000078, // Col-ID of "Label"
                         Row: createdRow.Row,
                         Items: [createdItem.Item],
                     });
 
-                } else if (key == 'Value-Data-Type' && val !== null) {
+                } else if (key == 'Value-Data-Type' && val) {
+                    const objectRowId = await this.getRowId('JSON', val);
                     const createdItem = await this.itemService.createItem({
-                        DataType: COL_DATA_TYPES.Drop_Down, // changed in all tokens, we should find it dynamically
-                        Object: COL_DATA_TYPES.Category_ID, // changed in all tokens, we should find it dynamically
+                        DataType: dropDownRowId,
+                        Object: objectRowId,
                     });
                     await this.cellService.createCell({
-                        Col: 2000000079, // column id of "Value Data-Type"
+                        Col: 2000000079, // Col-ID of "Value Data-Type"
                         Row: createdRow.Row,
                         Items: [createdItem.Item],
                     });
@@ -1096,90 +1107,88 @@ export class ImportService {
                     const createdItemIds = []
                     for (const rowId of rowsIds) {
                         const createdItem = await this.itemService.createItem({
-                            DataType: COL_DATA_TYPES.DropDown_Source, // changed in all tokens, we should find it dynamically
-                            JSON: { 3000000375: rowId },
+                            DataType: dropDownSourceRowId,
+                            JSON: { [ddsTypeRowId]: rowId },
                         });
                         createdItemIds.push(createdItem.Item);
                     }
                     await this.cellService.createCell({
-                        Col: 2000000080, // column id of "Value DropDown-Source"
+                        Col: 2000000080, // Col-ID of "Value DropDown-Source"
                         Row: createdRow.Row,
                         Items: createdItemIds,
                     });
 
                 } else if (key == 'Value_Default_Data' && val) {
-                    const createdItem = await this.itemService.createItem({
-                        DataType: COL_DATA_TYPES.Value_Data_Type, // changed in all tokens, we should find it dynamically
-                        JSON: { 3000000100: val },
-                    });
+                    const rowsIds = await this.processStringToRowIds(
+                        val as string,
+                    );
+                    const createdItemIds = []
+                    for (const rowId of rowsIds) {
+                        const createdItem = await this.itemService.createItem({
+                            DataType: valueDataTypeRowId,
+                            JSON: { [SYSTEM_INITIAL.ENGLISH]: val },
+                        });
+                        createdItemIds.push(createdItem.Item);
+                    }
                     const createdCell = await this.cellService.createCell({
-                        Col: 2000000081, // column id of "Value Default-Data"
-                        Row: 3000000201, // as per setup sheet - Row.Row = 0
-                        Items: [createdItem.Item],
+                        Col: 2000000081, // Col-ID of "Value Default-Data"
+                        Row: 3000000201, // As per setup sheet - Row.Row = 0, Modify this to Row: 0
+                        Items: createdItemIds,
                     });
                     await this.formatService.updateFormat(
                         createdFormat.Format,
                         {
-                            Default: createdCell, // putting cell id
+                            Default: createdCell,
                         },
                     );
                 } else if (key == 'Value_Status' && val) {
-                    const valueStatusRows = await this.processStringToRowIds(
-                        val as string,
-                    );
+                    const valueStatusRows = await this.processStringToRowIds(val as string);
                     const createdItemIds = [];
                     for (const rowId of valueStatusRows) {
                         const createdItem = await this.itemService.createItem({
-                            DataType: COL_DATA_TYPES.Drop_Down, // changed in all tokens, we should find it dynamically
+                            DataType: dropDownRowId,
                             Object: rowId,
                         });
                         createdItemIds.push(createdItem.Item);
                     }
                     await this.cellService.createCell({
-                        Col: 2000000081, // column id of "Value Default-Data"
+                        Col: 2000000081, // Col-ID of "Value_Status"
                         Row: createdRow.Row,
                         Items: createdItemIds,
                     });
                 } else if (key == 'Value_Formula' && val) {
                     const createdItem = await this.itemService.createItem({
-                        DataType: COL_DATA_TYPES.Formula, // changed in all tokens, we should find it dynamically
-                        JSON: { 3000000382: val },
+                        DataType: formulaRowId,
+                        JSON: { [validateDataRowId]: val },
                     });
                     await this.cellService.createCell({
-                        Col: 2000000083, // column id of "Value Formula"
+                        Col: 2000000083, // Col-ID of "Value Formula"
                         Row: createdRow.Row,
                         Items: [createdItem.Item],
                     });
                 } else if (key == 'Row_Type' && val) {
-                    const rowTypes = await this.processStringToRowIds(
-                        val as string,
-                    );
+                    const rowTypes = await this.processStringToRowIds(val as string);
                     const createdItemIds = [];
                     for (const rowId of rowTypes) {
                         const createdItem = await this.itemService.createItem({
-                            DataType: COL_DATA_TYPES.Drop_Down, // changed in all tokens, we should find it dynamically
+                            DataType: dropDownRowId,
                             Object: rowId,
                         });
                         createdItemIds.push(createdItem.Item);
                     }
                     await this.cellService.createCell({
-                        Col: 2000000004, // column id of "Row Type"
+                        Col: 2000000004, // Col-ID of "Row Type"
                         Row: createdRow.Row,
                         Items: createdItemIds,
                     });
                 } else if (key == 'Row_Status' && val) {
-                    await this.formatService.updateFormat(
-                        createdFormat.Format,
-                        {
-                            Status: [STATUSES.SECTION_HEAD], // changed in all tokens, we should find it dynamically
-                        },
+                    const statusesRowIds = await this.processStringToRowIds(val as string);
+                    await this.formatService.updateFormat(createdFormat.Format, 
+                        { Status: statusesRowIds }
                     );
                 } else if (key == 'Row_Comment' && val !== null) {
-                    await this.formatService.updateFormat(
-                        createdFormat.Format,
-                        {
-                            Comment: { 3000000100: val },
-                        },
+                    await this.formatService.updateFormat(createdFormat.Format,
+                        { Comment: { [SYSTEM_INITIAL.ENGLISH]: val } },
                     );
                 }
             }
