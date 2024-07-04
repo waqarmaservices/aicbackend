@@ -1081,7 +1081,7 @@ export class ImportService {
             });
 
             for (const [key, val] of Object.entries(labelEl)) {
-                if (key == 'Label' && val !== null) {
+                if (key == COLUMN_NAMES.Label && val) {
                     const createdItem = await this.itemService.createItem({
                         DataType: mlTextRowId,
                         JSON: { [SYSTEM_INITIAL.ENGLISH]: val },
@@ -1092,7 +1092,7 @@ export class ImportService {
                         Items: [createdItem.Item],
                     });
 
-                } else if (key == 'Value-Data-Type' && val) {
+                } else if (key == COLUMN_NAMES.Value_Data_Type && val) {
                     const objectRowId = await this.getRowId('JSON', val);
                     const createdItem = await this.itemService.createItem({
                         DataType: dropDownRowId,
@@ -1104,7 +1104,7 @@ export class ImportService {
                         Items: [createdItem.Item],
                     });
 
-                } else if (key == 'Value_DropDown_Source' && val) {
+                } else if (key == COLUMN_NAMES.Value_DropDown_Source && val) {
                     const rowsIds = await this.processStringToRowIds(
                         val as string,
                     );
@@ -1122,7 +1122,7 @@ export class ImportService {
                         Items: createdItemIds,
                     });
 
-                } else if (key == 'Value_Default_Data' && val) {
+                } else if (key == COLUMN_NAMES.Value_Default_Data && val) {
                     const colValues = String(val).split(';') // Items, Not Row-IDs
                     const createdItemIds = []
                     for (const value of colValues) {
@@ -1143,7 +1143,7 @@ export class ImportService {
                             Default: createdCell,
                         },
                     );
-                } else if (key == 'Value_Status' && val) {
+                } else if (key == COLUMN_NAMES.Value_Status && val) {
                     const valueStatusRows = await this.processStringToRowIds(val as string);
                     const createdItemIds = [];
                     for (const rowId of valueStatusRows) {
@@ -1158,7 +1158,7 @@ export class ImportService {
                         Row: createdRow.Row,
                         Items: createdItemIds,
                     });
-                } else if (key == 'Value_Formula' && val) {
+                } else if (key == COLUMN_NAMES.Value_Formula && val) {
                     const createdItem = await this.itemService.createItem({
                         DataType: formulaRowId,
                         JSON: { [validateDataRowId]: val },
@@ -1168,7 +1168,7 @@ export class ImportService {
                         Row: createdRow.Row,
                         Items: [createdItem.Item],
                     });
-                } else if (key == 'Row_Type' && val) {
+                } else if (key == COLUMN_NAMES.Row_Type && val) {
                     const rowTypes = await this.processStringToRowIds(val as string);
                     const createdItemIds = [];
                     for (const rowId of rowTypes) {
@@ -1183,12 +1183,12 @@ export class ImportService {
                         Row: createdRow.Row,
                         Items: createdItemIds,
                     });
-                } else if (key == 'Row_Status' && val) {
+                } else if (key == COLUMN_NAMES.Row_Status && val) {
                     const statusesRowIds = await this.processStringToRowIds(val as string);
                     await this.formatService.updateFormat(createdFormat.Format, 
                         { Status: statusesRowIds }
                     );
-                } else if (key == 'Row_Comment' && val !== null) {
+                } else if (key == COLUMN_NAMES.Row_Comment && val !== null) {
                     await this.formatService.updateFormat(createdFormat.Format,
                         { Comment: { [SYSTEM_INITIAL.ENGLISH]: val } },
                     );

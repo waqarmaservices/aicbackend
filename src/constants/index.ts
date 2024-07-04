@@ -79,6 +79,15 @@ export const COLUMN_NAMES = {
     Release_Date: 'Release_Date',
     Unit: 'Unit',
     Unit_Factor: 'Unit_Factor',
+    Label: 'Label',
+    Value_Data_Type: 'Value_Data_Type',
+    Value_DropDown_Source: 'Value_DropDown_Source',
+    Value_Default_Data: 'Value_Default_Data',
+    Value_Status: 'Value_Status',
+    Value_Formula: 'Value_Formula',
+    Row_Status: 'Row_Status',
+    Row_Comment: 'Row_Comment',
+    Row_Level: 'Row_Level'
 };
 
 // export const Col_DROPDOWN_SOURCE = {
