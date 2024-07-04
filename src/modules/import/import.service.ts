@@ -52,6 +52,9 @@ export class ImportService {
         await this.insertAllUnitsSheetData(filePath);
         await this.insertAllLabelsSheetData(filePath);
 
+        await this.populateSiblingRowColumn();
+        await this.populateParentRowColumn();
+
         return 'Data Imported Successfully!';
     }
 
@@ -441,7 +444,7 @@ export class ImportService {
                 Row_Type: row[7] ?? row[7],
                 Row_Status: row[8] ?? row[8],
                 Row_Comment: row[9] ?? row[9],
-                Row_level: await this.calculateRowLevel(row, 'All Tokens'),
+                Row_level: this.calculateRowLevel(row.slice(1, 6)),
             };
         }
         for (const tokenEl of allTokenData) {
@@ -497,23 +500,11 @@ export class ImportService {
         }
     }
 
-    private async calculateRowLevel(
+    private calculateRowLevel(
         rowArray: Array<any>,
         sheetName?: string,
-    ): Promise<number> {
-        if (sheetName && sheetName == 'All Tokens') {
-            if (rowArray[1]) {
-                return 1;
-            } else if (rowArray[2]) {
-                return 2;
-            } else if (rowArray[3]) {
-                return 3;
-            } else if (rowArray[4]) {
-                return 4;
-            } else if (rowArray[5]) {
-                return 5;
-            }
-        } else {
+    ): number {
+        if (sheetName) {
             if (rowArray[0]) {
                 return 1;
             } else if (rowArray[1]) {
@@ -677,7 +668,7 @@ export class ImportService {
                 Row_Type: row[7] ?? row[7],
                 Row_Status: row[8] ?? row[8],
                 Row_Comment: row[9] ?? row[9],
-                Row_Level: await this.calculateRowLevel(row, 'All Tokens'),
+                Row_Level: this.calculateRowLevel(row, 'All Tokens'),
             };
         }
 
@@ -760,7 +751,7 @@ export class ImportService {
                 Row_Type: row[8] ?? row[8],
                 Row_Status: row[9] ?? row[9],
                 Row_Comment: row[10] ?? row[10],
-                Row_Level: await this.calculateRowLevel(row),
+                Row_Level: this.calculateRowLevel(row),
             };
         }
 
@@ -854,7 +845,7 @@ export class ImportService {
                 Row_Type: row[9] ?? row[9],
                 Row_Status: row[10] ?? row[10],
                 Row_Comment: row[11] ?? row[11],
-                Row_Level: await this.calculateRowLevel(row),
+                Row_Level: this.calculateRowLevel(row),
             };
         }
 
@@ -935,9 +926,6 @@ export class ImportService {
                 }
             }
         }
-
-        await this.populateSiblingRowColumn();
-        await this.populateParentRowColumn();
     }
 
     private async insertAllUnitsSheetData(filePath: string) {
@@ -948,14 +936,15 @@ export class ImportService {
         const allUnitsData = [];
         for (const [rowIndex, row] of allUnitsSheetData.entries()) {
             allUnitsData[rowIndex] = {
-                Unit: row.slice(1, 2).find((value) => value != null),
+                Unit: row.slice(1, 3).find((value) => value != null),
                 Unit_Factor: row[3] ?? row[3],
                 Row_Type: row[4] ?? row[4],
                 Row_Status: row[5] ?? row[5],
                 Row_Comment: row[6] ?? row[6],
-                Row_Level: 1,
+                Row_Level: this.calculateRowLevel(row.slice(1)),
             };
         }
+
         for (const unitEl of allUnitsData) {
             let nextRowPk = 0;
             const lastRowInserted =
@@ -973,7 +962,7 @@ export class ImportService {
             // Creating Row
             const createdRow = await this.rowService.createRow({
                 Row: nextRowPk,
-                RowLevel: 1,
+                RowLevel: unitEl.Row_Level,
             });
             // Row Format
             await this.formatService.createFormat({
@@ -1055,7 +1044,7 @@ export class ImportService {
                 Row_Type: row[11] == null ? '' : row[11],
                 Row_Status: row[12] == null ? '' : row[12],
                 Row_Comment: row[13] == null ? '' : row[13],
-                Row_Level: await this.calculateRowLevel(row),
+                Row_Level: this.calculateRowLevel(row),
             };
         }
 
