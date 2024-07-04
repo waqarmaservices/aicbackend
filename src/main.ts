@@ -11,6 +11,9 @@ async function bootstrap() {
     const logger = new Logger();
     const { port } = appConfig();
     const app = await NestFactory.create(AppModule, { cors: true });
+    // Get the underlying HTTP server and set the timeout
+    const server = app.getHttpServer();
+    server.setTimeout(300000); // 5 minutes in milliseconds
     app.setGlobalPrefix('api', {
         exclude: excludedPaths,
     });
@@ -25,7 +28,7 @@ async function bootstrap() {
     const config = new DocumentBuilder()
         .setTitle('AIC API DOCS')
         .setDescription('AIC API description')
-        .setVersion('1.0')  
+        .setVersion('1.0')
         .addTag('AIC')
         .build();
     const document = SwaggerModule.createDocument(app, config);
