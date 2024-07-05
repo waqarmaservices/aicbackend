@@ -5,9 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Col } from './col.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Col])],
-    controllers: [ColController],
-    providers: [ColService],
-    exports: [ColService]
+  imports: [TypeOrmModule.forFeature([Col])],
+  controllers: [ColController],
+  providers: [ColService],
+  exports: [ColService],
 })
 export class ColModule {}

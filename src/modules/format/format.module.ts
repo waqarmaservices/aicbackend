@@ -5,9 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Format } from './format.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Format])],
-    controllers: [FormatController],
-    providers: [FormatService],
-    exports: [FormatService]
+  imports: [TypeOrmModule.forFeature([Format])],
+  controllers: [FormatController],
+  providers: [FormatService],
+  exports: [FormatService],
 })
 export class FormatModule {}

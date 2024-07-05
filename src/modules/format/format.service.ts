@@ -11,28 +11,44 @@ export class FormatService {
   ) {}
 
   async createFormat(payload: any): Promise<Format> {
-        const formatData = this.formatRepository.create(
-            payload as Partial<Format>,
-        );
-        return this.formatRepository.save(formatData);
+    const formatData = this.formatRepository.create(payload as Partial<Format>);
+    return this.formatRepository.save(formatData);
   }
 
   async findAll(): Promise<Format[]> {
-    return this.formatRepository.find({ 
+    return this.formatRepository.find({
       relations: [
-        'User', 'ObjectType', 'PGNestedCol', 'PGLevelSet', 'PGSearchSet', 
-        'RowSetTick', 'Owner', 'Default', 'Unit', 'Deleted', 'DeletedBy'
-      ]
+        'User',
+        'ObjectType',
+        'PGNestedCol',
+        'PGLevelSet',
+        'PGSearchSet',
+        'RowSetTick',
+        'Owner',
+        'Default',
+        'Unit',
+        'Deleted',
+        'DeletedBy',
+      ],
     });
   }
 
   async findOne(id: number): Promise<Format> {
-    return this.formatRepository.findOne({ 
+    return this.formatRepository.findOne({
       where: { Format: id },
       relations: [
-        'User', 'ObjectType', 'PGNestedCol', 'PGLevelSet', 'PGSearchSet', 
-        'RowSetTick', 'Owner', 'Default', 'Unit', 'Deleted', 'DeletedBy'
-      ]
+        'User',
+        'ObjectType',
+        'PGNestedCol',
+        'PGLevelSet',
+        'PGSearchSet',
+        'RowSetTick',
+        'Owner',
+        'Default',
+        'Unit',
+        'Deleted',
+        'DeletedBy',
+      ],
     });
   }
 

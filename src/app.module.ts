@@ -27,41 +27,41 @@ import { ColController } from './modules/col/col.controller';
 import { ImportModule } from './modules/import/import.module';
 
 @Module({
-    imports: [
-        ConfigModule.forRoot({
-            isGlobal: true,
-            load: [appConfig],
-        }),
-        TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
-        CacheModule.register(),
-        AuthModule,
-        PageModule,
-        ColModule,
-        RowModule,
-        CellModule,
-        ItemModule,
-        FormatModule,
-        TxModule,
-        UserModule,
-        ImportModule,
-    ],
-    controllers: [
-        AppController,
-        CellController,
-        RowController,
-        ItemController,
-        TxController,
-        UserController,
-        FormatController,
-        PageController,
-        ColController,
-    ],
-    providers: [
-        AppService,
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: CacheInterceptor,
-        },
-    ],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [appConfig],
+    }),
+    TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
+    CacheModule.register(),
+    AuthModule,
+    PageModule,
+    ColModule,
+    RowModule,
+    CellModule,
+    ItemModule,
+    FormatModule,
+    TxModule,
+    UserModule,
+    ImportModule,
+  ],
+  controllers: [
+    AppController,
+    CellController,
+    RowController,
+    ItemController,
+    TxController,
+    UserController,
+    FormatController,
+    PageController,
+    ColController,
+  ],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
+  ],
 })
 export class AppModule {}

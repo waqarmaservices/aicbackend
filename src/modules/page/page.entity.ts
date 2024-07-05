@@ -3,9 +3,9 @@ import { Entity, PrimaryColumn, OneToMany } from 'typeorm';
 
 @Entity('t-PG')
 export class Page {
-    @PrimaryColumn({ type: 'bigint', name: 'PG' })
-    PG: number;
+  @PrimaryColumn({ type: 'bigint', name: 'PG' })
+  PG: number;
 
-    @OneToMany(() => Row, (row) => row.PG)
-    rows: Row[];
+  @OneToMany(() => Row, (row) => row.PG)
+  rows: Row[];
 }
