@@ -465,22 +465,22 @@ export class ImportService {
   }
 
   public async populateSiblingRowColumn() {
-    const allTokens = await this.rowService.findAllOrderByIdAsc();
+    const allRows = await this.rowService.findAllOrderByIdAsc();
     let outerIndex = 0;
-    allTokens.forEach(async (outerRow) => {
+    allRows.forEach(async (outerRow) => {
       outerIndex++;
       let innerIndex = outerIndex;
-      while (innerIndex < allTokens.length) {
-        if (outerRow.RowLevel > allTokens[innerIndex].RowLevel) {
+      while (innerIndex < allRows.length) {
+        if (outerRow.RowLevel > allRows[innerIndex].RowLevel) {
           break;
         }
         if (
-          outerRow.RowLevel === allTokens[innerIndex].RowLevel &&
-          outerRow.Row != allTokens[innerIndex].Row &&
-          outerRow.Row < allTokens[innerIndex].Row
+          outerRow.RowLevel === allRows[innerIndex].RowLevel &&
+          outerRow.Row != allRows[innerIndex].Row &&
+          outerRow.Row < allRows[innerIndex].Row
         ) {
           await this.rowService.updateRow(outerRow.Row, {
-            SiblingRow: allTokens[innerIndex].RowLevel == 0 ? null : allTokens[innerIndex],
+            SiblingRow: allRows[innerIndex].RowLevel == 0 ? null : allRows[innerIndex],
           });
           break;
         }
@@ -490,19 +490,19 @@ export class ImportService {
   }
 
   public async populateParentRowColumn() {
-    const allTokens = await this.rowService.findAllOrderByIdDesc();
+    const allRows = await this.rowService.findAllOrderByIdDesc();
     let outerIndex = 0;
-    allTokens.forEach(async (outerRow) => {
+    allRows.forEach(async (outerRow) => {
       outerIndex++;
       let innerIndex = outerIndex;
-      while (innerIndex < allTokens.length) {
+      while (innerIndex < allRows.length) {
         if (
-          outerRow.Row != allTokens[innerIndex].Row &&
-          outerRow.Row > allTokens[innerIndex].Row &&
-          outerRow.RowLevel > allTokens[innerIndex].RowLevel
+          outerRow.Row != allRows[innerIndex].Row &&
+          outerRow.Row > allRows[innerIndex].Row &&
+          outerRow.RowLevel > allRows[innerIndex].RowLevel
         ) {
           await this.rowService.updateRow(outerRow.Row, {
-            ParentRow: allTokens[innerIndex].RowLevel == 0 ? null : allTokens[innerIndex],
+            ParentRow: allRows[innerIndex].RowLevel == 0 ? null : allRows[innerIndex],
           });
           break;
         }
