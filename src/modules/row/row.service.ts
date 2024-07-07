@@ -25,6 +25,22 @@ export class RowService {
     });
   }
 
+  async findPreviousRow(id: number): Promise<Row | undefined> {
+    return this.rowRepository
+      .createQueryBuilder('t-Row')
+      .where('t-Row.Row < :id', {id})
+      .orderBy('t-Row.Row', 'DESC')
+      .getOne()
+  }
+
+  async findNextRow(id: number): Promise<Row | undefined> {
+    return this.rowRepository
+      .createQueryBuilder('t-Row')
+      .where('t-Row.Row > :id', {id})
+      .orderBy('t-Row.Row', 'ASC')
+      .getOne()
+  }
+
   async updateRow(id: number, updateData: Partial<Row>): Promise<Row> {
     await this.rowRepository.update(id, updateData);
     return this.findOne(id);
