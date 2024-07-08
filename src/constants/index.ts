@@ -61,4 +61,26 @@ export const COLUMN_NAMES = {
   Row_Level: 'Row_Level',
 };
 
-export const SECTION_HEAD = 'Section-Head'
+export const SECTION_HEAD = 'Section-Head';
+
+export const TOKEN_NAMES = {
+  UserID: 'UserID',
+  RowID: 'RowID',
+  SectionHead: 'Section-Head',
+  MLText: 'MLText',
+  Default: 'Default',
+  Date: 'Date',
+  Number: 'Number',
+  DropDown: 'DropDown',
+  DropDownSource: 'DropDownSource',
+  DDSType: 'DDS-Type',
+  ValueDataType: 'Value DataType',
+  Formula: 'Formula',
+  Node: 'Node',
+  PageID: 'PageID',
+  System: 'System',
+  URL: 'URL',
+  PgRow: 'Pg-Row',
+  ColID: 'ColID',
+  ColRow: 'Col-Row',
+};

@@ -28,17 +28,17 @@ export class RowService {
   async findPreviousRow(id: number): Promise<Row | undefined> {
     return this.rowRepository
       .createQueryBuilder('t-Row')
-      .where('t-Row.Row < :id', {id})
-      .orderBy('t-Row.Row', 'DESC')
-      .getOne()
+      .where('tRow.Row < :id', { id })
+      .orderBy('tRow.Row', 'DESC')
+      .getOne();
   }
 
   async findNextRow(id: number): Promise<Row | undefined> {
     return this.rowRepository
       .createQueryBuilder('t-Row')
-      .where('t-Row.Row > :id', {id})
-      .orderBy('t-Row.Row', 'ASC')
-      .getOne()
+      .where('tRow.Row > :id', { id })
+      .orderBy('tRow.Row', 'ASC')
+      .getOne();
   }
 
   async updateRow(id: number, updateData: Partial<Row>): Promise<Row> {
@@ -53,14 +53,14 @@ export class RowService {
   async findAllOrderByIdAsc(): Promise<Row[]> {
     return this.rowRepository.find({
       order: { Row: 'ASC' },
-      relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'],
     });
   }
 
   async findAllOrderByIdDesc(): Promise<Row[]> {
     return this.rowRepository.find({
       order: { Row: 'DESC' },
-      relations: ['PG', 'Share', 'ParentRow', 'SiblingRow'],
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'],
     });
   }
 

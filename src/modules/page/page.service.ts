@@ -39,7 +39,7 @@ export class PageService {
    * @returns {Promise<Page | null>} The found PG, or null if not found.
    */
   async findOne(id: number): Promise<Page | null> {
-    return await this.pageRepository.findOne({ where: { PG: id } });
+    return await this.pageRepository.findOne({ where: { Pg: id } });
   }
 
   /**
@@ -66,7 +66,7 @@ export class PageService {
   async getOnePage(pageId: number): Promise<any> {
     try {
       const page = await this.entityManager.findOne(Page, {
-        where: { PG: pageId },
+        where: { Pg: pageId },
         relations: ['rows', 'rows.cells', 'rows.cells.Col'],
       });
 

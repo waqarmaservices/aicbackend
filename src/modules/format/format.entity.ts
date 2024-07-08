@@ -5,9 +5,14 @@ import { Col } from '../col/col.entity';
 import { Page } from '../page/page.entity';
 import { Cell } from '../cell/cell.entity';
 
-@Entity('t-Format')
+/**
+ * Represents a format entity in the system.
+ *
+ * This entity corresponds to the 'tFormat' table in the database.
+ */
+@Entity('tFormat')
 export class Format {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Format: number;
 
   @ManyToOne(() => User, { nullable: true })
@@ -15,7 +20,7 @@ export class Format {
   User: User;
 
   @ManyToOne(() => Row, { nullable: false })
-  @JoinColumn({ name: 'Object-Type' })
+  @JoinColumn({ name: 'ObjectType' })
   ObjectType: Row;
 
   @Column({ type: 'bigint' })
@@ -25,40 +30,40 @@ export class Format {
   Container: number;
 
   @ManyToOne(() => Col, { nullable: true })
-  @JoinColumn({ name: 'PG-Nested-Col' })
-  PGNestedCol: Col;
+  @JoinColumn({ name: 'PgNestedCol' })
+  PgNestedCol: Col;
 
-  @Column({ name: 'PG-Freeze-Col', type: 'smallint' })
-  PGFreezeCol: number;
+  @Column({ type: 'smallint' })
+  PgFreezeCol: number;
 
-  @Column({ name: 'PG-Expand', type: 'smallint' })
-  PGExpand: number;
-
-  @ManyToOne(() => Page, { nullable: true })
-  @JoinColumn({ name: 'PG-Level-Set' })
-  PGLevelSet: Page;
+  @Column({ type: 'smallint' })
+  PgExpand: number;
 
   @ManyToOne(() => Page, { nullable: true })
-  @JoinColumn({ name: 'PG-Search-Set' })
-  PGSearchSet: Page;
+  @JoinColumn({ name: 'PgLevelSet' })
+  PgLevelSet: Page;
 
-  @Column({ name: 'PG-Sort', type: 'jsonb', nullable: true })
-  PGSort: object;
+  @ManyToOne(() => Page, { nullable: true })
+  @JoinColumn({ name: 'PgSearchSet' })
+  PgSearchSet: Page;
 
-  @Column({ name: 'PG-Filter', type: 'jsonb', nullable: true })
-  PGFilter: object;
+  @Column({ type: 'jsonb', nullable: true })
+  PgSort: object;
+
+  @Column({ type: 'jsonb', nullable: true })
+  PgFilter: object;
 
   @ManyToOne(() => Row, { nullable: true })
-  @JoinColumn({ name: 'RowSet-Tick' })
+  @JoinColumn({ name: 'RowSetTick' })
   RowSetTick: Row;
 
-  @Column({ name: 'Col-Order', type: 'smallint', nullable: true })
+  @Column({ type: 'smallint', nullable: true })
   ColOrder: number;
 
-  @Column({ name: 'Col-Min-Width', type: 'smallint', nullable: true })
+  @Column({ type: 'smallint', nullable: true })
   ColMinWidth: number;
 
-  @Column({ name: 'Item-Order', type: 'smallint', nullable: true })
+  @Column({ type: 'smallint', nullable: true })
   ItemOrder: number;
 
   @ManyToOne(() => User, { nullable: true })
@@ -76,7 +81,7 @@ export class Format {
   @JoinColumn({ name: 'Unit' })
   Unit: Row;
 
-  @Column({ name: 'Font-Style', type: 'jsonb', nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
   FontStyle: object;
 
   @Column({ type: 'jsonb', nullable: true })
@@ -85,7 +90,7 @@ export class Format {
   @Column({ type: 'jsonb', nullable: true })
   Comment: object;
 
-  @Column({ type: 'bigint', array: true, nullable: true, name: 'Tx-List' })
+  @Column({ array: true, type: 'bigint' })
   TxList: number[];
 
   @ManyToOne(() => Row, { nullable: true })
@@ -93,9 +98,9 @@ export class Format {
   Deleted: Row;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'Deleted-By' })
+  @JoinColumn({ name: 'DeletedBy' })
   DeletedBy: User;
 
-  @Column({ name: 'Deleted-At', type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   DeletedAt: Date;
 }

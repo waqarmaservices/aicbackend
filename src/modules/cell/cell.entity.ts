@@ -2,9 +2,14 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 import { Col } from 'modules/col/col.entity';
 import { Row } from 'modules/row/row.entity';
 
-@Entity('t-Cell')
+/**
+ * Represents a row entity in the system.
+ *
+ * This entity corresponds to the 'tCell' table in the database.
+ */
+@Entity('tCell')
 export class Cell {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Cell: number;
 
   // @ManyToOne(() => Col, (col) => col.cells)
@@ -24,12 +29,12 @@ export class Cell {
   Row: Row;
 
   @ManyToOne(() => Row, { nullable: true, eager: true })
-  @JoinColumn({ name: 'Data-Type' })
+  @JoinColumn({ name: 'DataType' })
   DataType: Row;
 
-  @Column({ name: 'DropDown-Source', type: 'jsonb' })
+  @Column({ type: 'jsonb' })
   DropDownSource: object;
 
-  @Column('bigint', { array: true })
+  @Column({ array: true, type: 'bigint' })
   Items: number[];
 }

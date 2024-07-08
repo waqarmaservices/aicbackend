@@ -1,11 +1,21 @@
 import { Row } from 'modules/row/row.entity';
 import { Entity, PrimaryColumn, OneToMany } from 'typeorm';
 
-@Entity('t-PG')
+/**
+ * Represents a page entity in the system.
+ *
+ * This entity corresponds to the 'tPg' table in the database.
+ */
+@Entity('tPg')
 export class Page {
-  @PrimaryColumn({ type: 'bigint', name: 'PG' })
-  PG: number;
+  /**
+   * The primary key for the Page entity.
+   *
+   * This is an auto-incrementing bigint value.
+   */
+  @PrimaryColumn({ type: 'bigint' })
+  Pg: number;
 
-  @OneToMany(() => Row, (row) => row.PG)
+  @OneToMany(() => Row, (row) => row.Pg)
   rows: Row[];
 }
