@@ -7,7 +7,7 @@ import { CellService } from '../cell/cell.service';
 import { ItemService } from '../item/item.service';
 import { FormatService } from '../format/format.service';
 import { UserService } from '../user/user.service';
-import { SYSTEM_INITIAL, COLUMN_NAMES, SHEET_NAMES, SHEET_READ_OPTIONS } from '../../constants';
+import { SYSTEM_INITIAL, COLUMN_NAMES, SHEET_NAMES, SHEET_READ_OPTIONS, SECTION_HEAD } from '../../constants';
 
 @Injectable()
 export class ImportService {
@@ -404,7 +404,7 @@ export class ImportService {
       if (!createdRow) {
         createdRow = await this.rowService.createRow({
           Row: tokenEl.Row,
-          RowLevel: tokenEl.Row_level,
+          RowLevel: tokenEl.Row_Status == SECTION_HEAD ? 0 : tokenEl.Row_level,
         });
       }
       if (COLUMN_NAMES.TOKEN in tokenEl) {
@@ -465,22 +465,22 @@ export class ImportService {
   }
 
   public async populateSiblingRowColumn() {
-    const allTokens = await this.rowService.findAllOrderByIdAsc();
+    const allRows = await this.rowService.findAllOrderByIdAsc();
     let outerIndex = 0;
-    allTokens.forEach(async (outerRow) => {
+    allRows.forEach(async (outerRow) => {
       outerIndex++;
       let innerIndex = outerIndex;
-      while (innerIndex < allTokens.length) {
-        if (outerRow.RowLevel > allTokens[innerIndex].RowLevel) {
+      while (innerIndex < allRows.length) {
+        if (outerRow.RowLevel > allRows[innerIndex].RowLevel) {
           break;
         }
         if (
-          outerRow.RowLevel === allTokens[innerIndex].RowLevel &&
-          outerRow.Row != allTokens[innerIndex].Row &&
-          outerRow.Row < allTokens[innerIndex].Row
+          outerRow.RowLevel === allRows[innerIndex].RowLevel &&
+          outerRow.Row != allRows[innerIndex].Row &&
+          outerRow.Row < allRows[innerIndex].Row
         ) {
           await this.rowService.updateRow(outerRow.Row, {
-            SiblingRow: allTokens[innerIndex],
+            SiblingRow: allRows[innerIndex].RowLevel == 0 ? null : allRows[innerIndex],
           });
           break;
         }
@@ -490,19 +490,19 @@ export class ImportService {
   }
 
   public async populateParentRowColumn() {
-    const allTokens = await this.rowService.findAllOrderByIdDesc();
+    const allRows = await this.rowService.findAllOrderByIdDesc();
     let outerIndex = 0;
-    allTokens.forEach(async (outerRow) => {
+    allRows.forEach(async (outerRow) => {
       outerIndex++;
       let innerIndex = outerIndex;
-      while (innerIndex < allTokens.length) {
+      while (innerIndex < allRows.length) {
         if (
-          outerRow.Row != allTokens[innerIndex].Row &&
-          outerRow.Row > allTokens[innerIndex].Row &&
-          outerRow.RowLevel > allTokens[innerIndex].RowLevel
+          outerRow.Row != allRows[innerIndex].Row &&
+          outerRow.Row > allRows[innerIndex].Row &&
+          outerRow.RowLevel > allRows[innerIndex].RowLevel
         ) {
           await this.rowService.updateRow(outerRow.Row, {
-            ParentRow: allTokens[innerIndex],
+            ParentRow: allRows[innerIndex].RowLevel == 0 ? null : allRows[innerIndex],
           });
           break;
         }
@@ -523,7 +523,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        RowLevel: 1,
+        RowLevel: langEL.Row_Status == SECTION_HEAD ? 0 : 1,
       });
 
       // Row Format
@@ -585,7 +585,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        RowLevel: regionEl.Row_Level,
+        RowLevel: regionEl.Row_Status == SECTION_HEAD ? 0 : regionEl.Row_Level,
       });
 
       // Row Format
@@ -647,7 +647,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        RowLevel: supplierEl.Row_Level,
+        RowLevel: supplierEl.Row_Status == SECTION_HEAD ? 0 : supplierEl.Row_Level,
       });
 
       // Row Format
@@ -717,7 +717,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        RowLevel: modelEl.Row_Level,
+        RowLevel: modelEl.Row_Status == SECTION_HEAD ? 0 : modelEl.Row_Level,
       });
 
       // Row Format
@@ -801,7 +801,7 @@ export class ImportService {
       // Creating Row
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        RowLevel: unitEl.Row_Level,
+        RowLevel: unitEl.Row_Status == SECTION_HEAD ? 0 : unitEl.Row_Level,
       });
       // Row Format
       await this.formatService.createFormat({
@@ -900,7 +900,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        RowLevel: labelEl.Row_Level,
+        RowLevel: labelEl.Row_Status == SECTION_HEAD ? 0 : labelEl.Row_Level,
       });
       const createdFormat = await this.formatService.createFormat({
         User: user.User,

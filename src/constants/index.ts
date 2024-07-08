@@ -60,3 +60,5 @@ export const COLUMN_NAMES = {
   Row_Comment: 'Row_Comment',
   Row_Level: 'Row_Level',
 };
+
+export const SECTION_HEAD = 'Section-Head'

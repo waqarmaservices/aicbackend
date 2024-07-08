@@ -60,4 +60,10 @@ export class FormatService {
   async deleteFormat(id: number): Promise<void> {
     await this.formatRepository.delete(id);
   }
+
+  async findAllByColumnName(colName: string, colValue: string): Promise<Format[]> {
+    return this.formatRepository.find({
+      where: { [colName]: colValue },
+    });
+  }
 }
