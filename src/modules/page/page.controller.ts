@@ -68,4 +68,13 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }
+  @Get('columns/:pageId')
+  async getOnepageColumns(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+    try {
+      const data = await this.pageService.getOnePageColumns(pageId);
+      return new ApiResponse(true, data, '', 200);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+    }
+  }
 }

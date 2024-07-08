@@ -1,16 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { Page } from './page.entity';
 import { Item } from 'modules/item/item.entity';
+import { Cell } from 'modules/cell/cell.entity';
+import { Col } from 'modules/col/col.entity';
+import { CellService } from 'modules/cell/cell.service';
+import { Row } from 'modules/row/row.entity';
 
 @Injectable()
 export class PageService {
   constructor(
     @InjectRepository(Page)
     private readonly pageRepository: Repository<Page>,
+    @InjectRepository(Cell)
+    private readonly cellRepository: Repository<Cell>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
+    private readonly cellService: CellService
   ) {}
 
   /**
@@ -125,6 +132,98 @@ export class PageService {
         success: true,
         data: {
           page,
+        },
+        error: '',
+        statusCode: 200,
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        success: false,
+        data: null,
+        error: (error as Error).message,
+        statusCode: 500,
+      };
+    }
+  }
+
+  async getOnePageColumns(pageId: number): Promise<any> {
+    try {
+      const pageTypeColId = 2000000047; // Col-ID of Page Type
+      const pageNameColId = 2000000049; // Col-ID of Page Name
+      const pageId = 1000000006;
+      const eachPageRowId = 3000000329; // Row-ID each page Page Type
+      const productPageRowId = 3000000332; // Row-ID each page Page Type
+      
+      // Items IDs
+      const itemIds = await this.entityManager.find(Item,{
+        select: {Item: true},
+        where: [
+          { Object: eachPageRowId},
+          { Object: pageId},
+          { Object: productPageRowId }
+        ],
+        order: { Item: 'ASC' }
+      })
+      .then(items => items.map((item) => {
+        const itemIdObject = [];
+        itemIdObject.push(item.Item)
+        return itemIdObject;
+      }))
+  
+
+      // item cell ids
+      const itemCellIds = await this.entityManager.find(Cell, {
+        where: {
+          Items: In(itemIds),
+        },
+        order: { Cell: "ASC"},
+      })
+      .then(itemCells => itemCells.map((cell) => cell.Cell))
+
+      // Filtered Cells
+      const itemCellRowIds = await this.entityManager.find(Cell, {
+        where: {
+          Cell: In(itemCellIds),
+        },
+        relations: ['Col', 'Row']
+      })
+      .then(itemCellRowIds => itemCellRowIds.map((cell) => cell.Row.Row))
+      
+      // Col-Rows
+      const colItemIds = await this.entityManager.find(Cell, {
+        where: {
+          Row: In(itemCellRowIds),
+          ColN: pageNameColId,
+        },
+        relations: ['Col', 'Row'], 
+      })
+      .then(colRowsItemIds => colRowsItemIds.map((cell) => {
+        return cell.Items.toString().replace(/[{}]/g, "");
+      }))
+
+      // col names
+      const colNames = await this.entityManager.find(Item, {
+        where: {
+          Item: In(colItemIds),
+        },
+      })
+      .then(items => items.map((item) => {
+        return item.JSON[3000000100]
+      }));
+
+      // Cells
+      // const cells = await this.entityManager.findBy(Cell, {
+      //   Items: In(itemIds),
+      // })
+      // const cellIds = cells.map((cell) => cell)
+      // return cellIds
+  
+
+      return {
+        success: true,
+        data: {
+          colNames,
         },
         error: '',
         statusCode: 200,
