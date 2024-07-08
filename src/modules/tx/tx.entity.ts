@@ -2,25 +2,30 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 import { User } from '../user/user.entity';
 import { Row } from '../row/row.entity';
 
-@Entity('t-Tx')
+/**
+ * Represents a tx entity in the system.
+ *
+ * This entity corresponds to the 'tTx' table in the database.
+ */
+@Entity('tTx')
 export class Tx {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Tx: number;
 
   @ManyToOne(() => Row, { nullable: false })
-  @JoinColumn({ name: 'Tx-Type' })
+  @JoinColumn({ name: 'TxType' })
   TxType: Row;
 
-  @Column({ name: 'Tx-AuditTrail', type: 'jsonb' })
+  @Column({ type: 'jsonb' })
   TxAuditTrail: object;
 
   @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'Tx-User' })
+  @JoinColumn({ name: 'TxUser' })
   TxUser: User;
 
-  @Column({ name: 'Tx-DateTime', type: 'timestamp' })
+  @Column({ type: 'timestamp' })
   TxDateTime: Date;
 
-  @Column({ name: 'Tx-XID', type: 'bigint' })
+  @Column({ type: 'bigint' })
   TxXID: number;
 }

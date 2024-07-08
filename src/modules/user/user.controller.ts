@@ -9,7 +9,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  async createUser(@Body() payload: any): Promise<ApiResponse<User[]>> {
+  async createUser(@Body() payload: any): Promise<ApiResponse<User>> {
     try {
       const user = await this.userService.createUser(payload);
       return new ApiResponse(true, user, '', HttpStatus.CREATED);

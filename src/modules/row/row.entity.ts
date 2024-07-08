@@ -1,17 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, PrimaryColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
 import { Page } from '../page/page.entity';
 import { Cell } from '../cell/cell.entity';
 import { Item } from '../item/item.entity';
 import { Format } from '../format/format.entity';
 
-@Entity('t-Row')
+/**
+ * Represents a row entity in the system.
+ *
+ * This entity corresponds to the 'tRow' table in the database.
+ */
+@Entity('tRow')
 export class Row {
   @PrimaryColumn({ type: 'bigint' })
   Row: number;
 
   @ManyToOne(() => Page, { eager: true })
-  @JoinColumn({ name: 'PG' })
-  PG: Page;
+  @JoinColumn({ name: 'Pg' })
+  Pg: Page;
 
   @ManyToOne(() => Row, { nullable: true })
   @JoinColumn({ name: 'Share' })
@@ -20,15 +25,15 @@ export class Row {
   @Column({ type: 'bigint', array: true, nullable: true })
   Inherit: number[];
 
-  @Column({ name: 'Row-Level', type: 'smallint' })
+  @Column({ type: 'smallint' })
   RowLevel: number;
 
   @ManyToOne(() => Row, { nullable: true })
-  @JoinColumn({ name: 'Parent-Row' })
+  @JoinColumn({ name: 'ParentRow' })
   ParentRow: Row;
 
   @ManyToOne(() => Row, { nullable: true })
-  @JoinColumn({ name: 'Sibling-Row' })
+  @JoinColumn({ name: 'SiblingRow' })
   SiblingRow: Row;
 
   @OneToMany(() => Cell, (cell) => cell.Row)

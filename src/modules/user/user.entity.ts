@@ -1,15 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, PrimaryColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
 import { Row } from '../row/row.entity';
 import { Format } from '../format/format.entity';
 import { Tx } from '../tx/tx.entity';
 
-@Entity('t-User')
+/**
+ * Represents a user entity in the system.
+ *
+ * This entity corresponds to the 'tUser' table in the database.
+ */
+@Entity('tUser')
 export class User {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'bigint' })
   User: number;
 
   @ManyToOne(() => Row, { nullable: false })
-  @JoinColumn({ name: 'User-Type' })
+  @JoinColumn({ name: 'UserType' })
   UserType: Row;
 
   @OneToMany(() => Format, (format) => format.User)

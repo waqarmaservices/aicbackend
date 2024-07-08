@@ -1,25 +1,30 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Row } from '../row/row.entity';
 
-@Entity('t-Item')
+/**
+ * Represents a item entity in the system.
+ *
+ * This entity corresponds to the 'tItem' table in the database.
+ */
+@Entity('tItem')
 export class Item {
-  @PrimaryGeneratedColumn({ name: 'Item' })
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Item: number;
 
   @Column({ type: 'bigint', array: true, nullable: true })
   Inherit: number[];
 
   @ManyToOne(() => Row, (row) => row.items)
-  @JoinColumn({ name: 'Data-Type' })
+  @JoinColumn({ name: 'DataType' })
   DataType: Row;
 
-  @Column({ name: 'Object', type: 'bigint', nullable: true })
+  @Column({ type: 'bigint', nullable: true })
   Object: number;
 
-  @Column({ name: 'SmallInt', type: 'smallint', nullable: true })
+  @Column({ type: 'smallint', nullable: true })
   SmallInt: number;
 
-  @Column({ name: 'BigInt', type: 'bigint', nullable: true })
+  @Column({ type: 'bigint', nullable: true })
   BigInt: number;
 
   @Column({ name: 'Num', type: 'numeric', nullable: true })
@@ -40,12 +45,12 @@ export class Item {
   @Column({ name: 'Unit', type: 'bigint', nullable: true })
   Unit: number;
 
-  @Column({ name: 'Std-Qty', type: 'numeric', nullable: true })
+  @Column({ type: 'numeric', nullable: true })
   StdQty: number;
 
-  @Column({ name: 'Std-Unit', type: 'bigint', nullable: true })
+  @Column({ type: 'bigint', nullable: true })
   StdUnit: number;
 
-  @Column({ name: 'Foreign', type: 'jsonb', nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
   Foreign: any;
 }
