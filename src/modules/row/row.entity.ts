@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Page } from '../page/page.entity';
 import { Cell } from '../cell/cell.entity';
 import { Item } from '../item/item.entity';
@@ -11,7 +11,7 @@ import { Format } from '../format/format.entity';
  */
 @Entity('tRow')
 export class Row {
-  @PrimaryColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Row: number;
 
   @ManyToOne(() => Page, { eager: true })
@@ -39,30 +39,12 @@ export class Row {
   @OneToMany(() => Cell, (cell) => cell.Row)
   cells: Cell[];
 
-  @OneToMany(() => Item, (item) => item['Data-Type'])
-  items: Item[];
-
-  // @OneToMany(() => Row, (row) => row.Share)
-  // shareRows: Row[];
-
-  // @OneToMany(() => Row, (row) => row.ParentRow)
-  // inheritRows: Row[];
-
-  // @OneToMany(() => Row, (row) => row.SiblingRow)
-  // siblingRows: Row[];
+  @OneToMany(() => Item, (item) => item.DataType)
+  DataTypeItems: Item[];
 
   @OneToMany(() => Format, (format) => format.RowSetTick)
   RowSetTickFormats: Format[];
 
-  // @OneToMany(() => Format, (format) => format.Unit)
-  // UnitFormats: Format[];
-
-  // @OneToMany(() => Format, (format) => format.Deleted)
-  // DeletedFormats: Format[];
-
-  // @OneToMany(() => Format, (format) => format.ObjectType)
-  // ObjectTypeFormats: Format[];
-
-  @OneToMany(() => Item, (item) => item['Std-Unit'])
+  @OneToMany(() => Item, (item) => item.StdUnit)
   StdUnitItems: Item[];
 }
