@@ -8,7 +8,7 @@ import { Row } from '../row/row.entity';
  */
 @Entity('tItem')
 export class Item {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Item: number;
 
   @Column({ type: 'bigint', array: true, nullable: true })

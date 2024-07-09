@@ -11,6 +11,11 @@ import { Format } from '../format/format.entity';
  */
 @Entity('tRow')
 export class Row {
+  /**
+   * The primary key for the Page entity.
+   *
+   * This is an auto-incrementing bigint value.
+   */
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Row: number;
 
