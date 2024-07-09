@@ -1,4 +1,4 @@
-import { Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { Cell } from '../cell/cell.entity';
 
 /**
@@ -8,7 +8,7 @@ import { Cell } from '../cell/cell.entity';
  */
 @Entity('tCol')
 export class Col {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryColumn({ type: 'bigint' })
   Col: number;
 
   @OneToMany(() => Cell, (cell) => cell.Col)
