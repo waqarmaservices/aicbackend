@@ -156,10 +156,10 @@ export class PageService {
       const productPageRowId = 3000000332; // Row-ID each page Page Type
       
       // Items IDs
-      const itemIds = await this.entityManager.find(Item,{
-        select: {Item: true},
+      const itemIds = await this.entityManager.find(Item, {
+        select: { Item: true },
         where: [
-          { Object: eachPageRowId},
+          { Object: eachPageRowId },
           { Object: pageId},
           { Object: productPageRowId }
         ],
@@ -171,7 +171,6 @@ export class PageService {
         return itemIdObject;
       }))
   
-
       // item cell ids
       const itemCellIds = await this.entityManager.find(Cell, {
         where: {
