@@ -69,7 +69,13 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }
-  
+
+  /**
+   * Finds Pg Cols based on provided Pg ID.
+   *
+   * @param {number} pageId - The ID of the PG to find.
+   * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+   */
   @Get('columns/:pageId')
   async getOnepageColumns(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {

@@ -4,12 +4,10 @@ import { EntityManager, In, Repository } from 'typeorm';
 import { Page } from './page.entity';
 import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
-import { Col } from 'modules/col/col.entity';
 import { CellService } from 'modules/cell/cell.service';
-import { Row } from 'modules/row/row.entity';
 import { RowService } from 'modules/row/row.service';
-import { ImportService } from 'modules/import/import.service';
 import { SYSTEM_INITIAL } from '../../constants';
+import { ApiResponse } from 'common/dtos/api-response.dto';
 
 @Injectable()
 export class PageService {
@@ -151,7 +149,13 @@ export class PageService {
     }
   }
 
-  async getOnePageColumns(pageId: number): Promise<any> {
+  /**
+   * Finds Pg Cols based on provided Pg ID.
+   *
+   * @param {number} pageId - The ID of the PG to find.
+   * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+   */
+  async getOnePageColumns(pageId: number): Promise<ApiResponse<any>> {
     try {
       const pageNameColId = 2000000049; // Col-ID of Page Name
       const eachPageRowId = 3000000329; // Row-ID each page Page Type
@@ -167,11 +171,7 @@ export class PageService {
         ],
         order: { Item: 'ASC' }
       })
-      .then(items => items.map((item) => {
-        const itemIdObject = [];
-        itemIdObject.push(item.Item)
-        return itemIdObject;
-      }))
+      .then(items => items.map((item) => [item.Item]))
 
       // Item Cell-Row IDs
       const itemCellRowIds = await this.entityManager.find(Cell, {
@@ -300,6 +300,12 @@ export class PageService {
     }
   }
 
+  /**
+   * Finds Pg type based on provided Pg ID.
+   *
+   * @param {number} pageId - The ID of the PG to find.
+   * @returns {Promise<any>} The reponse of Pg type.
+   */
   async findPageType(pageId: number): Promise<any> {
     const pageTypeColId = 2000000039; // Col-ID of Page Type-Col
     const pgRow = await this.rowService.findOneByColumnName('PG', pageId)
@@ -328,6 +334,12 @@ export class PageService {
     return null
   }
 
+  /**
+   * Finds Row JSON based on provided Row ID.
+   *
+   * @param {number} rowId - The ID of the PG to find.
+   * @returns {object} The JSON for Row ID.
+   */
   private async getRowJson(rowId: number) {
     const row = await this.rowService.findOne(rowId);
     const cell = await this.entityManager.findOne(Cell, {
