@@ -26,6 +26,9 @@ export class Cell {
   @JoinColumn({ name: 'Row' })
   Row: Row;
 
+  @Column({name: 'Row', type: 'bigint'})
+  RowN: number;
+
   @ManyToOne(() => Row, { nullable: true, eager: true })
   @JoinColumn({ name: 'Data-Type' })
   DataType: Row;

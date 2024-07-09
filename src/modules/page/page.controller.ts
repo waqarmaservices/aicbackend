@@ -59,6 +59,7 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
   @Get('full/:pageId')
   async getOnepage(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
@@ -68,6 +69,7 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }
+  
   @Get('columns/:pageId')
   async getOnepageColumns(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {

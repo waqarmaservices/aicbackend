@@ -7,6 +7,9 @@ import { Cell } from 'modules/cell/cell.entity';
 import { Col } from 'modules/col/col.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { Row } from 'modules/row/row.entity';
+import { RowService } from 'modules/row/row.service';
+import { ImportService } from 'modules/import/import.service';
+import { SYSTEM_INITIAL } from '../../constants';
 
 @Injectable()
 export class PageService {
@@ -17,7 +20,8 @@ export class PageService {
     private readonly cellRepository: Repository<Cell>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
-    private readonly cellService: CellService
+    private readonly cellService: CellService,
+    private readonly rowService: RowService
   ) {}
 
   /**
@@ -149,19 +153,17 @@ export class PageService {
 
   async getOnePageColumns(pageId: number): Promise<any> {
     try {
-      const pageTypeColId = 2000000047; // Col-ID of Page Type
       const pageNameColId = 2000000049; // Col-ID of Page Name
-      const pageId = 1000000006;
       const eachPageRowId = 3000000329; // Row-ID each page Page Type
-      const productPageRowId = 3000000332; // Row-ID each page Page Type
-      
-      // Items IDs
+      const pagetype = await this.findPageType(pageId)
+          
+      // Item IDs
       const itemIds = await this.entityManager.find(Item, {
         select: { Item: true },
         where: [
           { Object: eachPageRowId },
           { Object: pageId},
-          { Object: productPageRowId }
+          { Object: pagetype ? pagetype.Row_Id : pageId }
         ],
         order: { Item: 'ASC' }
       })
@@ -170,24 +172,15 @@ export class PageService {
         itemIdObject.push(item.Item)
         return itemIdObject;
       }))
-  
-      // item cell ids
-      const itemCellIds = await this.entityManager.find(Cell, {
+
+      // Item Cell-Row IDs
+      const itemCellRowIds = await this.entityManager.find(Cell, {
         where: {
           Items: In(itemIds),
         },
         order: { Cell: "ASC"},
       })
-      .then(itemCells => itemCells.map((cell) => cell.Cell))
-
-      // Filtered Cells
-      const itemCellRowIds = await this.entityManager.find(Cell, {
-        where: {
-          Cell: In(itemCellIds),
-        },
-        relations: ['Col', 'Row']
-      })
-      .then(itemCellRowIds => itemCellRowIds.map((cell) => cell.Row.Row))
+      .then(itemCells => itemCells.map((cell) => cell.Row.Row))
       
       // Col-Rows
       const colItemIds = await this.entityManager.find(Cell, {
@@ -201,23 +194,15 @@ export class PageService {
         return cell.Items.toString().replace(/[{}]/g, "");
       }))
 
-      // col names
+      // Col names
       const colNames = await this.entityManager.find(Item, {
         where: {
           Item: In(colItemIds),
         },
       })
       .then(items => items.map((item) => {
-        return item.JSON[3000000100]
+        return item.JSON[SYSTEM_INITIAL.ENGLISH]
       }));
-
-      // Cells
-      // const cells = await this.entityManager.findBy(Cell, {
-      //   Items: In(itemIds),
-      // })
-      // const cellIds = cells.map((cell) => cell)
-      // return cellIds
-  
 
       return {
         success: true,
@@ -312,6 +297,52 @@ export class PageService {
         error: (error as Error).message,
         statusCode: 500,
       };
+    }
+  }
+
+  async findPageType(pageId: number): Promise<any> {
+    const pageTypeColId = 2000000039; // Col-ID of Page Type-Col
+    const pgRow = await this.rowService.findOneByColumnName('PG', pageId)
+
+    const rowCell = await this.entityManager.findOne(Cell, {
+      where: { 
+        RowN: pgRow.Row,
+        ColN: pageTypeColId
+      }
+    })
+    .then(rowCell => rowCell.Items.toString().replace(/[{}]/g, ""))
+
+    const cellItem = await this.entityManager.findOne(Item, {
+      where: { Item: Number(rowCell) }
+    })
+    
+    if (cellItem != null) {
+      const rowJson = await this.getRowJson(cellItem.Object);
+      if (rowJson.Token == 'Page List') {
+        return null
+      } else {
+        rowJson
+      }
+    }
+
+    return null
+  }
+
+  private async getRowJson(rowId: number) {
+    const row = await this.rowService.findOne(rowId);
+    const cell = await this.entityManager.findOne(Cell, {
+      where: {
+        Row: row,
+        Col: { Col: 2000000077 }
+      }
+    })
+    const itemId = cell.Items.toString().replace(/[{}]/g, "") 
+    const item = await this.entityManager.findOne(Item, {
+      where: { Item: Number(itemId)}
+    })
+    return {
+      Row_Id: row.Row,
+      Token: item.JSON[SYSTEM_INITIAL.ENGLISH]
     }
   }
 }
