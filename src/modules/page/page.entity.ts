@@ -1,5 +1,5 @@
 import { Row } from 'modules/row/row.entity';
-import { Entity, PrimaryColumn, OneToMany } from 'typeorm';
+import { Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 /**
  * Represents a page entity in the system.

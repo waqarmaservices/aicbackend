@@ -1,4 +1,4 @@
-import { Entity, OneToMany, PrimaryGeneratedColumn, PrimaryColumn } from 'typeorm';
+import { Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { Cell } from '../cell/cell.entity';
 
 /**

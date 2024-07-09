@@ -14,7 +14,7 @@ export class Item {
   @Column({ type: 'bigint', array: true, nullable: true })
   Inherit: number[];
 
-  @ManyToOne(() => Row, (row) => row.items)
+  @ManyToOne(() => Row, (row) => row.DataTypeItems)
   @JoinColumn({ name: 'DataType' })
   DataType: Row;
 
@@ -42,14 +42,16 @@ export class Item {
   @Column({ name: 'Qty', type: 'numeric', nullable: true })
   Qty: number;
 
-  @Column({ name: 'Unit', type: 'bigint', nullable: true })
-  Unit: number;
+  @ManyToOne(() => Row)
+  @JoinColumn({ name: 'Unit' })
+  Unit: Row;
 
   @Column({ type: 'numeric', nullable: true })
   StdQty: number;
 
-  @Column({ type: 'bigint', nullable: true })
-  StdUnit: number;
+  @ManyToOne(() => Row)
+  @JoinColumn({ name: 'StdUnit' })
+  StdUnit: Row;
 
   @Column({ type: 'jsonb', nullable: true })
   Foreign: any;

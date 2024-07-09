@@ -11,6 +11,11 @@ import { Format } from '../format/format.entity';
  */
 @Entity('tRow')
 export class Row {
+  /**
+   * The primary key for the Page entity.
+   *
+   * This is an auto-incrementing bigint value.
+   */
   @PrimaryColumn({ type: 'bigint' })
   Row: number;
 
@@ -39,30 +44,12 @@ export class Row {
   @OneToMany(() => Cell, (cell) => cell.Row)
   cells: Cell[];
 
-  @OneToMany(() => Item, (item) => item['Data-Type'])
-  items: Item[];
-
-  // @OneToMany(() => Row, (row) => row.Share)
-  // shareRows: Row[];
-
-  // @OneToMany(() => Row, (row) => row.ParentRow)
-  // inheritRows: Row[];
-
-  // @OneToMany(() => Row, (row) => row.SiblingRow)
-  // siblingRows: Row[];
+  @OneToMany(() => Item, (item) => item.DataType)
+  DataTypeItems: Item[];
 
   @OneToMany(() => Format, (format) => format.RowSetTick)
   RowSetTickFormats: Format[];
 
-  // @OneToMany(() => Format, (format) => format.Unit)
-  // UnitFormats: Format[];
-
-  // @OneToMany(() => Format, (format) => format.Deleted)
-  // DeletedFormats: Format[];
-
-  // @OneToMany(() => Format, (format) => format.ObjectType)
-  // ObjectTypeFormats: Format[];
-
-  @OneToMany(() => Item, (item) => item['Std-Unit'])
+  @OneToMany(() => Item, (item) => item.StdUnit)
   StdUnitItems: Item[];
 }

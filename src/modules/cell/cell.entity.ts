@@ -12,14 +12,6 @@ export class Cell {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Cell: number;
 
-  // @ManyToOne(() => Col, (col) => col.cells)
-  // @JoinColumn({ name: 'Col' })
-  // Col: Col;
-
-  // @ManyToOne(() => Row, (row) => row.cells)
-  // @JoinColumn({ name: 'Row' })
-  // Row: Row;
-
   @ManyToOne(() => Col, { eager: true })
   @JoinColumn({ name: 'Col' })
   Col: Col;
