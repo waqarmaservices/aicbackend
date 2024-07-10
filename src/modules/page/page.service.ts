@@ -310,24 +310,26 @@ export class PageService {
     const pageTypeColId = 2000000039; // Col-ID of Page Type-Col
     const pgRow = await this.rowService.findOneByColumnName('PG', pageId)
 
-    const rowCell = await this.entityManager.findOne(Cell, {
+    const itemId = await this.entityManager.findOne(Cell, {
       where: { 
         RowN: pgRow.Row,
         ColN: pageTypeColId
       }
     })
-    .then(rowCell => rowCell.Items.toString().replace(/[{}]/g, ""))
+    .then(cell => cell ? cell.Items.toString().replace(/[{}]/g, "") : null)
 
-    const cellItem = await this.entityManager.findOne(Item, {
-      where: { Item: Number(rowCell) }
-    })
-    
-    if (cellItem != null) {
-      const rowJson = await this.getRowJson(cellItem.Object);
-      if (rowJson.Token == 'Page List') {
-        return null
-      } else {
-        rowJson
+    if (itemId) {
+      const cellItem = await this.entityManager.findOne(Item, {
+        where: { Item: Number(itemId) }
+      })
+      
+      if (cellItem != null) {
+        const rowJson = await this.getRowJson(cellItem.Object);
+        if (rowJson.Token == 'Page List') {
+          return null
+        } else {
+          return rowJson
+        }
       }
     }
 
