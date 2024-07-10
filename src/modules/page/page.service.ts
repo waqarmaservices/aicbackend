@@ -311,7 +311,6 @@ export class PageService {
   async findPageType(pageId: number): Promise<any> {
     const pageTypeColId = 2000000039; // Col-ID of Page Type-Col
     const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
-    return pgRow
 
     const itemId = await this.entityManager.findOne(Cell, {
       where: { 
