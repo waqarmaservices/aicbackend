@@ -8,6 +8,7 @@ import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
 import { SYSTEM_INITIAL } from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
+import { ColService } from 'modules/col/col.service';
 
 @Injectable()
 export class PageService {
@@ -19,7 +20,8 @@ export class PageService {
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
     private readonly cellService: CellService,
-    private readonly rowService: RowService
+    private readonly rowService: RowService,
+    private readonly colService: ColService
   ) {}
 
   /**
@@ -159,7 +161,7 @@ export class PageService {
     try {
       const pageNameColId = 2000000049; // Col-ID of Page Name
       const eachPageRowId = 3000000329; // Row-ID each page Page Type
-      const pagetype = await this.findPageType(pageId)
+      const pagetype = await this.findPageType(pageId);
           
       // Item IDs
       const itemIds = await this.entityManager.find(Item, {
@@ -171,7 +173,7 @@ export class PageService {
         ],
         order: { Item: 'ASC' }
       })
-      .then(items => items.map((item) => [item.Item]))
+      .then(items => items.map((item) => [item.Item]));
 
       // Item Cell-Row IDs
       const itemCellRowIds = await this.entityManager.find(Cell, {
@@ -180,19 +182,19 @@ export class PageService {
         },
         order: { Cell: "ASC"},
       })
-      .then(itemCells => itemCells.map((cell) => cell.Row.Row))
+      .then(itemCells => itemCells.map((cell) => cell.Row.Row));
       
       // Col-Rows
       const colItemIds = await this.entityManager.find(Cell, {
         where: {
-          Row: In(itemCellRowIds),
+          RowN: In(itemCellRowIds),
           ColN: pageNameColId,
         },
         relations: ['Col', 'Row'], 
       })
       .then(colRowsItemIds => colRowsItemIds.map((cell) => {
         return cell.Items.toString().replace(/[{}]/g, "");
-      }))
+      }));
 
       // Col names
       const colNames = await this.entityManager.find(Item, {
@@ -201,7 +203,7 @@ export class PageService {
         },
       })
       .then(items => items.map((item) => {
-        return item.JSON[SYSTEM_INITIAL.ENGLISH]
+        return item.JSON[SYSTEM_INITIAL.ENGLISH];
       }));
 
       return {
@@ -308,7 +310,8 @@ export class PageService {
    */
   async findPageType(pageId: number): Promise<any> {
     const pageTypeColId = 2000000039; // Col-ID of Page Type-Col
-    const pgRow = await this.rowService.findOneByColumnName('PG', pageId)
+    const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
+    return pgRow
 
     const itemId = await this.entityManager.findOne(Cell, {
       where: { 
@@ -316,24 +319,24 @@ export class PageService {
         ColN: pageTypeColId
       }
     })
-    .then(cell => cell ? cell.Items.toString().replace(/[{}]/g, "") : null)
+    .then(cell => cell ? cell.Items.toString().replace(/[{}]/g, "") : null);
 
     if (itemId) {
       const cellItem = await this.entityManager.findOne(Item, {
         where: { Item: Number(itemId) }
-      })
+      });
       
       if (cellItem != null) {
         const rowJson = await this.getRowJson(cellItem.Object);
         if (rowJson.Token == 'Page List') {
-          return null
+          return null;
         } else {
-          return rowJson
+          return rowJson;
         }
       }
     }
 
-    return null
+    return null;
   }
 
   /**
