@@ -123,7 +123,7 @@ export class ImportService {
       const pgRowId = await this.getRowId('JSON', TOKEN_NAMES.PgRow);
       const createdRow = await this.rowService.createRow({
         Row: pageEl.Row,
-        PG: page.Pg,
+        Pg: page.Pg,
         RowLevel: 1,
       });
       // PG Format
