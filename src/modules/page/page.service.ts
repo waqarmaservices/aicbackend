@@ -163,7 +163,9 @@ export class PageService {
       const pageNameColId = 2000000049; // Col-ID of Page Name
       const eachPageRowId = 3000000329; // Row-ID each page Page Type
       const pagetype = await this.findPageType(pageId);
-      const pageTypeId = pagetype && pagetype.Token == TOKEN_NAMES.PageType.PageList ? null : pagetype.Row_Id;
+      const pageTypeId = pagetype && pagetype.Token == TOKEN_NAMES.PageType.PageList 
+        ? null 
+          : ( pagetype ? pagetype.Row_Id : null );
           
       // Item IDs
       const itemIds = await this.entityManager.find(Item, {
