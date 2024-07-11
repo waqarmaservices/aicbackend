@@ -6,9 +6,10 @@ import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
-import { SYSTEM_INITIAL } from '../../constants';
+import { SYSTEM_INITIAL, TOKEN_NAMES } from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
+import { ImportService } from 'modules/import/import.service';
 
 @Injectable()
 export class PageService {
@@ -162,6 +163,7 @@ export class PageService {
       const pageNameColId = 2000000049; // Col-ID of Page Name
       const eachPageRowId = 3000000329; // Row-ID each page Page Type
       const pagetype = await this.findPageType(pageId);
+      const pageTypeId = pagetype && pagetype.Token == TOKEN_NAMES.PageType.PageList ? null : pagetype.Row_Id;
           
       // Item IDs
       const itemIds = await this.entityManager.find(Item, {
@@ -169,7 +171,7 @@ export class PageService {
         where: [
           { Object: eachPageRowId },
           { Object: pageId},
-          { Object: pagetype ? pagetype.Row_Id : pageId }
+          { Object: pageTypeId ? pageTypeId : pageId }
         ],
         order: { Item: 'ASC' }
       })
@@ -182,15 +184,15 @@ export class PageService {
         },
         order: { Cell: "ASC"},
       })
-      .then(itemCells => itemCells.map((cell) => cell.Row.Row));
+      .then(itemCells => itemCells.map((cell) => cell.CellRow.Row));
       
       // Col-Rows
       const colItemIds = await this.entityManager.find(Cell, {
         where: {
-          RowN: In(itemCellRowIds),
-          ColN: pageNameColId,
+          Row: In(itemCellRowIds),
+          Col: pageNameColId,
         },
-        relations: ['Col', 'Row'], 
+        relations: ['CellCol', 'CellRow'], 
       })
       .then(colRowsItemIds => colRowsItemIds.map((cell) => {
         return cell.Items.toString().replace(/[{}]/g, "");
@@ -314,8 +316,8 @@ export class PageService {
 
     const itemId = await this.entityManager.findOne(Cell, {
       where: { 
-        RowN: pgRow.Row,
-        ColN: pageTypeColId
+        Row: pgRow.Row,
+        Col: pageTypeColId
       }
     })
     .then(cell => cell ? cell.Items.toString().replace(/[{}]/g, "") : null);
@@ -327,11 +329,7 @@ export class PageService {
       
       if (cellItem != null) {
         const rowJson = await this.getRowJson(cellItem.Object);
-        if (rowJson.Token == 'Page List') {
-          return null;
-        } else {
-          return rowJson;
-        }
+        return rowJson;
       }
     }
 
@@ -348,8 +346,8 @@ export class PageService {
     const row = await this.rowService.findOne(rowId);
     const cell = await this.entityManager.findOne(Cell, {
       where: {
-        Row: row,
-        Col: { Col: 2000000077 }
+        Row: row.Row,
+        Col: 2000000077
       }
     })
     const itemId = cell.Items.toString().replace(/[{}]/g, "") 

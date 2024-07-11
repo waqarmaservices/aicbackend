@@ -1062,8 +1062,8 @@ export class ImportService {
     const item = await this.itemService.findOneByColumnName(colName, colValue);
     if (item) {
       const cell = await this.cellService.findOneByColumnName('Items', item.Item);
-      if (cell.Row?.Row) {
-        const rowEntity = await this.rowService.findOne(cell.Row.Row);
+      if (cell.CellRow?.Row) {
+        const rowEntity = await this.rowService.findOne(cell.CellRow.Row);
         return rowEntity;
       }
     }

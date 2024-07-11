@@ -12,19 +12,19 @@ export class Cell {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Cell: number;
 
-  @ManyToOne(() => Col, { eager: true })
+  @ManyToOne(() => Col, (cell) => cell.cells)
   @JoinColumn({ name: 'Col' })
-  Col: Col;
+  CellCol: Col;
 
   @Column({name: 'Col', type: 'bigint'})
-  ColN: number;
+  Col: number;
 
   @ManyToOne(() => Row, { eager: true })
   @JoinColumn({ name: 'Row' })
-  Row: Row;
+  CellRow: Row;
 
   @Column({name: 'Row', type: 'bigint'})
-  RowN: number;
+  Row: number;
 
   @ManyToOne(() => Row, { nullable: true, eager: true })
   @JoinColumn({ name: 'DataType' })
