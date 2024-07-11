@@ -25,6 +25,12 @@ export class RowService {
     });
   }
 
+  async findOneByColumnName(col: string, value: number | string): Promise<Row> {
+    return await this.rowRepository.findOne({
+      where: { [col]: value },
+    });
+  }
+
   async findPreviousRow(id: number): Promise<Row | undefined> {
     return this.rowRepository
       .createQueryBuilder('t-Row')

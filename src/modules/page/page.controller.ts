@@ -59,10 +59,27 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
   @Get('full/:pageId')
   async getOnepage(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
       const data = await this.pageService.getOnePage(pageId);
+      return new ApiResponse(true, data, '', 200);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+    }
+  }
+
+  /**
+   * Finds Pg Cols based on provided Pg ID.
+   *
+   * @param {number} pageId - The ID of the PG to find.
+   * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+   */
+  @Get('columns/:pageId')
+  async getOnepageColumns(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+    try {
+      const data = await this.pageService.getOnePageColumns(pageId);
       return new ApiResponse(true, data, '', 200);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);

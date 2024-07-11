@@ -1,16 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { Page } from './page.entity';
 import { Item } from 'modules/item/item.entity';
+import { Cell } from 'modules/cell/cell.entity';
+import { CellService } from 'modules/cell/cell.service';
+import { RowService } from 'modules/row/row.service';
+import { SYSTEM_INITIAL, TOKEN_NAMES } from '../../constants';
+import { ApiResponse } from 'common/dtos/api-response.dto';
+import { ColService } from 'modules/col/col.service';
+import { ImportService } from 'modules/import/import.service';
 
 @Injectable()
 export class PageService {
   constructor(
     @InjectRepository(Page)
     private readonly pageRepository: Repository<Page>,
+    @InjectRepository(Cell)
+    private readonly cellRepository: Repository<Cell>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
+    private readonly cellService: CellService,
+    private readonly rowService: RowService,
+    private readonly colService: ColService
   ) {}
 
   /**
@@ -140,6 +152,83 @@ export class PageService {
     }
   }
 
+  /**
+   * Finds Pg Cols based on provided Pg ID.
+   *
+   * @param {number} pageId - The ID of the PG to find.
+   * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+   */
+  async getOnePageColumns(pageId: number): Promise<ApiResponse<any>> {
+    try {
+      const pageNameColId = 2000000049; // Col-ID of Page Name
+      const eachPageRowId = 3000000329; // Row-ID each page Page Type
+      const pagetype = await this.findPageType(pageId);
+      const pageTypeId = pagetype 
+        ? (pagetype.Token === TOKEN_NAMES.PageType.PageList ? null : pagetype.Row_Id)
+        : null;
+          
+      // Item IDs
+      const itemIds = await this.entityManager.find(Item, {
+        select: { Item: true },
+        where: [
+          { Object: eachPageRowId },
+          { Object: pageId},
+          { Object: pageTypeId ? pageTypeId : pageId }
+        ],
+        order: { Item: 'ASC' }
+      })
+      .then(items => items.map((item) => [item.Item]));
+
+      // Item Cell-Row IDs
+      const itemCellRowIds = await this.entityManager.find(Cell, {
+        where: {
+          Items: In(itemIds),
+        },
+        order: { Cell: "ASC"},
+      })
+      .then(itemCells => itemCells.map((cell) => cell.CellRow.Row));
+      
+      // Col-Rows
+      const colItemIds = await this.entityManager.find(Cell, {
+        where: {
+          Row: In(itemCellRowIds),
+          Col: pageNameColId,
+        },
+        relations: ['CellCol', 'CellRow'], 
+      })
+      .then(colRowsItemIds => colRowsItemIds.map((cell) => {
+        return cell.Items.toString().replace(/[{}]/g, "");
+      }));
+
+      // Col names
+      const colNames = await this.entityManager.find(Item, {
+        where: {
+          Item: In(colItemIds),
+        },
+      })
+      .then(items => items.map((item) => {
+        return item.JSON[SYSTEM_INITIAL.ENGLISH];
+      }));
+
+      return {
+        success: true,
+        data: {
+          colNames,
+        },
+        error: '',
+        statusCode: 200,
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        success: false,
+        data: null,
+        error: (error as Error).message,
+        statusCode: 500,
+      };
+    }
+  }
+
   async getAllPages(): Promise<any> {
     try {
       const pages = await this.entityManager.find(Page, {
@@ -214,6 +303,62 @@ export class PageService {
         error: (error as Error).message,
         statusCode: 500,
       };
+    }
+  }
+
+  /**
+   * Finds Pg type based on provided Pg ID.
+   *
+   * @param {number} pageId - The ID of the PG to find.
+   * @returns {Promise<any>} The reponse of Pg type.
+   */
+  async findPageType(pageId: number): Promise<any> {
+    const pageTypeColId = 2000000039; // Col-ID of Page Type-Col
+    const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
+
+    const itemId = await this.entityManager.findOne(Cell, {
+      where: { 
+        Row: pgRow.Row,
+        Col: pageTypeColId
+      }
+    })
+    .then(cell => cell ? cell.Items.toString().replace(/[{}]/g, "") : null);
+
+    if (itemId) {
+      const cellItem = await this.entityManager.findOne(Item, {
+        where: { Item: Number(itemId) }
+      });
+      
+      if (cellItem != null) {
+        const rowJson = await this.getRowJson(cellItem.Object);
+        return rowJson;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Finds Row JSON based on provided Row ID.
+   *
+   * @param {number} rowId - The ID of the PG to find.
+   * @returns {object} The JSON for Row ID.
+   */
+  private async getRowJson(rowId: number) {
+    const row = await this.rowService.findOne(rowId);
+    const cell = await this.entityManager.findOne(Cell, {
+      where: {
+        Row: row.Row,
+        Col: 2000000077
+      }
+    })
+    const itemId = cell.Items.toString().replace(/[{}]/g, "") 
+    const item = await this.entityManager.findOne(Item, {
+      where: { Item: Number(itemId)}
+    })
+    return {
+      Row_Id: row.Row,
+      Token: item.JSON[SYSTEM_INITIAL.ENGLISH]
     }
   }
 }

@@ -41,7 +41,7 @@ export class Row {
   @JoinColumn({ name: 'SiblingRow' })
   SiblingRow: Row;
 
-  @OneToMany(() => Cell, (cell) => cell.Row)
+  @OneToMany(() => Cell, (cell) => cell.CellRow)
   cells: Cell[];
 
   @OneToMany(() => Item, (item) => item.DataType)

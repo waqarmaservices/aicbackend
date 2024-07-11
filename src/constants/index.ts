@@ -83,4 +83,7 @@ export const TOKEN_NAMES = {
   PgRow: 'Pg-Row',
   ColID: 'ColID',
   ColRow: 'Col-Row',
+  PageType: {
+    PageList: 'Page List'
+  }
 };
