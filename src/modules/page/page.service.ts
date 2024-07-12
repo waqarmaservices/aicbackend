@@ -161,7 +161,7 @@ export class PageService {
   async getOnePageColumns(pageId: number): Promise<ApiResponse<any>> {
     try {
       const colNameColId = 2000000049; // Col-ID of Col Name
-      const eachPageRowId = 3000000329; // Row-ID each page Page Type
+      const eachPageTypeRowId = 3000000329; // Row-ID each page Page Type
       const pagetype = await this.findPageType(pageId);
       const pageTypeId = pagetype 
         ? (pagetype.Token === TOKEN_NAMES.PageType.PageList ? null : pagetype.Row_Id)
@@ -171,7 +171,7 @@ export class PageService {
       const itemIds = await this.entityManager.find(Item, {
         select: { Item: true },
         where: [
-          { Object: eachPageRowId },
+          { Object: eachPageTypeRowId },
           { Object: pageId},
           { Object: pageTypeId ? pageTypeId : pageId }
         ],
@@ -317,25 +317,27 @@ export class PageService {
     const pageTypeColId = 2000000039; // Col-ID of Page Type-Col
     const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
 
-    const itemId = await this.entityManager.findOne(Cell, {
-      where: { 
-        Row: pgRow.Row,
-        Col: pageTypeColId
-      }
-    })
-    .then(cell => cell ? cell.Items.toString().replace(/[{}]/g, "") : null);
-
-    if (itemId) {
-      const cellItem = await this.entityManager.findOne(Item, {
-        where: { Item: Number(itemId) }
-      });
-      
-      if (cellItem != null) {
-        const rowJson = await this.getRowJson(cellItem.Object);
-        return rowJson;
+    if (pgRow) {
+      const itemId = await this.entityManager.findOne(Cell, {
+        where: { 
+          Row: pgRow.Row,
+          Col: pageTypeColId
+        }
+      })
+      .then(cell => cell ? cell.Items.toString().replace(/[{}]/g, "") : null);
+  
+      if (itemId) {
+        const cellItem = await this.entityManager.findOne(Item, {
+          where: { Item: Number(itemId) }
+        });
+        
+        if (cellItem != null) {
+          const rowJson = await this.getRowJson(cellItem.Object);
+          return rowJson;
+        }
       }
     }
-
+    
     return null;
   }
 
