@@ -196,7 +196,7 @@ export class ImportService {
         const createdItem = await this.itemService.createItem({
           DataType: urlRowId,
           JSON: {
-            3000000396: `http://aic.com/${page.Pg}/${pageEl.Page_Name}`,
+            3000000397: `https://aic.com/${page.Pg}/${pageEl.Page_Name}`,
           },
         });
         await this.cellService.createCell({
@@ -229,7 +229,7 @@ export class ImportService {
           Object: pgRowId.Row,
         });
         await this.cellService.createCell({
-          Col: 2000000040,
+          Col: 2000000004,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
