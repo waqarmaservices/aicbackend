@@ -182,7 +182,7 @@ export class PageService {
    
   async getOnePageColumns(pageId: number): Promise<ApiResponse<any>> {
     try {
-      const pageNameColId = 2000000049; // Col-ID of Page Name
+      const colNameColId = 2000000049; // Col-ID of Col Name
       const eachPageRowId = 3000000329; // Row-ID each page Page Type
       const pagetype = await this.findPageType(pageId);
       const pageTypeId = pagetype 
@@ -214,7 +214,7 @@ export class PageService {
       const colItemIds = await this.entityManager.find(Cell, {
         where: {
           Row: In(itemCellRowIds),
-          Col: pageNameColId,
+          Col: colNameColId,
         },
         relations: ['CellCol', 'CellRow'], 
       })
@@ -228,9 +228,10 @@ export class PageService {
           Item: In(colItemIds),
         },
       })
-      .then(items => items.map((item) => {
-        return item.JSON[SYSTEM_INITIAL.ENGLISH];
-      }));
+      .then(items => items.map(item => ({
+        title: item.JSON[SYSTEM_INITIAL.ENGLISH],
+        field: item.JSON[SYSTEM_INITIAL.ENGLISH].replace(/[\s-]+/g, '_').toLowerCase()
+      })));
 
       return {
         success: true,
