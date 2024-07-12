@@ -123,7 +123,7 @@ export class ImportService {
       const pgRowId = await this.getRowId('JSON', TOKEN_NAMES.PgRow);
       const createdRow = await this.rowService.createRow({
         Row: pageEl.Row,
-        Pg: page.Pg,
+        Pg: 1000000001,
         RowLevel: 1,
       });
       // PG Format
@@ -287,6 +287,7 @@ export class ImportService {
       });
       const createdRow = await this.rowService.createRow({
         Row: colEl.Row,
+        Pg: 1000000002,
         RowLevel: 1,
       });
       // Row Format
@@ -413,6 +414,7 @@ export class ImportService {
       if (!createdRow) {
         createdRow = await this.rowService.createRow({
           Row: tokenEl.Row,
+          Pg: 1000000009,
           RowLevel: tokenEl.Row_Status == SECTION_HEAD ? 0 : tokenEl.Row_level,
         });
       }
@@ -540,6 +542,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
+        Pg: 1000000012,
         RowLevel: langEL.Row_Status == SECTION_HEAD ? 0 : 1,
       });
 
@@ -603,6 +606,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
+        Pg: 1000000013,
         RowLevel: regionEl.Row_Status == SECTION_HEAD ? 0 : regionEl.Row_Level,
       });
 
@@ -666,6 +670,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
+        Pg: 1000000014,
         RowLevel: supplierEl.Row_Status == SECTION_HEAD ? 0 : supplierEl.Row_Level,
       });
 
@@ -737,6 +742,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
+        Pg: 1000000015,
         RowLevel: modelEl.Row_Status == SECTION_HEAD ? 0 : modelEl.Row_Level,
       });
 
@@ -822,6 +828,7 @@ export class ImportService {
       // Creating Row
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
+        Pg: 1000000011,
         RowLevel: unitEl.Row_Status == SECTION_HEAD ? 0 : unitEl.Row_Level,
       });
       // Row Format
@@ -921,6 +928,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
+        Pg: 1000000010,
         RowLevel: labelEl.Row_Status == SECTION_HEAD ? 0 : labelEl.Row_Level,
       });
       const createdFormat = await this.formatService.createFormat({
