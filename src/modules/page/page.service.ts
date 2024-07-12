@@ -173,12 +173,13 @@ export class PageService {
 }
 
 
-  /**
+    /**
    * Finds Pg Cols based on provided Pg ID.
    *
    * @param {number} pageId - The ID of the PG to find.
    * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
-
+  **/
+   
   async getOnePageColumns(pageId: number): Promise<ApiResponse<any>> {
     try {
       const pageNameColId = 2000000049; // Col-ID of Page Name
