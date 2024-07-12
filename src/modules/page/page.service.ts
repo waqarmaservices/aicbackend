@@ -201,7 +201,7 @@ export class PageService {
       }));
 
       // Col names
-      const colNames = this.entityManager.find(Item, {
+      const colNames = await this.entityManager.find(Item, {
         where: {
           Item: In(colItemIds),
         },
