@@ -179,31 +179,31 @@ export class PageService {
       })
       .then(items => items.map((item) => [item.Item]));
 
-      // Item Cell-Row IDs
-      const itemCellRowIds = await this.entityManager.find(Cell, {
+      // Row IDs from tCell using Item IDs
+      const rowIds = await this.entityManager.find(Cell, {
         where: {
           Items: In(itemIds),
         },
         order: { Cell: "ASC"},
       })
-      .then(itemCells => itemCells.map((cell) => cell.CellRow.Row));
+      .then(cells => cells.map((cell) => cell.CellRow.Row));
       
-      // Col-Rows
-      const colItemIds = await this.entityManager.find(Cell, {
+      // Col IDs from tCell using Row IDs
+      const colIds = await this.entityManager.find(Cell, {
         where: {
-          Row: In(itemCellRowIds),
+          Row: In(rowIds),
           Col: colNameColId,
         },
         relations: ['CellCol', 'CellRow'], 
       })
-      .then(colRowsItemIds => colRowsItemIds.map((cell) => {
+      .then(cells => cells.map((cell) => {
         return cell.Items.toString().replace(/[{}]/g, "");
       }));
 
-      // Col names
+      // Getting Col names from tItem
       const colNames = await this.entityManager.find(Item, {
         where: {
-          Item: In(colItemIds),
+          Item: In(colIds),
         },
       })
       .then(items => items.map(item => ({
@@ -337,7 +337,7 @@ export class PageService {
         }
       }
     }
-    
+
     return null;
   }
 
