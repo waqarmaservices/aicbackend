@@ -61,9 +61,9 @@ export class PageController {
   }
 
   @Get('full/:pageId')
-  async getOnepage(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+  async getonePageData(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
-      const data = await this.pageService.getOnePage(pageId);
+      const data = await this.pageService.getonePageData(pageId);
       return new ApiResponse(true, data, '', 200);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
