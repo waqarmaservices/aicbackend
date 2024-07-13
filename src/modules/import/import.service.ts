@@ -196,7 +196,7 @@ export class ImportService {
         const createdItem = await this.itemService.createItem({
           DataType: urlRowId,
           JSON: {
-            3000000397: `https://aic.com/${page.Pg}/${pageEl.Page_Name}`,
+            3000000397: `https://aic.com/${page.Pg}/${this.createSlug(pageEl.Page_Name)}`,
           },
         });
         await this.cellService.createCell({
@@ -221,6 +221,16 @@ export class ImportService {
             Row: createdRow.Row,
             Items: itemIds,
           });
+        } else {
+          const createdItem = await this.itemService.createItem({
+            DataType: mlTextRowId,
+            JSON: { [SYSTEM_INITIAL.ENGLISH]: pageEl.Page_SEO },
+          });
+          await this.cellService.createCell({
+            Col: 2000000042,
+            Row: createdRow.Row,
+            Items: [createdItem.Item],
+          });
         }
       }
       if (COLUMN_NAMES.Row_Type in pageEl) {
@@ -235,6 +245,15 @@ export class ImportService {
         });
       }
     }
+  }
+
+  private createSlug(str: string) {
+    return str
+      .toLowerCase() // Convert to lowercase
+      .replace(/[^\w\s-]/g, '') // Remove all non-word characters (excluding spaces and hyphens)
+      .trim() // Trim leading/trailing spaces
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-'); // Replace multiple hyphens with a single hyphen
   }
 
   private async processStatus(el: any, key: string) {
@@ -299,6 +318,18 @@ export class ImportService {
         Status: rowStatuses,
       });
 
+      if (COLUMN_NAMES.Col_ID in colEl && colEl.Col_ID != null) {
+        const createdItem = await this.itemService.createItem({
+          DataType: colIdRowId,
+          Object: col.Col,
+        });
+        await this.cellService.createCell({
+          Col: 2000000046,
+          Row: createdRow.Row,
+          Items: [createdItem.Item],
+        });
+      }
+
       if (COLUMN_NAMES.Page_Type in colEl && colEl.Page_Type != null) {
         const pageTypeObjectId = await this.getRowId('JSON', colEl.Page_Type);
         const createdItem = await this.itemService.createItem({
@@ -335,8 +366,8 @@ export class ImportService {
           Items: [createdItem.Item],
         });
       }
-      if (COLUMN_NAMES.Col_Data_Type in colEl && colEl.Col_Data_Type != null) {
-        const colDataTypeObjectId = await this.getRowId('JSON', colEl.Col_Data_Type);
+      if (COLUMN_NAMES.Col_DataType in colEl && colEl.Col_DataType != null) {
+        const colDataTypeObjectId = await this.getRowId('JSON', colEl.Col_DataType);
         const createdItem = await this.itemService.createItem({
           DataType: dropDownRowId,
           Object: colDataTypeObjectId.Row,
@@ -347,8 +378,8 @@ export class ImportService {
           Items: [createdItem.Item],
         });
       }
-      if (COLUMN_NAMES.Col_DropDown_Source in colEl && colEl.Col_DropDown_Source != null) {
-        const colDropDownSourceJson = await this.getRowId('JSON', colEl.Col_DropDown_Source);
+      if (COLUMN_NAMES.Col_DropDownSource in colEl && colEl.Col_DropDownSource != null) {
+        const colDropDownSourceJson = await this.getRowId('JSON', colEl.Col_DropDownSource);
         if (colDropDownSourceJson) {
           const createdItem = await this.itemService.createItem({
             DataType: dropDownSourceRowId,
@@ -569,10 +600,9 @@ export class ImportService {
         });
       }
       if (COLUMN_NAMES.Row_Type in langEL && langEL.Row_Type != null) {
-        const defaultRowId = await this.getRowId('JSON', TOKEN_NAMES.Default);
         const createdItem = await this.itemService.createItem({
           DataType: mlTextRowId,
-          Object: defaultRowId.Row,
+          Object: SYSTEM_INITIAL.DEFAULT,
         });
         await this.cellService.createCell({
           Col: 2000000004,
@@ -724,7 +754,7 @@ export class ImportService {
     for (const [rowIndex, row] of filteredAllModelsData.entries()) {
       allModelsData[rowIndex] = {
         Model: row.slice(0, 7).find((value) => value != null),
-        Release_Date: row[8] ?? row[8],
+        Release_Date: row[8] ? new Date((row[8] - 25569) * 86400 * 1000).toLocaleDateString() : null,
         Row_Type: row[9] ?? row[9],
         Row_Status: row[10] ?? row[10],
         Row_Comment: row[11] ?? row[11],
@@ -735,7 +765,6 @@ export class ImportService {
     const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText);
     const dateRowId = await this.getRowId('JSON', TOKEN_NAMES.Date);
     const rowStatuses = await this.processStatus(allModelsData[0], 'Row_Status');
-
     for (const modelEl of allModelsData) {
       let nextRowPk = 0;
       const lastRowInserted = await this.rowService.getLastInsertedRecord();
@@ -910,9 +939,9 @@ export class ImportService {
                 : row[3] != null
                   ? row[3]
                   : row[4],
-        Value_Data_Type: row[6] == null ? '' : row[6],
-        Value_DropDown_Source: row[7] == null ? '' : row[7],
-        Value_Default_Data: row[8] == null ? '' : row[8],
+        Value_DataType: row[6] == null ? '' : row[6],
+        Value_DropDownSource: row[7] == null ? '' : row[7],
+        Value_DefaultData: row[8] == null ? '' : row[8],
         Value_Status: row[9] == null ? '' : row[9],
         Value_Formula: row[10] == null ? '' : row[10],
         Row_Type: row[11] == null ? '' : row[11],
@@ -949,7 +978,7 @@ export class ImportService {
             Row: createdRow.Row,
             Items: [createdItem.Item],
           });
-        } else if (key == COLUMN_NAMES.Value_Data_Type && val) {
+        } else if (key == COLUMN_NAMES.Value_DataType && val) {
           const objectRowId = await this.getRowId('JSON', val);
           if (objectRowId) {
             const createdItem = await this.itemService.createItem({
@@ -962,7 +991,7 @@ export class ImportService {
               Items: [createdItem.Item],
             });
           }
-        } else if (key == COLUMN_NAMES.Value_DropDown_Source && val) {
+        } else if (key == COLUMN_NAMES.Value_DropDownSource && val) {
           const rowsIds = await this.processStringToRowIds(val as string);
           const createdItemIds = [];
           for (const rowId of rowsIds) {
@@ -977,7 +1006,7 @@ export class ImportService {
             Row: createdRow.Row,
             Items: createdItemIds,
           });
-        } else if (key == COLUMN_NAMES.Value_Default_Data && val) {
+        } else if (key == COLUMN_NAMES.Value_DefaultData && val) {
           const colValues = String(val).split(';'); // Items, Not Row-IDs
           const createdItemIds = [];
           for (const value of colValues) {
@@ -1006,7 +1035,7 @@ export class ImportService {
             createdItemIds.push(createdItem.Item);
           }
           await this.cellService.createCell({
-            Col: 2000000081, // Col-ID of "Value_Status"
+            Col: 2000000082, // Col-ID of "Value_Status"
             Row: createdRow.Row,
             Items: createdItemIds,
           });
@@ -1048,11 +1077,10 @@ export class ImportService {
   private async updateRowType(allTokenData: any[]) {
     const dropDownRowId = await this.getRowId('JSON', TOKEN_NAMES.DropDown);
     const nodeRowId = await this.getRowId('JSON', TOKEN_NAMES.Node);
-    const defaultRowId = await this.getRowId('JSON', TOKEN_NAMES.Default);
     for (const tokenEl of allTokenData) {
       const tokenRow = await this.rowService.findOne(tokenEl.Row);
       if (tokenEl.Row_Type != null) {
-        const object = tokenEl.Row_Type == 'Node' ? nodeRowId.Row : defaultRowId.Row;
+        const object = tokenEl.Row_Type == 'Node' ? nodeRowId.Row : SYSTEM_INITIAL.DEFAULT;
         const createdItem = await this.itemService.createItem({
           DataType: dropDownRowId,
           Object: tokenEl.Row_Type ? object : null,
