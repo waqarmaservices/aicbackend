@@ -86,6 +86,6 @@ export const TOKEN_NAMES = {
   ColID: 'ColID',
   ColRow: 'Col-Row',
   PageType: {
-    PageList: 'Page List'
-  }
+    PageList: 'Page List',
+  },
 };
