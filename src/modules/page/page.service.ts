@@ -173,7 +173,7 @@ export class PageService {
 }
 
 
-    /**
+  /**
    * Finds Pg Cols based on provided Pg ID.
    *
    * @param {number} pageId - The ID of the PG to find.
@@ -211,31 +211,19 @@ export class PageService {
       .then(cells => cells.map((cell) => cell.CellRow.Row));
       
       // Item IDs from tCell based on Row IDs and Col ID of Col name
-      const cellItemIds = await this.entityManager.find(Cell, {
+      const colNameCells = await this.entityManager.find(Cell, {
         where: {
           Row: In(rowIds),
           Col: colNameColId,
         } 
-      })
-      .then(cells => cells.map((cell) => {
-        return cell.Items.toString().replace(/[{}]/g, "");
-      }));
+      });
 
-      // Getting Col names from tItem
-      const colNames = await this.entityManager.find(Item, {
-        where: {
-          Item: In(cellItemIds),
-        },
-      })
-      .then(items => items.map(item => ({
-        title: item.JSON[SYSTEM_INITIAL.ENGLISH],
-        field: item.JSON[SYSTEM_INITIAL.ENGLISH].replace(/[\s-]+/g, '_').toLowerCase()
-      })));
+      const colNameCellItems = await this.getItems(colNameCells)
 
       return {
         success: true,
         data: {
-          colNames,
+          colNames: colNameCellItems,
         },
         error: '',
         statusCode: 200,
@@ -251,8 +239,36 @@ export class PageService {
     }
   }
 
+  /**
+   * Finds Items based on provided Cell IDs.
+   *
+   * @param {Array} cells - The IDs of the cells to find.
+   * @returns {Promise<any>} The reponse of Cell Items.
+   */
+  async getItems(cells: Cell[]) {
+    const cellItemIds = cells.map((cell) => {
+      return cell.Items.toString().replace(/[{}]/g, "");
+    });
+
+    // Getting Col names from tItem
+    const items = await this.entityManager.find(Item, {
+      where: {
+        Item: In(cellItemIds),
+      },
+    })
+    .then(items => items.map(item => ({
+      title: item.JSON[SYSTEM_INITIAL.ENGLISH].trim(),
+      field: item.JSON[SYSTEM_INITIAL.ENGLISH]
+        .toLowerCase()
+        .trim()
+        .replace(/[\s-]+/g, '_')
+    })));
+
+    return items
+  }
+
   
- async getAllPages(): Promise<any> {
+  async getAllPages(): Promise<any> {
     try {
         const pages = await this.entityManager.find(Page, {
             relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
