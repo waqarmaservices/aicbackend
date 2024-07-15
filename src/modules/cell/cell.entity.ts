@@ -16,14 +16,14 @@ export class Cell {
   @JoinColumn({ name: 'Col' })
   CellCol: Col;
 
-  @Column({name: 'Col', type: 'bigint'})
+  @Column({ name: 'Col', type: 'bigint' })
   Col: number;
 
   @ManyToOne(() => Row, { eager: true })
   @JoinColumn({ name: 'Row' })
   CellRow: Row;
 
-  @Column({name: 'Row', type: 'bigint'})
+  @Column({ name: 'Row', type: 'bigint' })
   Row: number;
 
   @ManyToOne(() => Row, { nullable: true, eager: true })
