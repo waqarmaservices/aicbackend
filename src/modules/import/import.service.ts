@@ -14,6 +14,8 @@ import {
   SHEET_READ_OPTIONS,
   SECTION_HEAD,
   TOKEN_NAMES,
+  COLUMN_IDS,
+  PAGE_IDS,
 } from '../../constants';
 
 @Injectable()
@@ -123,7 +125,7 @@ export class ImportService {
       const pgRowId = await this.getRowId('JSON', TOKEN_NAMES.PgRow);
       const createdRow = await this.rowService.createRow({
         Row: pageEl.Row,
-        Pg: 1000000001,
+        Pg: PAGE_IDS.ALL_PAGES,
         RowLevel: 1,
       });
       // PG Format
@@ -150,7 +152,7 @@ export class ImportService {
           Object: page.Pg,
         });
         await this.cellService.createCell({
-          Col: 2000000037,
+          Col: COLUMN_IDS.ALL_PAGES.PAGE_ID,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -161,7 +163,7 @@ export class ImportService {
           JSON: { 3000000100: pageEl.Page_Name },
         });
         await this.cellService.createCell({
-          Col: 2000000038,
+          Col: COLUMN_IDS.ALL_PAGES.PAGE_NAME,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -174,7 +176,7 @@ export class ImportService {
             Object: objectRowId.Row,
           });
           await this.cellService.createCell({
-            Col: 2000000039,
+            Col: COLUMN_IDS.ALL_PAGES.PAGE_TYPE,
             Row: createdRow.Row,
             Items: [createdItem.Item],
           });
@@ -187,7 +189,7 @@ export class ImportService {
           Object: objectRowId.Row,
         });
         await this.cellService.createCell({
-          Col: 2000000040,
+          Col: COLUMN_IDS.ALL_PAGES.PAGE_EDITION,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -200,7 +202,7 @@ export class ImportService {
           },
         });
         await this.cellService.createCell({
-          Col: 2000000041,
+          Col: COLUMN_IDS.ALL_PAGES.PAGE_URL,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -217,7 +219,7 @@ export class ImportService {
             itemIds.push(createdItem.Item);
           }
           await this.cellService.createCell({
-            Col: 2000000042,
+            Col: COLUMN_IDS.ALL_PAGES.PAGE_SEO,
             Row: createdRow.Row,
             Items: itemIds,
           });
@@ -227,7 +229,7 @@ export class ImportService {
             JSON: { [SYSTEM_INITIAL.ENGLISH]: pageEl.Page_SEO },
           });
           await this.cellService.createCell({
-            Col: 2000000042,
+            Col: COLUMN_IDS.ALL_PAGES.PAGE_SEO,
             Row: createdRow.Row,
             Items: [createdItem.Item],
           });
@@ -239,7 +241,7 @@ export class ImportService {
           Object: pgRowId.Row,
         });
         await this.cellService.createCell({
-          Col: 2000000004,
+          Col: COLUMN_IDS.SHARED.ROW_TYPE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -306,7 +308,7 @@ export class ImportService {
       });
       const createdRow = await this.rowService.createRow({
         Row: colEl.Row,
-        Pg: 1000000002,
+        Pg: PAGE_IDS.ALL_COLS,
         RowLevel: 1,
       });
       // Row Format
@@ -324,7 +326,7 @@ export class ImportService {
           Object: col.Col,
         });
         await this.cellService.createCell({
-          Col: 2000000046,
+          Col: COLUMN_IDS.ALL_COLS.Col_ID,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -337,7 +339,7 @@ export class ImportService {
           Object: pageTypeObjectId.Row,
         });
         await this.cellService.createCell({
-          Col: 2000000047,
+          Col: COLUMN_IDS.ALL_COLS.PAGE_TYPE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -349,7 +351,7 @@ export class ImportService {
           Object: colEl.Page_ID,
         });
         await this.cellService.createCell({
-          Col: 2000000048,
+          Col: COLUMN_IDS.ALL_COLS.PAGE_ID,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -361,7 +363,7 @@ export class ImportService {
           JSON: { [SYSTEM_INITIAL.ENGLISH]: colEl.Col_Name },
         });
         await this.cellService.createCell({
-          Col: 2000000049,
+          Col: COLUMN_IDS.ALL_COLS.COL_NAME,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -373,7 +375,7 @@ export class ImportService {
           Object: colDataTypeObjectId.Row,
         });
         await this.cellService.createCell({
-          Col: 2000000050,
+          Col: COLUMN_IDS.ALL_COLS.COL_DATATYPE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -386,7 +388,7 @@ export class ImportService {
             JSON: { 3000000375: colDropDownSourceJson.Row },
           });
           await this.cellService.createCell({
-            Col: 2000000051,
+            Col: COLUMN_IDS.ALL_COLS.COL_DROPDOWNSOURCE,
             Row: createdRow.Row,
             Items: [createdItem.Item],
           });
@@ -398,7 +400,7 @@ export class ImportService {
           Object: colRowRowId.Row,
         });
         await this.cellService.createCell({
-          Col: 2000000004,
+          Col: COLUMN_IDS.SHARED.ROW_TYPE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -445,7 +447,7 @@ export class ImportService {
       if (!createdRow) {
         createdRow = await this.rowService.createRow({
           Row: tokenEl.Row,
-          Pg: 1000000009,
+          Pg: PAGE_IDS.ALL_TOKENS,
           RowLevel: tokenEl.Row_Status == SECTION_HEAD ? 0 : tokenEl.Row_level,
         });
       }
@@ -455,7 +457,7 @@ export class ImportService {
           JSON: { 3000000100: tokenEl.TOKEN },
         });
         await this.cellService.createCell({
-          Col: 2000000077,
+          Col: COLUMN_IDS.ALL_TOKENS.TOKEN,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -573,7 +575,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        Pg: 1000000012,
+        Pg: PAGE_IDS.ALL_LANGUAGES,
         RowLevel: langEL.Row_Status == SECTION_HEAD ? 0 : 1,
       });
 
@@ -594,7 +596,7 @@ export class ImportService {
           JSON: { [SYSTEM_INITIAL.ENGLISH]: langEL.Language },
         });
         await this.cellService.createCell({
-          Col: 2000000086,
+          Col: COLUMN_IDS.ALL_LANGUAGES.LANGUAGE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -605,7 +607,7 @@ export class ImportService {
           Object: SYSTEM_INITIAL.DEFAULT,
         });
         await this.cellService.createCell({
-          Col: 2000000004,
+          Col: COLUMN_IDS.SHARED.ROW_TYPE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -636,7 +638,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        Pg: 1000000013,
+        Pg: PAGE_IDS.ALL_REGIONS,
         RowLevel: regionEl.Row_Status == SECTION_HEAD ? 0 : regionEl.Row_Level,
       });
 
@@ -657,7 +659,7 @@ export class ImportService {
           JSON: { [SYSTEM_INITIAL.ENGLISH]: regionEl.Region },
         });
         await this.cellService.createCell({
-          Col: 2000000087,
+          Col: COLUMN_IDS.ALL_REGIONS.REGION,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -669,7 +671,7 @@ export class ImportService {
           Object: rowTypeRowId.Row,
         });
         await this.cellService.createCell({
-          Col: 2000000004,
+          Col: COLUMN_IDS.SHARED.ROW_TYPE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -700,7 +702,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        Pg: 1000000014,
+        Pg: PAGE_IDS.ALL_SUPPLIERS,
         RowLevel: supplierEl.Row_Status == SECTION_HEAD ? 0 : supplierEl.Row_Level,
       });
 
@@ -721,7 +723,7 @@ export class ImportService {
           JSON: { [SYSTEM_INITIAL.ENGLISH]: supplierEl.Supplier },
         });
         await this.cellService.createCell({
-          Col: 2000000088,
+          Col: COLUMN_IDS.ALL_SUPPLIERS.SUPPLIER,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -738,7 +740,7 @@ export class ImportService {
             itemIds.push(createdItem.Item);
           }
           await this.cellService.createCell({
-            Col: 2000000004,
+            Col: COLUMN_IDS.SHARED.ROW_TYPE,
             Row: createdRow.Row,
             Items: itemIds,
           });
@@ -771,7 +773,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        Pg: 1000000015,
+        Pg: PAGE_IDS.ALL_MODELS,
         RowLevel: modelEl.Row_Status == SECTION_HEAD ? 0 : modelEl.Row_Level,
       });
 
@@ -792,7 +794,7 @@ export class ImportService {
           JSON: { [SYSTEM_INITIAL.ENGLISH]: modelEl.Model },
         });
         await this.cellService.createCell({
-          Col: 2000000089,
+          Col: COLUMN_IDS.ALL_MODELS.MODEL,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -803,7 +805,7 @@ export class ImportService {
           DateTime: new Date(modelEl.Release_Date).toISOString(),
         });
         await this.cellService.createCell({
-          Col: 2000000089,
+          Col: COLUMN_IDS.ALL_MODELS.RELEASE_DATE,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -820,7 +822,7 @@ export class ImportService {
             itemIds.push(createdItem.Item);
           }
           await this.cellService.createCell({
-            Col: 2000000004,
+            Col: COLUMN_IDS.SHARED.ROW_TYPE,
             Row: createdRow.Row,
             Items: itemIds,
           });
@@ -857,7 +859,7 @@ export class ImportService {
       // Creating Row
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        Pg: 1000000011,
+        Pg: PAGE_IDS.ALL_UNITS,
         RowLevel: unitEl.Row_Status == SECTION_HEAD ? 0 : unitEl.Row_Level,
       });
       // Row Format
@@ -876,7 +878,7 @@ export class ImportService {
           JSON: { [SYSTEM_INITIAL.ENGLISH]: unitEl.Unit },
         });
         await this.cellService.createCell({
-          Col: 2000000084, // Col-ID of "Unit"
+          Col: COLUMN_IDS.ALL_UNITS.UNIT, // Col-ID of "Unit"
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -888,7 +890,7 @@ export class ImportService {
           Num: unitEl.Unit_Factor,
         });
         await this.cellService.createCell({
-          Col: 2000000085, // Col-ID of "Unit Factor"
+          Col: COLUMN_IDS.ALL_UNITS.UNIT_FACTOR, // Col-ID of "Unit Factor"
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -905,7 +907,7 @@ export class ImportService {
           createdItemIds.push(createdItem.Item);
         }
         await this.cellService.createCell({
-          Col: 2000000004, // Col-ID of "Row Type"
+          Col: COLUMN_IDS.SHARED.ROW_TYPE, // Col-ID of "Row Type"
           Row: createdRow.Row,
           Items: createdItemIds,
         });
@@ -957,7 +959,7 @@ export class ImportService {
       nextRowPk = +lastRowInserted.Row + 1;
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
-        Pg: 1000000010,
+        Pg: PAGE_IDS.ALL_LABELS,
         RowLevel: labelEl.Row_Status == SECTION_HEAD ? 0 : labelEl.Row_Level,
       });
       const createdFormat = await this.formatService.createFormat({
@@ -974,7 +976,7 @@ export class ImportService {
             JSON: { [SYSTEM_INITIAL.ENGLISH]: val },
           });
           await this.cellService.createCell({
-            Col: 2000000078, // Col-ID of "Label"
+            Col: COLUMN_IDS.ALL_LABELS.LABELS, // Col-ID of "Label"
             Row: createdRow.Row,
             Items: [createdItem.Item],
           });
@@ -986,7 +988,7 @@ export class ImportService {
               Object: objectRowId.Row,
             });
             await this.cellService.createCell({
-              Col: 2000000079, // Col-ID of "Value Data-Type"
+              Col: COLUMN_IDS.ALL_LABELS.VALUE_DATATYPE, // Col-ID of "Value Data-Type"
               Row: createdRow.Row,
               Items: [createdItem.Item],
             });
@@ -1002,7 +1004,7 @@ export class ImportService {
             createdItemIds.push(createdItem.Item);
           }
           await this.cellService.createCell({
-            Col: 2000000080, // Col-ID of "Value DropDown-Source"
+            Col: COLUMN_IDS.ALL_LABELS.VALUE_DROPDOWNSOURCE, // Col-ID of "Value DropDown-Source"
             Row: createdRow.Row,
             Items: createdItemIds,
           });
@@ -1017,7 +1019,7 @@ export class ImportService {
             createdItemIds.push(createdItem.Item);
           }
           const createdCell = await this.cellService.createCell({
-            Col: 2000000081, // Col-ID of "Value Default-Data"
+            Col: COLUMN_IDS.ALL_LABELS.VALUE_DEFAULTDATA, // Col-ID of "Value Default-Data"
             Row: 3000000201, // As per setup sheet - Row.Row = 0, Modify this to Row: 0
             Items: createdItemIds,
           });
@@ -1035,7 +1037,7 @@ export class ImportService {
             createdItemIds.push(createdItem.Item);
           }
           await this.cellService.createCell({
-            Col: 2000000082, // Col-ID of "Value_Status"
+            Col: COLUMN_IDS.ALL_LABELS.VALUE_STATUS, // Col-ID of "Value_Status"
             Row: createdRow.Row,
             Items: createdItemIds,
           });
@@ -1045,7 +1047,7 @@ export class ImportService {
             JSON: { [validateDataRowId]: val },
           });
           await this.cellService.createCell({
-            Col: 2000000083, // Col-ID of "Value Formula"
+            Col: COLUMN_IDS.ALL_LABELS.VALUE_FORMULA, // Col-ID of "Value Formula"
             Row: createdRow.Row,
             Items: [createdItem.Item],
           });
@@ -1060,7 +1062,7 @@ export class ImportService {
             createdItemIds.push(createdItem.Item);
           }
           await this.cellService.createCell({
-            Col: 2000000004, // Col-ID of "Row Type"
+            Col: COLUMN_IDS.SHARED.ROW_TYPE, // Col-ID of "Row Type"
             Row: createdRow.Row,
             Items: createdItemIds,
           });
@@ -1086,7 +1088,7 @@ export class ImportService {
           Object: tokenEl.Row_Type ? object : null,
         });
         await this.cellService.createCell({
-          Col: 2000000004,
+          Col: COLUMN_IDS.SHARED.ROW_TYPE,
           Row: tokenRow.Row,
           Items: [createdItem.Item],
         });
