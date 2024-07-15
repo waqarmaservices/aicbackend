@@ -1067,7 +1067,7 @@ export class ImportService {
         } else if (key == COLUMN_NAMES.Row_Status && val) {
           const statusesRowIds = await this.processStringToRowIds(val as string);
           await this.formatService.updateFormat(createdFormat.Format, { Status: statusesRowIds });
-        } else if (key == COLUMN_NAMES.Row_Comment && val !== null) {
+        } else if (key == COLUMN_NAMES.Row_Comment && val) {
           await this.formatService.updateFormat(createdFormat.Format, { Comment: { [SYSTEM_INITIAL.ENGLISH]: val } });
         }
       }
