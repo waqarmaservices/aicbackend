@@ -184,16 +184,19 @@ export class PageService {
       for (const col of pgCols) {
         const colFormat = await this.entityManager.findOne(Format, {
           where: {
-            Object: col.column_id
-          }
+            Object: col.column_id,
+          },
         });
         const colStatuses = await this.getColStatuses(colFormat);
 
         pgColResponse.push({
           title: col.column_name.trim(),
-          field: col.column_name.toLowerCase().trim().replace(/[\s-]+/g, '_'),
-          status: colStatuses
-        })
+          field: col.column_name
+            .toLowerCase()
+            .trim()
+            .replace(/[\s-]+/g, '_'),
+          status: colStatuses,
+        });
       }
 
       return {
@@ -222,12 +225,14 @@ export class PageService {
    * @returns {Promise<any>} The reponse of Col statuses.
    */
   async getColStatuses(colFormat: Format): Promise<any> {
-    const colStatuses = colFormat.Status.toString().replace(/[{}]/g, '').split(',')
-    const response = await Promise.all(colStatuses.map(async (status) => {
-      return await this.getRowJson(Number(status))
-    }));
+    const colStatuses = colFormat.Status.toString().replace(/[{}]/g, '').split(',');
+    const response = await Promise.all(
+      colStatuses.map(async (status) => {
+        return await this.getRowJson(Number(status));
+      }),
+    );
 
-    return response
+    return response;
   }
 
   /**
@@ -248,9 +253,7 @@ export class PageService {
           Item: In(itemIds),
         },
       })
-      .then((items) =>
-        items.map((item) => item.JSON[SYSTEM_INITIAL.ENGLISH].trim()),
-      );
+      .then((items) => items.map((item) => item.JSON[SYSTEM_INITIAL.ENGLISH].trim()));
 
     return items;
   }
@@ -330,14 +333,14 @@ export class PageService {
 
       const colNameCellItems = await this.getItemsByJson(colNameCells);
       const colIdCellItems = await this.getItemsByObject(colIdCells);
-      
+
       const columns = colIdCellItems.map((colId, index) => {
         return {
           column_id: colId,
-          column_name: colNameCellItems[index]
-        }
+          column_name: colNameCellItems[index],
+        };
       });
-      
+
       return columns;
     } catch (error) {
       console.error(error);
@@ -454,13 +457,14 @@ export class PageService {
     const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
 
     if (pgRow) {
-      const itemId = await this.entityManager.findOne(Cell, {
-        where: {
-          Row: pgRow.Row,
-          Col: pageTypeColId,
-        },
-      })
-      .then((cell) => (cell ? cell.Items.toString().replace(/[{}]/g, '') : null));
+      const itemId = await this.entityManager
+        .findOne(Cell, {
+          where: {
+            Row: pgRow.Row,
+            Col: pageTypeColId,
+          },
+        })
+        .then((cell) => (cell ? cell.Items.toString().replace(/[{}]/g, '') : null));
 
       if (itemId) {
         const cellItem = await this.entityManager.findOne(Item, {
@@ -471,8 +475,8 @@ export class PageService {
           const rowJson = await this.getRowJson(cellItem.Object);
           return {
             row_id: cellItem.Object,
-            token: rowJson
-          }
+            token: rowJson,
+          };
         }
       }
     }
