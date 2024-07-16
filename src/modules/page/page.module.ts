@@ -7,6 +7,7 @@ import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
 import { Row } from 'modules/row/row.entity';
+import { ImportModule } from 'modules/import/import.module';
 import { ColService } from 'modules/col/col.service';
 import { Col } from 'modules/col/col.entity';
 

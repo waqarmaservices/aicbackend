@@ -159,3 +159,9 @@ export const TOKEN_NAMES = {
     PageList: 'Page List',
   },
 };
+
+export const TOKEN_IDS = {
+  PAGE_TYPE: {
+    EACH_PAGE: 3000000329,
+  },
+};
