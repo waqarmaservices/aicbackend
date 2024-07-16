@@ -289,11 +289,11 @@ export class PageService {
    */
   async findPageColumns(pageId: number): Promise<any> {
     try {
-      const colNameColId = COLUMN_IDS.COL_NAME; // Col-ID of Column 'Col Name'
-      const colIdColId = COLUMN_IDS.COL_ID; // Col-ID of Column 'Col ID'
+      const colNameColId = COLUMN_IDS.ALL_COLS.COL_NAME; // Col-ID of Column 'Col Name'
+      const colIdColId = COLUMN_IDS.ALL_COLS.Col_ID; // Col-ID of Column 'Col ID'
       const eachPageTypeRowId = TOKEN_IDS.PAGE_TYPE.EACH_PAGE; // Row-ID of Pg type 'Each Page'
-      const pagetype = await this.findPageType(pageId);
-      const pageTypeId = pagetype ? (pagetype.token === TOKEN_NAMES.PageType.PageList ? null : pagetype.row_id) : null;
+      const pageType = await this.findPageType(pageId);
+      const pageTypeId = pageType ? (pageType.token === TOKEN_NAMES.PageType.PageList ? null : pageType.row_id) : null;
 
       // Item IDs
       const itemIds = await this.entityManager
@@ -455,7 +455,7 @@ export class PageService {
    * @returns {Promise<any>} The reponse of Pg type.
    */
   async findPageType(pageId: number): Promise<any> {
-    const pageTypeColId = COLUMN_IDS.PAGE_TYPE; // Col-ID of Column 'Page Type'
+    const pageTypeColId = COLUMN_IDS.ALL_PAGES.PAGE_TYPE; // Col-ID of Column 'Page Type'
     const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
 
     if (pgRow) {
