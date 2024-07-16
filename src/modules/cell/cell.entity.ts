@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn} from 'typeorm';
 import { Col } from 'modules/col/col.entity';
 import { Row } from 'modules/row/row.entity';
 
@@ -12,7 +12,7 @@ export class Cell {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Cell: number;
 
-  @ManyToOne(() => Col, (cell) => cell.cells, { eager: true })
+  @ManyToOne(() => Col, (col) => col.cells, { eager: true })
   @JoinColumn({ name: 'Col' })
   CellCol: Col;
 

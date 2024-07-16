@@ -63,6 +63,12 @@ export const COLUMN_NAMES = {
   Row_Level: 'Row_Level',
 };
 
+export const COLUMN_IDS = {
+  COL_NAME: 2000000049,
+  COL_ID: 2000000046,
+  PAGE_TYPE: 2000000039,
+}
+
 export const SECTION_HEAD = 'Section-Head';
 
 export const TOKEN_NAMES = {
@@ -89,3 +95,9 @@ export const TOKEN_NAMES = {
     PageList: 'Page List',
   },
 };
+
+export const TOKEN_IDS = {
+  PAGE_TYPE: {
+    EACH_PAGE: 3000000329
+  }
+}
