@@ -497,7 +497,7 @@ export class PageService {
     const cell = await this.entityManager.findOne(Cell, {
       where: {
         Row: row.Row,
-        Col: 2000000077,
+        Col: COLUMN_IDS.ALL_TOKENS.TOKEN,
       },
     });
     const itemId = cell.Items.toString().replace(/[{}]/g, '');
