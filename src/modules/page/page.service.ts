@@ -321,7 +321,7 @@ export class PageService {
           Row: In(rowIds),
           Col: colNameColId,
         },
-        order: { Row: 'ASC' }
+        order: { Row: 'ASC' },
       });
 
       // Cells of column 'Col ID'
@@ -330,7 +330,7 @@ export class PageService {
           Row: In(rowIds),
           Col: colIdColId,
         },
-        order: { Row: 'ASC' }
+        order: { Row: 'ASC' },
       });
 
       const colNameCellItems = await this.getItemsByJson(colNameCells);
