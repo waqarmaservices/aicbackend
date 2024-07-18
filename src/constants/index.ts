@@ -30,6 +30,9 @@ export const SYSTEM_INITIAL = {
   USER_ID: 3000000099,
   ALL_LANGUAGES: 1000000003,
   DEFAULT: 3000000346,
+  PAGE: 3000000655,
+  COLUMN: 3000000662,
+  ROW: 3000000667,
 };
 
 export const PAGE_IDS = {
@@ -158,6 +161,12 @@ export const TOKEN_NAMES = {
   PageType: {
     PageList: 'Page List',
   },
+  Page: 'Page',
+  Column: 'Column',
+  Row: 'Row',
+  Cell: 'Cell',
+  Item: 'Item',
+  User: 'User',
 };
 
 export const TOKEN_IDS = {

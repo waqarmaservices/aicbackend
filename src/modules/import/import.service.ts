@@ -207,7 +207,7 @@ export class ImportService {
       // Create a tFormat for the page
       await this.formatService.createFormat({
         User: user.User,
-        ObjectType: pageIdRowId,
+        ObjectType: SYSTEM_INITIAL.PAGE,
         Object: page.Pg,
         Status: statuses,
         Comment: pageEl.Page_Comment ? { [SYSTEM_INITIAL.ENGLISH]: pageEl.Page_Comment } : null,
@@ -610,6 +610,7 @@ export class ImportService {
       };
     }
 
+    const itemIds = [];
     // Iterate through each processed token element
     for (const tokenEl of allTokenData) {
       // Create the tRow
@@ -630,8 +631,16 @@ export class ImportService {
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
+        itemIds.push(createdItem.Item);
       }
     }
+
+    // Get the row ID for a specific DataType ('MLText').
+    // Update the items with the specified item IDs to have the DataType set to the retrieved row ID ('MLText').
+    const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText);
+    await this.itemService.updateItemsByItems(itemIds, {
+      DataType: mlTextRowId,
+    });
 
     // Insert records into the tUser table
     await this.insertRecordIntoUserTable();
@@ -653,15 +662,10 @@ export class ImportService {
    */
   private async insertRecordIntoUserTable(): Promise<void> {
     const userIdRowId = await this.getRowId('JSON', TOKEN_NAMES.UserID);
-    let nextRowPk = 0;
-
-    // Retrieve the last inserted row to determine the next primary key
-    const lastRowInserted = await this.rowService.getLastInsertedRecord();
-    nextRowPk = +lastRowInserted.Row + 1;
 
     // Create a new row with the primary key
     const createdRow = await this.rowService.createRow({
-      Row: nextRowPk,
+      Row: SYSTEM_INITIAL.USER_ID,
       RowLevel: 1,
     });
 
@@ -683,7 +687,6 @@ export class ImportService {
    * @returns {Promise<void>} - A promise that resolves when the formatting is complete.
    */
   private async rowFormatRecord(allTokenData: any[]): Promise<void> {
-    const objectTypeRowId = await this.getRowId('JSON', TOKEN_NAMES.RowID);
     const sectionHeadRowId = await this.getRowId('JSON', TOKEN_NAMES.SectionHead);
     const user = await this.userService.getLastInsertedRecord();
 
@@ -694,7 +697,7 @@ export class ImportService {
       // Create a format record for the row
       await this.formatService.createFormat({
         User: user.User,
-        ObjectType: objectTypeRowId,
+        ObjectType: SYSTEM_INITIAL.ROW,
         Object: row.Row,
         Owner: user.User,
         Status: tokenEl.Row_Status ? [sectionHeadRowId.Row] : null,

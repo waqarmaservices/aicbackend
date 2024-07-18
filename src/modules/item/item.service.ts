@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Item } from './item.entity';
 
 @Injectable()
@@ -36,5 +36,14 @@ export class ItemService {
 
   async deleteItem(id: number): Promise<void> {
     await this.itemRepository.delete(id);
+  }
+
+  async updateItemsByItems(Items: number[], updateData: Partial<Item>): Promise<void> {
+    await this.itemRepository
+      .createQueryBuilder()
+      .update(Item)
+      .set(updateData)
+      .where('Item IN (:...Item)', { Item: Items })
+      .execute();
   }
 }
