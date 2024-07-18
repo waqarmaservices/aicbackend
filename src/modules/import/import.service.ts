@@ -744,7 +744,8 @@ export class ImportService {
   public async populateSiblingRowColumn(): Promise<void> {
     const allRows = await this.rowService.findAllOrderByIdAsc();
     let outerIndex = 0;
-    allRows.forEach(async (outerRow) => {
+
+    for (const outerRow of allRows) {
       outerIndex++;
       let innerIndex = outerIndex;
       while (innerIndex < allRows.length) {
@@ -763,7 +764,18 @@ export class ImportService {
         }
         innerIndex++;
       }
-    });
+    }
+
+    // Update sibling rows for last Pg Rows. Last row of a specific page does not have any sibling.
+    const allPages = await this.pageService.findAll();
+    for (const page of allPages) {
+      const pageLastRow = await this.rowService.findPageLastRow(page.Pg);
+      if (pageLastRow) {
+        await this.rowService.updateRow(pageLastRow.Row, {
+          SiblingRow: null,
+        });
+      }
+    }
   }
 
   /**
@@ -778,7 +790,8 @@ export class ImportService {
   public async populateParentRowColumn(): Promise<void> {
     const allRows = await this.rowService.findAllOrderByIdDesc();
     let outerIndex = 0;
-    allRows.forEach(async (outerRow) => {
+
+    for (const outerRow of allRows) {
       outerIndex++;
       let innerIndex = outerIndex;
       while (innerIndex < allRows.length) {
@@ -788,12 +801,19 @@ export class ImportService {
           outerRow.RowLevel > allRows[innerIndex].RowLevel
         ) {
           await this.rowService.updateRow(outerRow.Row, {
-            ParentRow: allRows[innerIndex].RowLevel == 0 ? null : allRows[innerIndex],
+            ParentRow: allRows[innerIndex],
           });
           break;
         }
         innerIndex++;
       }
+    }
+
+    // Update parent and sibling rows for user
+    const user = await this.userService.getLastInsertedRecord();
+    await this.rowService.updateRow(user.User, {
+      ParentRow: null,
+      SiblingRow: null,
     });
   }
 
