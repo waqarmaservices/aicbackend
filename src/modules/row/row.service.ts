@@ -79,4 +79,12 @@ export class RowService {
     });
     return rows[0];
   }
+
+  async findPageLastRow(pageId: number): Promise<Row> {
+    return await this.rowRepository
+      .createQueryBuilder('tRow')
+      .where('tRow.Pg = :pageId', { pageId })
+      .orderBy('tRow.Row', 'DESC')
+      .getOne();
+  }
 }
