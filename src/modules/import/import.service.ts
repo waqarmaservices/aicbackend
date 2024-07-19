@@ -832,7 +832,7 @@ export class ImportService {
 
       // Create a new row in the database for the language
       const createdRow = await this.rowService.createRow({
-        Row: nextRowPk,
+        Row: langEL.Row ? langEL.Row : nextRowPk,
         Pg: PAGE_IDS.ALL_LANGUAGES,
         RowLevel: langEL.Row_Status == SECTION_HEAD ? 0 : 1,
       });
