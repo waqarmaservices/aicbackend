@@ -43,55 +43,62 @@ export class ImportService {
       SHEET_NAMES.ALL_PAGES,
       SHEET_READ_OPTIONS.ALL_PAGES,
     );
+
     // Read sheet data for all columns
     const { sheetData: allColsSheetData, sheetColumns: allColsSheetColumns } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_COLS,
       SHEET_READ_OPTIONS.ALL_COLS,
     );
+
     // Read sheet data for all tokens
     const { sheetData: allTokensSheetData } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_TOKENS,
       SHEET_READ_OPTIONS.ALL_TOKENS,
     );
+
     // Read sheet data for all languages
     const { sheetData: allLanguagesSheetData, sheetColumns: allLanguagesSheetColumns } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_LANGUAGES,
       SHEET_READ_OPTIONS.ALL_LANGUAGES,
     );
+
     // Read sheet data for all regions
     const { sheetData: allRegionsSheetData } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_REGIONS,
       SHEET_READ_OPTIONS.ALL_REGIONS,
     );
+
     // Read sheet data for all suppliers
     const { sheetData: allSuppliersSheetData } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_SUPPLIERS,
       SHEET_READ_OPTIONS.ALL_SUPPLIERS,
     );
+
     // Read sheet data for all models
     const { sheetData: allModelsSheetData } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_MODELS,
       SHEET_READ_OPTIONS.ALL_MODELS,
     );
+
     // Read sheet data for all units
     const { sheetData: allUnitsSheetData } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_UNITS,
       SHEET_READ_OPTIONS.ALL_UNITS,
     );
+
     // Read sheet data for all labels
     const { sheetData: allLabelsSheetData } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_LABELS,
       SHEET_READ_OPTIONS.ALL_LABELS,
     );
-
     // Extract page IDs and insert into the database
     const pageIds = this.extractColHeaderValue(allPagesSheetData, 1);
     await this.insertRecordIntotPG(pageIds);
@@ -1499,7 +1506,11 @@ export class ImportService {
    *          and the column names as an array of strings.
    * @throws {Error} Throws an error if the specified sheet is not found in the workbook.
    */
-  private readSheetData(filePath: string, sheetName: string, options?: { sheetRows?: number; skipRows?: number }): any {
+  private readSheetData(
+    filePath: string,
+    sheetName: string,
+    options?: { sheetRows?: number; skipRows?: number; skipColumnRows?: number },
+  ): any {
     const workbook = XLSX.readFile(filePath);
     const workbookSheet = workbook.Sheets[sheetName];
 
@@ -1507,7 +1518,7 @@ export class ImportService {
       throw new Error(`Sheet '${sheetName}' not found`);
     }
 
-    const { sheetRows, skipRows } = options || {};
+    const { sheetRows, skipRows, skipColumnRows } = options || {};
     let sheetData = XLSX.utils.sheet_to_json(workbookSheet, { header: 1, defval: null }).slice(skipRows);
 
     // Handle limiting rows
@@ -1515,7 +1526,9 @@ export class ImportService {
       sheetData = sheetData.slice(0, sheetRows);
     }
 
-    let sheetColumns = XLSX.utils.sheet_to_json(workbookSheet, { header: 1, defval: null }).slice(2);
+    let sheetColumns = XLSX.utils
+      .sheet_to_json(workbookSheet, { header: 1, defval: null })
+      .slice(skipColumnRows ? skipColumnRows : 2);
     if (Array.isArray(sheetColumns[0])) {
       const columns = (sheetColumns[0] as string[]).map((column) => (column ? column.replace('*', '') : column));
       sheetColumns = columns;

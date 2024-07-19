@@ -11,7 +11,7 @@ export const SHEET_NAMES = {
 };
 
 export const SHEET_READ_OPTIONS = {
-  ALL_PAGES: { sheetRows: 15, skipRows: 3 },
+  ALL_PAGES: { sheetRows: 15, skipRows: 4, skipColumnRows: 3 },
   ALL_COLS: { skipRows: 3 },
   ALL_TOKENS: { skipRows: 3 },
   ALL_LANGUAGES: { skipRows: 3 },
@@ -19,7 +19,7 @@ export const SHEET_READ_OPTIONS = {
   ALL_SUPPLIERS: { skipRows: 3 },
   ALL_MODELS: { skipRows: 3 },
   ALL_UNITS: { skipRows: 3 },
-  ALL_LABELS: { skipRows: 5 },
+  ALL_LABELS: { skipRows: 6 },
 };
 
 export const SYSTEM_INITIAL = {
