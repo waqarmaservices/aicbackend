@@ -11,7 +11,7 @@ export const SHEET_NAMES = {
 };
 
 export const SHEET_READ_OPTIONS = {
-  ALL_PAGES: { sheetRows: 15, skipRows: 3 },
+  ALL_PAGES: { sheetRows: 15, skipRows: 4, skipColumnRows: 3 },
   ALL_COLS: { skipRows: 3 },
   ALL_TOKENS: { skipRows: 3 },
   ALL_LANGUAGES: { skipRows: 3 },
@@ -19,7 +19,7 @@ export const SHEET_READ_OPTIONS = {
   ALL_SUPPLIERS: { skipRows: 3 },
   ALL_MODELS: { skipRows: 3 },
   ALL_UNITS: { skipRows: 3 },
-  ALL_LABELS: { skipRows: 5 },
+  ALL_LABELS: { skipRows: 6 },
 };
 
 export const SYSTEM_INITIAL = {
@@ -27,9 +27,13 @@ export const SYSTEM_INITIAL = {
   ALL_COLS: 1000000002,
   ALL_TOKENS: 1000000003,
   ENGLISH: 3000000100,
+  ORIGINAL_URL: 3000000397,
   USER_ID: 3000000099,
   ALL_LANGUAGES: 1000000003,
   DEFAULT: 3000000346,
+  PAGE: 3000000655,
+  COLUMN: 3000000662,
+  ROW: 3000000667,
 };
 
 export const PAGE_IDS = {
@@ -158,6 +162,12 @@ export const TOKEN_NAMES = {
   PageType: {
     PageList: 'Page List',
   },
+  Page: 'Page',
+  Column: 'Column',
+  Row: 'Row',
+  Cell: 'Cell',
+  Item: 'Item',
+  User: 'User',
 };
 
 export const TOKEN_IDS = {
