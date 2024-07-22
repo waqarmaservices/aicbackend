@@ -182,12 +182,14 @@ export class PageService {
       const pgColResponse = [];
 
       for (const col of pgCols) {
+        console.log('Console.log(Column) ', col)
         const colFormat = await this.entityManager.findOne(Format, {
           where: {
             Object: col.column_id,
           },
         });
         const colStatuses = await this.getColStatuses(colFormat);
+        console.log('Console.log(Column Statuses) ', colStatuses)
 
         pgColResponse.push({
           title: col.column_name.trim(),
@@ -226,6 +228,7 @@ export class PageService {
    */
   async getColStatuses(colFormat: Format): Promise<any> {
     const colStatuses = colFormat.Status.toString().replace(/[{}]/g, '').split(',');
+    console.log('Col Status IDS', colStatuses)
     const response = await Promise.all(
       colStatuses.map(async (status) => {
         return await this.getRowJson(Number(status));
@@ -500,11 +503,15 @@ export class PageService {
         Col: COLUMN_IDS.ALL_TOKENS.TOKEN,
       },
     });
-    const itemId = cell.Items.toString().replace(/[{}]/g, '');
-    const item = await this.entityManager.findOne(Item, {
-      where: { Item: Number(itemId) },
-    });
+    if (cell) {
+      const itemId = cell.Items.toString().replace(/[{}]/g, '');
+      const item = await this.entityManager.findOne(Item, {
+        where: { Item: Number(itemId) },
+      });
 
-    return item.JSON[SYSTEM_INITIAL.ENGLISH];
+      return item.JSON[SYSTEM_INITIAL.ENGLISH];
+    }
+    
+    return null
   }
 }
