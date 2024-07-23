@@ -175,3 +175,8 @@ export const TOKEN_IDS = {
     EACH_PAGE: 3000000329,
   },
 };
+
+export const GENERAL = {
+  Row: 'Row',
+  RowId: 'Row Id',
+};

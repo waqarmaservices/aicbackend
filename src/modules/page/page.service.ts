@@ -6,7 +6,7 @@ import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
-import { COLUMN_IDS, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
+import { COLUMN_IDS, GENERAL, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
 import { ImportService } from 'modules/import/import.service';
@@ -182,21 +182,18 @@ export class PageService {
       const pgColResponse = [];
 
       for (const col of pgCols) {
-        console.log('Console.log(Column) ', col)
+        console.log('Console.log(Column) ', col);
         const colFormat = await this.entityManager.findOne(Format, {
           where: {
             Object: col.column_id,
           },
         });
         const colStatuses = await this.getColStatuses(colFormat);
-        console.log('Console.log(Column Statuses) ', colStatuses)
+        console.log('Console.log(Column Statuses) ', colStatuses);
 
         pgColResponse.push({
           title: col.column_name.trim(),
-          field: col.column_name
-            .toLowerCase()
-            .trim()
-            .replace(/[\s-]+/g, '_'),
+          field: this.transformColName(col.column_name),
           status: colStatuses,
         });
       }
@@ -221,6 +218,21 @@ export class PageService {
   }
 
   /**
+   * Transforms Col name based on provided Col name.
+   *
+   * @param {string} column - The name of the Col.
+   * @returns {string} The transformed Col name.
+   */
+  public transformColName(column: string): string {
+    const colName = column == GENERAL.Row ? GENERAL.RowId : column;
+
+    return colName
+      .toLowerCase()
+      .trim()
+      .replace(/[\s-]+/g, '_');
+  }
+
+  /**
    * Finds Col statuses based on provided Col Format.
    *
    * @param {Format} colFormat - The Format of the Col.
@@ -228,7 +240,7 @@ export class PageService {
    */
   async getColStatuses(colFormat: Format): Promise<any> {
     const colStatuses = colFormat.Status.toString().replace(/[{}]/g, '').split(',');
-    console.log('Col Status IDS', colStatuses)
+    console.log('Col Status IDS', colStatuses);
     const response = await Promise.all(
       colStatuses.map(async (status) => {
         return await this.getRowJson(Number(status));
@@ -511,7 +523,7 @@ export class PageService {
 
       return item.JSON[SYSTEM_INITIAL.ENGLISH];
     }
-    
-    return null
+
+    return null;
   }
 }
