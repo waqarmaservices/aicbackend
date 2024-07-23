@@ -5,7 +5,7 @@ name: Build and Deploy to jobsingta GKE
 on:
   push:
     branches:
-      - 'aicbackdev'
+      - 'dev'
 
 # Environment variables available to all jobs and steps in this workflow
 env:
