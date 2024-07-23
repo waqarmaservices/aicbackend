@@ -5,7 +5,7 @@ name: Build and Deploy to jobsingta GKE
 on:
   push:
     branches:
-      - 'dev'
+      - 'aicbackdev'
 
 # Environment variables available to all jobs and steps in this workflow
 env:
@@ -13,7 +13,7 @@ env:
   GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
   GITHUB_SHA: ${{ github.sha }}
   GKE_ZONE: us-east1	
-  GKE_CLUSTER: aic-frontend
+  GKE_CLUSTER: aic-dev
   IMAGE: aic-backend-dev
   REGISTRY_HOSTNAME: us.gcr.io
   DEPLOYMENT_NAME: aic-backend-dev
@@ -69,4 +69,4 @@ jobs:
           gcloud container clusters get-credentials $GKE_CLUSTER \
             --zone $GKE_ZONE \
             --project $GKE_PROJECT
-          helm upgrade --namespace aic-backend --set image.repository=us.gcr.io/aicproject-424013/aic-backend-dev,image.tag=$GITHUB_SHA  aic-backend-dev ./devops/helm-charts/aic-backend-dev
+          helm install --namespace aic-backend --set image.repository=us.gcr.io/aicproject-424013/aic-backend-dev,image.tag=$GITHUB_SHA  aic-backend-dev ./devops/helm-charts/aic-backend-dev
