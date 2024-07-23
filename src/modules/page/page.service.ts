@@ -538,7 +538,7 @@ async getonePageData(pageId: number): Promise<any> {
             page_owner: 'Admin', // Example value, replace with actual data if available
             page_url: 'URL to open this Page', // Example value, replace with actual data if available
             page_seo: 'Pg; Page; Pages', // Example value, replace with actual data if available
-            page_status: 'System', // Example value, replace with actual data if available
+            page_status: 'System; DDS Page', // Example value, replace with actual data if available
             page_comment: 'Page Not Found', // Example value, replace with actual data if available
             row_type: 'Pg-Row', // Example value, replace with actual data if available
             row_status: 'System', // Example value, replace with actual data if available
