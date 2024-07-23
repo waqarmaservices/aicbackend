@@ -18,4 +18,5 @@ export class Page {
 
   @OneToMany(() => Row, (row) => row.Pg)
   rows: Row[];
+    PageName: string;
 }

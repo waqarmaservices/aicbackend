@@ -77,105 +77,7 @@ export class PageService {
   async deletePage(id: number): Promise<void> {
     await this.pageRepository.delete(id);
   }
-  async getonePageData(pageId: number): Promise<any> {
-    try {
-      const page = await this.entityManager.findOne(Page, {
-        where: { Pg: pageId },
-        relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
-      });
-
-      if (!page) {
-        throw new Error('Page not found');
-      }
-
-      // Extract all item IDs from cells
-      const itemIdsSet = new Set<number>();
-      for (const row of page.rows) {
-        for (const cell of row.cells) {
-          if (cell.Items) {
-            let itemsArray: number[] = [];
-
-            // Ensure cell.Items is handled correctly based on its type
-            if (typeof cell.Items === 'string') {
-              //@ts-ignore
-              itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
-                .split(',')
-                .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
-            } else if (Array.isArray(cell.Items)) {
-              itemsArray = cell.Items as number[];
-            }
-
-            itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
-          }
-        }
-      }
-      const itemIds = Array.from(itemIdsSet);
-
-      // Retrieve the complete records of each item ID
-      const items = await this.entityManager.findByIds(Item, itemIds);
-
-      // Replace item IDs in cells with full item records
-      for (const row of page.rows) {
-        for (const cell of row.cells) {
-          if (cell.Items) {
-            let itemsArray: number[] = [];
-
-            // Ensure cell.Items is handled correctly based on its type
-            if (typeof cell.Items === 'string') {
-              // @ts-ignore
-              itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
-                .split(',')
-                .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
-            } else if (Array.isArray(cell.Items)) {
-              itemsArray = cell.Items as number[];
-            }
-
-            cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
-          }
-        }
-      }
-
-      // Transform the page data into the tabular format
-      const OnePageData = page.rows.map((row) => ({
-        row_id: row.Row,
-        page_id: page.Pg,
-        page_name: 'All Pages', // Example value, replace with actual data if available
-        page_type: 'Page List', // Example value, replace with actual data if available
-        page_edition: 'Default', // Example value, replace with actual data if available
-        page_owner: 'Admin', // Example value, replace with actual data if available
-        page_url: 'URL to open this Page', // Example value, replace with actual data if available
-        page_seo: 'Pg; Page; Pages', // Example value, replace with actual data if available
-        page_status: 'System', // Example value, replace with actual data if available
-        page_comment: 'Listing of all Pages in the system. Said Page is displayed in the AllPage-dialog.', // Example value, replace with actual data if available
-        row_type: 'Pg-Row', // Example value, replace with actual data if available
-        row_status: 'System', // Example value, replace with actual data if available
-      }));
-
-      return {
-        success: true,
-        data: {
-          OnePageData, // Get One Page All realted data
-        },
-        error: '',
-        statusCode: 200,
-      };
-    } catch (error) {
-      console.error(error);
-      return {
-        success: false,
-        data: null,
-        error: (error as Error).message,
-        statusCode: 500,
-      };
-    }
-  }
-
-  /**
-   * Finds Pg Cols based on provided Pg ID.
-   *
-   * @param {number} pageId - The ID of the PG to find.
-   * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
-   */
+ 
   async getPageColumns(pageId: number): Promise<ApiResponse<any>> {
     try {
       const pgCols = await this.findPageColumns(pageId);
@@ -352,111 +254,6 @@ export class PageService {
       return false;
     }
   }
-
-  async getAllPages(): Promise<any> {
-    try {
-      const pages = await this.entityManager.find(Page, {
-        relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
-      });
-
-      if (!pages.length) {
-        throw new Error('No pages found');
-      }
-
-      // Extract all item IDs from cells
-      const itemIdsSet = new Set<number>();
-      for (const page of pages) {
-        for (const row of page.rows) {
-          for (const cell of row.cells) {
-            if (cell.Items) {
-              let itemsArray: number[] = [];
-
-              // Ensure cell.Items is handled correctly based on its type
-              if (typeof cell.Items === 'string') {
-                //@ts-ignore
-                itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
-                  .split(',')
-                  .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
-              } else if (Array.isArray(cell.Items)) {
-                itemsArray = cell.Items as number[];
-              }
-
-              itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
-            }
-          }
-        }
-      }
-      const itemIds = Array.from(itemIdsSet);
-
-      // Retrieve the complete records of each item ID
-      const items = await this.entityManager.findByIds(Item, itemIds);
-
-      // Replace item IDs in cells with full item records
-      for (const page of pages) {
-        for (const row of page.rows) {
-          for (const cell of row.cells) {
-            if (cell.Items) {
-              let itemsArray: number[] = [];
-
-              // Ensure cell.Items is handled correctly based on its type
-              if (typeof cell.Items === 'string') {
-                // @ts-ignore
-                itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
-                  .split(',')
-                  .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
-              } else if (Array.isArray(cell.Items)) {
-                itemsArray = cell.Items as number[];
-              }
-
-              cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
-            }
-          }
-        }
-      }
-
-      // Transform the pages data into the tabular format
-      const AllPagesData = pages.flatMap((page) =>
-        page.rows.map((row) => ({
-          row_id: row.Row,
-          page_id: page.Pg,
-          page_name: 'All Pages', // Example value, replace with actual data if available
-          page_type: 'Page List', // Example value, replace with actual data if available
-          page_edition: 'Default', // Example value, replace with actual data if available
-          page_owner: 'Admin', // Example value, replace with actual data if available
-          page_url: 'URL to open this Page', // Example value, replace with actual data if available
-          page_seo: 'Pg; Page; Pages', // Example value, replace with actual data if available
-          page_status: 'System', // Example value, replace with actual data if available
-          page_comment: 'Listing of all Pages in the system. Said Page is displayed in the AllPage-dialog.', // Example value, replace with actual data if available
-          row_type: 'Pg-Row', // Example value, replace with actual data if available
-          row_status: 'System', // Example value, replace with actual data if available
-        })),
-      );
-
-      return {
-        success: true,
-        data: {
-          AllPagesData, // Get All pages Data
-        },
-        error: '',
-        statusCode: 200,
-      };
-    } catch (error) {
-      console.error(error);
-      return {
-        success: false,
-        data: null,
-        error: (error as Error).message,
-        statusCode: 500,
-      };
-    }
-  }
-
-  /**
-   * Finds Pg type based on provided Pg ID.
-   *
-   * @param {number} pageId - The ID of the PG to find.
-   * @returns {Promise<any>} The reponse of Pg type.
-   */
   async findPageType(pageId: number): Promise<any> {
     const pageTypeColId = COLUMN_IDS.ALL_PAGES.PAGE_TYPE; // Col-ID of Column 'Page Type'
     const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
@@ -514,4 +311,1081 @@ export class PageService {
     
     return null
   }
+  async getAllPages(): Promise<any> {
+    try {
+        const pages = await this.entityManager.find(Page, {
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!pages.length) {
+            throw new Error('No pages found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const page of pages) {
+            for (const row of page.rows) {
+                for (const cell of row.cells) {
+                    if (cell.Items) {
+                        let itemsArray: number[] = [];
+
+                        // Ensure cell.Items is handled correctly based on its type
+                        if (typeof cell.Items === 'string') {
+                            //@ts-ignore
+                            itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                                .split(',')
+                                .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                        } else if (Array.isArray(cell.Items)) {
+                            itemsArray = cell.Items as number[];
+                        }
+
+                        itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                    }
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records and update item JSON attribute
+        for (const page of pages) {
+            const pageName = page.PageName || 'All Pages'; // Adjust if your Page entity has a different property for the name
+
+            for (const row of page.rows) {
+                for (const cell of row.cells) {
+                    if (cell.Items) {
+                        let itemsArray: number[] = [];
+
+                        // Ensure cell.Items is handled correctly based on its type
+                        if (typeof cell.Items === 'string') {
+                            // @ts-ignore
+                            itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                                .split(',')
+                                .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                        } else if (Array.isArray(cell.Items)) {
+                            itemsArray = cell.Items as number[];
+                        }
+
+                        cell.Items = itemsArray.map((itemId) => {
+                            const item = items.find((item) => item.Item === itemId);
+                            if (item) {
+                                // Update the JSON attribute
+                                item.JSON = {
+                                    ...item.JSON,
+                                    [page.Pg]: pageName
+                                };
+                            }
+                            return item || itemId;
+                        }) as any;
+                    }
+                }
+            }
+        }
+
+        // Columns definition
+        const columns = [
+            { title: 'Row*', field: 'row_id', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Page ID*', field: 'page_id', frozen: true, width: 'auto', tooltip: true, editor: false },
+            { title: 'Page Name*', field: 'page_name', width: 'auto', editor: false, tooltip: true },
+            { title: 'Page Type', field: 'page_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Edition*', field: 'page_edition', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Owner*', field: 'page_owner', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page URL', field: 'page_url', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Seo', field: 'page_seo', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Status', field: 'page_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Comment', field: 'page_comment', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+        ];
+
+        // Transform the pages data into the tabular format
+        const AllPagesData = pages.flatMap(page =>
+            page.rows.map(row => ({
+                row_id: row.Row,
+                page_id: page.Pg,
+                page_name: page.PageName || 'All Pages', // Use actual page name
+                page_type: 'Page List', // Example value, replace with actual data if available
+                page_edition: 'Default', // Example value, replace with actual data if available
+                page_owner: 'Admin', // Example value, replace with actual data if available
+                page_url: 'URL to open this Page', // Example value, replace with actual data if available
+                page_seo: 'Pg; Page; Pages', // Example value, replace with actual data if available
+                page_status: 'System', // Example value, replace with actual data if available
+                page_comment: 'Page Not Found', // Example value, replace with actual data if available
+                row_type: 'Pg-Row', // Example value, replace with actual data if available
+                row_status: 'System', // Example value, replace with actual data if available
+            }))
+        );
+
+        return {
+            success: true,
+            data: AllPagesData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg All In DataBase based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<any>} The reponse of Pg type.
+ */
+async getonePageData(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract the page_name
+        const pageName = page.PageName || 'All Pages'; // Adjust if your Page entity has a different property for the name
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records and update item JSON attribute
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => {
+                        const item = items.find((item) => item.Item === itemId);
+                        if (item) {
+                            // Update the JSON attribute
+                            item.JSON = {
+                                ...item.JSON,
+                                [pageId]: pageName
+                            };
+                        }
+                        return item || itemId;
+                    }) as any;
+                }
+            }
+        }
+
+        // Columns definition
+        const columns = [
+            { title: 'Row', field: 'row_id', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Page ID', field: 'page_id', frozen: true, width: 'auto', tooltip: true, editor: false },
+            { title: 'Page Name', field: 'page_name', width: 'auto', editor: false, tooltip: true },
+            { title: 'Page Type', field: 'page_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Edition', field: 'page_edition', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Owner', field: 'page_owner', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page URL', field: 'page_url', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Seo', field: 'page_seo', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Status', field: 'page_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Page Comment', field: 'page_comment', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+        ];
+
+        // Transform the page data into the tabular format
+        const OnePageData = page.rows.map((row) => ({
+            row_id: row.Row,
+            page_id: page.Pg,
+            page_name: pageName, // Use actual page name
+            page_type: 'Page List', // Example value, replace with actual data if available
+            page_edition: 'Default', // Example value, replace with actual data if available
+            page_owner: 'Admin', // Example value, replace with actual data if available
+            page_url: 'URL to open this Page', // Example value, replace with actual data if available
+            page_seo: 'Pg; Page; Pages', // Example value, replace with actual data if available
+            page_status: 'System', // Example value, replace with actual data if available
+            page_comment: 'Page Not Found', // Example value, replace with actual data if available
+            row_type: 'Pg-Row', // Example value, replace with actual data if available
+            row_status: 'System', // Example value, replace with actual data if available
+        }));
+
+        return {
+            success: true,
+            data: OnePageData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg All Data based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOneCollPageData(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Extract column data from each cell in the page
+        const oneCollPageData = page.rows.flatMap(row =>
+            row.cells.map(cell => ({
+                row_id: row.Row,
+                col_id: cell.CellCol.Col,
+                page_type: 'Each Page',
+                page_id: page.Pg,
+                col_name: 'colname', // Replace with actual data if available
+                col_data_type: 'cell.CellCol.DataType ' || 'N/A', // Replace with actual data if available
+                col_dropdown_source: "cell.CellCol.DropdownSource" || 'N/A', // Replace with actual data if available
+                col_formula: "cell.CellCol.Formula" || 'N/A', // Replace with actual data if available
+                col_status: "cell.CellCol.Status" || 'N/A', // Replace with actual data if available
+                col_owner: 'Admin', // Example value, replace with actual data if available
+                col_comment: "Page Not Found", // Replace with actual data if available
+                row_type: 'col-row', // Example value, replace with actual data if available
+                row_status: 'system', // Example value, replace with actual data if available
+
+            }))
+        );
+
+        // Columns definition
+        const columns = [
+            { title: 'Row ID', field: 'row_id', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Col ID', field: 'col_id', frozen: true, width: 'auto', tooltip: true, editor: false },
+            { title: 'Page Type', field: 'page_type', width: 'auto', editor: false, tooltip: true },
+            { title: 'Page ID', field: 'page_id', tooltip: true, width: 'auto', editor: false },
+            { title: 'Col Name', field: 'col_name', tooltip: true, width: 'auto', editor: false },
+            { title: 'Col Data Type', field: 'col_data_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Col Dropdown Source', field: 'col_dropdown_source', tooltip: true, width: 'auto', editor: false },
+            { title: 'Col Formula', field: 'col_formula', tooltip: true, width: 'auto', editor: false },
+            { title: 'Col Status', field: 'col_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Col Owner', field: 'col_owner', tooltip: true, width: 'auto', editor: false },
+            { title: 'Col Comment', field: 'col_comment', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+        ];
+
+        return {
+            success: true,
+            data: oneCollPageData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+
+/**
+ * Finds Pg Collumns based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOnePageAllTokens(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Transform the page data into the required token format
+        const tokenData = page.rows.map(row => ({
+            row_id: row.Row,
+            token: "ALL Token", // Fixed value
+            row_type: "node", // Fixed value
+            row_status: "section Head", // Fixed value
+            row_comment: "Page Not Found" // Fixed value
+        }));
+
+        // Columns definition
+        const columns = [
+            { title: 'Row ID', field: 'row_id', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Token', field: 'token', width: 'auto', editor: false, tooltip: true },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Comment', field: 'row_comment', tooltip: true, width: 'auto', editor: false }
+        ];
+
+        return {
+            success: true,
+            data: tokenData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg Tokens based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOnePageAlllanguages(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Transform the page data into the required token format
+        const languagesData = page.rows.map(row => ({
+            row_id: row.Row,
+            language: "ALL language", // Fixed value
+            row_type: "Default", // Fixed value
+            row_status: "Section-Head", // Fixed value
+            row_comment: "Page Not Found" // Fixed value
+        }));
+
+        // Columns definition
+        const columns = [
+            { title: 'Row ID', field: 'row_id', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Language', field: 'language', width: 'auto', editor: false, tooltip: true },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Comment', field: 'row_comment', tooltip: true, width: 'auto', editor: false }
+        ];
+
+        return {
+            success: true,
+            data: languagesData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg languages based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOnePageAllregions(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Transform the page data into the required token format
+        const regionsData = page.rows.map(row => ({
+            region: "ALL Regions",
+            row_type: "Country", // Fixed value
+            row_status: "Section-Head", // Fixed value
+            row_comment: "Page Not Found" // Fixed value
+        }));
+
+        // Columns definition
+        const columns = [
+            { title: 'Region', field: 'region', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Comment', field: 'row_comment', tooltip: true, width: 'auto', editor: false }
+        ];
+
+        return {
+            success: true,
+            data: regionsData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg regions based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOnePageAllsupplier(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Transform the page data into the required token format
+        const supplierData = page.rows.map(row => ({
+            supplier: "ALL Supplier",
+            row_type: "Company", // Fixed value
+            row_status: "Section-Head", // Fixed value
+            row_comment: "Page Not Found" // Fixed value
+        }));
+
+        // Columns definition
+        const columns = [
+            { title: 'Supplier', field: 'supplier', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Comment', field: 'row_comment', tooltip: true, width: 'auto', editor: false }
+        ];
+
+        return {
+            success: true,
+            data: supplierData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg supplier based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOnePageAllmodels(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Transform the page data into the required token format
+        const supplierData = page.rows.map(row => ({
+            model: "ALL Models",
+            release_date: "Roz e Qyamat",
+            row_type: "Company", // Fixed value
+            row_status: "Section-Head", // Fixed value
+            row_comment: "Page Not Found" // Fixed value
+        }));
+
+        // Columns definition
+        const columns = [
+            { title: 'Supplier', field: 'supplier', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Release Date', field: 'release_date', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Comment', field: 'row_comment', tooltip: true, width: 'auto', editor: false }
+        ];
+
+        return {
+            success: true,
+            data: supplierData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg Models based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOnePageAllunits(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Transform the page data into the required token format
+        const supplierData = page.rows.map(row => ({
+            unit: "ALL Units",
+            unit_factor: "001",
+            row_type: "Company", // Fixed value
+            row_status: "Section-Head", // Fixed value
+            row_comment: "Page Not Found" // Fixed value
+        }));
+
+        // Columns definition
+        const columns = [
+            { title: 'Supplier', field: 'supplier', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Unit Factor', field: 'unit_factor', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Comment', field: 'row_comment', tooltip: true, width: 'auto', editor: false }
+        ];
+
+        return {
+            success: true,
+            data: supplierData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg units based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+async getOnePageAlllabes(pageId: number): Promise<any> {
+    try {
+        const page = await this.entityManager.findOne(Page, {
+            where: { Pg: pageId },
+            relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+        });
+
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Extract all item IDs from cells
+        const itemIdsSet = new Set<number>();
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        //@ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+                }
+            }
+        }
+        const itemIds = Array.from(itemIdsSet);
+
+        // Retrieve the complete records of each item ID
+        const items = await this.entityManager.findByIds(Item, itemIds);
+
+        // Replace item IDs in cells with full item records
+        for (const row of page.rows) {
+            for (const cell of row.cells) {
+                if (cell.Items) {
+                    let itemsArray: number[] = [];
+
+                    // Ensure cell.Items is handled correctly based on its type
+                    if (typeof cell.Items === 'string') {
+                        // @ts-ignore
+                        itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
+                            .split(',')
+                            .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+                    } else if (Array.isArray(cell.Items)) {
+                        itemsArray = cell.Items as number[];
+                    }
+
+                    cell.Items = itemsArray.map((itemId) => items.find((item) => item.Item === itemId) || itemId) as any;
+                }
+            }
+        }
+
+        // Transform the page data into the required token format
+        const LabelsData = page.rows.map(row => ({
+            row_id: "3000001001",
+            lables: "All Labels",
+            value_data_type: "CategoryID",
+            value_dropdownsource: "All Suppliers",
+            value_defaultdata: "Consumer",
+            value_status: "Section-Head; System",
+            value_formula: "= [User Type].[Value]+",
+            row_type: "Company", // Fixed value
+            row_status: "Section-Head", // Fixed value
+            row_comment: "Page Not Found" // Fixed value
+        }));
+
+        // Columns definition
+        const columns = [
+            { title: 'Row', field: 'row_id', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Lables', field: 'lables', tooltip: true, width: 'auto', editor: false },
+            { title: 'Value DataType', field: 'value_data_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Value DropDownSource', field: 'value_dropdownsource', tooltip: true, width: 'auto', editor: false },
+            { title: 'Value DefaultData', field: 'value_defaultdata', tooltip: true, width: 'auto', editor: false },
+            { title: 'Value Status', field: 'value_status', frozen: true, tooltip: true, width: 'auto', editor: false },
+            { title: 'Value Formula', field: 'value_formula', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
+            { title: 'Row Comment', field: 'row_comment', tooltip: true, width: 'auto', editor: false }
+        ];
+
+        return {
+            success: true,
+            data: LabelsData,
+            columns,
+            error: '',
+            statusCode: 200,
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            data: null,
+            error: (error as Error).message,
+            statusCode: 500,
+        };
+    }
+}
+/**
+ * Finds Pg Lables based on provided Pg ID.
+ *
+ * @param {number} pageId - The ID of the PG to find.
+ * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+ */
+
+
+
 }
