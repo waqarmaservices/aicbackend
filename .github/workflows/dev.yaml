@@ -13,7 +13,7 @@ env:
   GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
   GITHUB_SHA: ${{ github.sha }}
   GKE_ZONE: us-east1	
-  GKE_CLUSTER: aic-frontend
+  GKE_CLUSTER: aic-dev
   IMAGE: aic-backend-dev
   REGISTRY_HOSTNAME: us.gcr.io
   DEPLOYMENT_NAME: aic-backend-dev
