@@ -69,4 +69,4 @@ jobs:
           gcloud container clusters get-credentials $GKE_CLUSTER \
             --zone $GKE_ZONE \
             --project $GKE_PROJECT
-          helm install --namespace aic-backend --set image.repository=us.gcr.io/aicproject-424013/aic-backend-dev,image.tag=$GITHUB_SHA  aic-backend-dev ./devops/helm-charts/aic-backend-dev
+          helm upgrade --namespace aic-backend --set image.repository=us.gcr.io/aicproject-424013/aic-backend-dev,image.tag=$GITHUB_SHA  aic-backend-dev ./devops/helm-charts/aic-backend-dev
