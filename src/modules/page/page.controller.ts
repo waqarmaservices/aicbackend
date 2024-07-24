@@ -86,7 +86,6 @@ export class PageController {
     }
   }
 
-
   @Get('fullcolumns/:pageId')
   async getOneCollPageData(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {

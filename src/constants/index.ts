@@ -34,6 +34,7 @@ export const SYSTEM_INITIAL = {
   PAGE: 3000000655,
   COLUMN: 3000000662,
   ROW: 3000000667,
+  EXCLUDE_DDS_HEAD: 3000000376,
 };
 
 export const PAGE_IDS = {
@@ -171,6 +172,22 @@ export const TOKEN_NAMES = {
 };
 
 export const TOKEN_IDS = {
+  Row_Type: 3000000340,
+  Statuses: 3000000202,
+  Category_Label: 3000002002,
+  Product_Label: 3000002005,
+  Key: 3000000399,
+  Preference: 3000000407,
+  LevelSet_Label: 3000002043,
+  True___False: 3000000319,
+  SearchSet_Label: 3000002035,
+  Param_Opr: 3000000410,
+  Page_Type: 3000000328,
+  Edition: 3000000335,
+  Data_Type: 3000000247,
+  Display_Setting: 3000002084,
+  Profile_Label: 3000001047,
+  User_Type: 3000000369,
   PAGE_TYPE: {
     EACH_PAGE: 3000000329,
   },

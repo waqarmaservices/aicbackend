@@ -16,6 +16,7 @@ import {
   TOKEN_NAMES,
   COLUMN_IDS,
   PAGE_IDS,
+  TOKEN_IDS,
 } from '../../constants';
 
 @Injectable()
@@ -526,11 +527,25 @@ export class ImportService {
 
       // Check and insert col dropdown source
       if (COLUMN_NAMES.Col_DropDownSource in colEl && colEl.Col_DropDownSource != null) {
-        const colDropDownSourceJson = await this.getRowId('JSON', colEl.Col_DropDownSource);
-        if (colDropDownSourceJson) {
+        const dropDownSources = this.transformDropDownSource(colEl.Col_DropDownSource);
+        if (this.isSemicolonSeparated(colEl.Col_DropDownSource)) {
+          const itemIds = [];
+          for (const dds of dropDownSources) {
+            const createdItem = await this.itemService.createItem({
+              DataType: dropDownSourceRowId,
+              JSON: { [SYSTEM_INITIAL.EXCLUDE_DDS_HEAD]: dds },
+            });
+            itemIds.push(createdItem.Item);
+          }
+          await this.cellService.createCell({
+            Col: COLUMN_IDS.ALL_COLS.COL_DROPDOWNSOURCE,
+            Row: createdRow.Row,
+            Items: itemIds,
+          });
+        } else {
           const createdItem = await this.itemService.createItem({
             DataType: dropDownSourceRowId,
-            JSON: { 3000000375: colDropDownSourceJson.Row },
+            JSON: { [SYSTEM_INITIAL.EXCLUDE_DDS_HEAD]: dropDownSources },
           });
           await this.cellService.createCell({
             Col: COLUMN_IDS.ALL_COLS.COL_DROPDOWNSOURCE,
@@ -553,6 +568,14 @@ export class ImportService {
         });
       }
     }
+  }
+
+  private transformDropDownSource(Col_DropDownSource: string) {
+    return this.isSemicolonSeparated(Col_DropDownSource)
+      ? Col_DropDownSource.split(';').map(
+          (_DropDownSource) => TOKEN_IDS[_DropDownSource.trim().replace(/ /g, '_').replace(/\//g, '_')],
+        )
+      : TOKEN_IDS[Col_DropDownSource.trim().replace(/ /g, '_').replace(/\//g, '_')];
   }
 
   /**
@@ -671,6 +694,7 @@ export class ImportService {
     // Create a new row with the primary key
     const createdRow = await this.rowService.createRow({
       Row: SYSTEM_INITIAL.USER_ID,
+      Pg: PAGE_IDS.ALL_USERS,
       RowLevel: 1,
     });
 
@@ -1299,36 +1323,23 @@ export class ImportService {
     const allLabelsData = [];
     for (const [rowIndex, row] of filteredAllLabelsData.entries()) {
       allLabelsData[rowIndex] = {
-        Label:
-          row[0] != null
-            ? row[0]
-            : row[1] != null
-              ? row[1]
-              : row[2] != null
-                ? row[2]
-                : row[3] != null
-                  ? row[3]
-                  : row[4],
-        Value_DataType: row[6] == null ? '' : row[6],
-        Value_DropDownSource: row[7] == null ? '' : row[7],
-        Value_DefaultData: row[8] == null ? '' : row[8],
-        Value_Status: row[9] == null ? '' : row[9],
-        Value_Formula: row[10] == null ? '' : row[10],
-        Row_Type: row[11] == null ? '' : row[11],
-        Row_Status: row[12] == null ? '' : row[12],
-        Row_Comment: row[13] == null ? '' : row[13],
+        Row: row[0],
+        Label: row.slice(1, 6).find((value) => value != null),
+        Value_DataType: row[7] == null ? '' : row[7],
+        Value_DropDownSource: row[8] == null ? '' : row[8],
+        Value_DefaultData: row[9] == null ? '' : row[9],
+        Value_Status: row[10] == null ? '' : row[10],
+        Value_Formula: row[11] == null ? '' : row[11],
+        Row_Type: row[12] == null ? '' : row[12],
+        Row_Status: row[13] == null ? '' : row[13],
+        Row_Comment: row[14] == null ? '' : row[14],
         Row_Level: this.calculateRowLevel(row), // Calculate row level based on the row data
       };
     }
-
     for (const labelEl of allLabelsData) {
-      let nextRowPk = 0;
-      const lastRowInserted = await this.rowService.getLastInsertedRecord();
-      nextRowPk = +lastRowInserted.Row + 1;
-
       // Creating a new row in the database
       const createdRow = await this.rowService.createRow({
-        Row: nextRowPk,
+        Row: labelEl.Row,
         Pg: PAGE_IDS.ALL_LABELS,
         RowLevel: labelEl.Row_Status == SECTION_HEAD ? 0 : labelEl.Row_Level,
       });
