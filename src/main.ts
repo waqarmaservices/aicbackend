@@ -11,9 +11,6 @@ async function bootstrap() {
   const logger = new Logger();
   const { port } = appConfig();
   const app = await NestFactory.create(AppModule, { cors: true });
-  // Get the underlying HTTP server and set the timeout
-  const server = app.getHttpServer();
-  server.setTimeout(300000); // 5 minutes in milliseconds
   app.setGlobalPrefix('api', {
     exclude: excludedPaths,
   });
