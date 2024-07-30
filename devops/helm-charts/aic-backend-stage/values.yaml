@@ -49,7 +49,7 @@ ingress:
     #networking.gke.io/v1beta1.FrontendConfig: "https-redirect"
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ""
+    - host: "aicbackstage.microagility.com"
       paths:
         - path: /*
           pathType: ImplementationSpecific
