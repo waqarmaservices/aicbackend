@@ -52,4 +52,7 @@ export class Row {
 
   @OneToMany(() => Item, (item) => item.StdUnit)
   StdUnitItems: Item[];
+
+  @OneToMany(() => Item, (item) => item.Object)
+  ObjectItems: Item[];
 }

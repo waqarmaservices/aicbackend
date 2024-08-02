@@ -66,6 +66,7 @@ export class PageController {
       const data = await this.pageService.getonePageData(pageId);
       return new ApiResponse(true, data, '', 200);
     } catch (error) {
+      console.log(error);
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }

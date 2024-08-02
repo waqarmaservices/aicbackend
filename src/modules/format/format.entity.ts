@@ -103,4 +103,8 @@ export class Format {
 
   @Column({ type: 'timestamp', nullable: true })
   DeletedAt: Date;
+
+  @ManyToOne(() => Page, (page) => page.formats)
+  @JoinColumn({ name: 'Object' })
+  formatObject: Page;
 }

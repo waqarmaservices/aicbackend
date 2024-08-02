@@ -32,7 +32,7 @@ export class CellService {
   async getOneCell(id: number): Promise<Cell> {
     const cell = await this.cellRepository.findOne({
       where: { Cell: id },
-      relations: ['Col', 'Row'],
+      relations: ['CellRow', 'CellCol'],
     });
     if (!cell) {
       throw new Error('Cell not found');

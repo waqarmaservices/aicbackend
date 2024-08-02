@@ -55,4 +55,8 @@ export class Item {
 
   @Column({ type: 'jsonb', nullable: true })
   Foreign: any;
+
+  @ManyToOne(() => Row, (row) => row.ObjectItems)
+  @JoinColumn({ name: 'Object' })
+  ItemObject: Row;
 }
