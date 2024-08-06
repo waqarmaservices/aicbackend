@@ -1210,12 +1210,13 @@ export class ImportService {
     const allUnitsData = [];
     for (const [rowIndex, row] of sheetData.entries()) {
       allUnitsData[rowIndex] = {
-        Unit: row.slice(1, 3).find((value) => value != null),
-        Unit_Factor: row[3] ?? row[3],
-        Row_Type: row[4] ?? row[4],
-        Row_Status: row[5] ?? row[5],
-        Row_Comment: row[6] ?? row[6],
-        Row_Level: this.calculateRowLevel(row.slice(1)),
+        Row: row[1],
+        Unit: row.slice(2, 4).find((value) => value != null),
+        Unit_Factor: row[4] ?? row[4],
+        Row_Type: row[5] ?? row[5],
+        Row_Status: row[6] ?? row[6],
+        Row_Comment: row[7] || row[8] ? ((row[7] || '') + ' ' + (row[8] ?? '')).trim() : null,
+        Row_Level: this.calculateRowLevel(row.slice(2)),
       };
     }
 
@@ -1233,7 +1234,7 @@ export class ImportService {
 
       // Create a new row in the database for the unit
       const createdRow = await this.rowService.createRow({
-        Row: nextRowPk,
+        Row: unitEl.Row ? unitEl.Row : nextRowPk,
         Pg: PAGE_IDS.ALL_UNITS,
         RowLevel: unitEl.Row_Status == SECTION_HEAD ? 0 : unitEl.Row_Level,
       });
