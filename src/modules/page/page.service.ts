@@ -10,8 +10,8 @@ import { COLUMN_IDS, GENERAL, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
 import { ItemService } from 'modules/item/item.service';
-import { Col } from 'modules/col/col.entity';
 import { Format } from 'modules/format/format.entity';
+import { FormatService } from 'modules/format/format.service';
 
 @Injectable()
 export class PageService {
@@ -26,6 +26,7 @@ export class PageService {
     private readonly rowService: RowService,
     private readonly colService: ColService,
     private readonly itemService: ItemService,
+    private readonly formatService: FormatService,
   ) {}
 
   /**
@@ -420,7 +421,6 @@ export class PageService {
         statusCode: 200,
       };
     } catch (error) {
-      console.error(error);
       return {
         success: false,
         data: null,
@@ -446,39 +446,77 @@ export class PageService {
     }
 
     const pageColumns = await this.getPageColumns(Pg);
-    // Extract all item IDs from cells
-    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number }>> = {};
-    for (const rowEl of page.rows) {
+
+    const rowsWithItems = await this.extractRowsWithItems(page.rows, pageColumns);
+
+    const transformedData = this.transformData(rowsWithItems);
+
+    return await this.enrichData(transformedData);
+  }
+
+  private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
+    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number }>> = {};
+
+    for (const rowEl of rows) {
       const Row = rowEl.Row;
-      // Initialize the row entry if not already present
+
       if (!rowsWithItems[Row]) {
         rowsWithItems[Row] = [];
       }
+
       for (const cellEl of rowEl.cells) {
         const Cell = cellEl.Cell;
         const Col = cellEl.Col;
-        const itemIds = cellEl.Items.toString()
-          .replace(/[{}]/g, '')
-          .split(',')
-          .map((id) => parseInt(id.trim(), 10))
-          .filter((id) => !isNaN(id));
-        // Fetch items from the database
+        const itemIds = this.parseItemIds(cellEl.Items);
         const Items = await this.getItemValues(itemIds);
-
         const field = this.getFieldByCol(Col, pageColumns);
 
-        // Store items in the map with the cell ID as the key
         rowsWithItems[Row].push({
           Col,
           Cell,
+          RowLevel: rowEl.RowLevel,
           [field]: Items,
         });
       }
     }
+
     return rowsWithItems;
-    const transformData = this.transformData(rowsWithItems);
-    return transformData;
-    return { pageColumns, pageData: transformData };
+  }
+
+  private parseItemIds(items: string): number[] {
+    return items
+      .replace(/[{}]/g, '')
+      .split(',')
+      .map((id) => parseInt(id.trim(), 10))
+      .filter((id) => !isNaN(id));
+  }
+
+  private async enrichData(data: any[]): Promise<any[]> {
+    const enrichedData = [];
+
+    for (const record of data) {
+      let enrichedRecord = { ...record };
+
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'row');
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'page_id');
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'col_id');
+
+      enrichedData.push(enrichedRecord);
+    }
+
+    return enrichedData;
+  }
+
+  private async enrichRecord(record: any, key: string): Promise<any> {
+    if (key in record && record[key]) {
+      const format = await this.formatService.findOneByColumnName('Object', record[key]);
+      return {
+        ...record,
+        [`${key}_comment`]: format?.Comment ?? null,
+        [`${key}_status`]: format?.Status ?? null,
+      };
+    }
+    return record;
   }
 
   async getItemValues(itemIds: number[]) {
@@ -547,9 +585,12 @@ export class PageService {
 
     Object.keys(data).forEach((key) => {
       const pageObject = {};
+      let rowLevel: any[];
       data[key].forEach((obj: { [x: string]: any[] }) => {
+        // Capture the RowLevel value
+        rowLevel = obj.RowLevel;
         Object.keys(obj).forEach((col) => {
-          if (col !== 'Col' && col !== 'Cell') {
+          if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel') {
             if (!pageObject[col]) {
               pageObject[col] = [];
             }
@@ -557,12 +598,13 @@ export class PageService {
           }
         });
       });
-
       // Concatenate array values with semicolons and create the final page object
       const finalPageObject = {};
       Object.keys(pageObject).forEach((col) => {
         finalPageObject[col] = pageObject[col].join(';');
       });
+      finalPageObject['row'] = key;
+      finalPageObject['RowLevel'] = rowLevel;
       transformedData.push(finalPageObject);
     });
 
