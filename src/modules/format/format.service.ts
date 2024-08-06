@@ -66,4 +66,10 @@ export class FormatService {
       where: { [colName]: colValue },
     });
   }
+
+  async findOneByColumnName(colName: string, colValue: string): Promise<Format> {
+    return this.formatRepository.findOne({
+      where: { [colName]: colValue },
+    });
+  }
 }

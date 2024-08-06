@@ -46,4 +46,11 @@ export class ItemService {
       .where('Item IN (:...Item)', { Item: Items })
       .execute();
   }
+
+  async getItemsByIds(itemIds: number[]): Promise<Item[]> {
+    return await this.itemRepository.find({
+      where: { Item: In(itemIds) },
+      relations: ['ItemObject.cells'],
+    });
+  }
 }

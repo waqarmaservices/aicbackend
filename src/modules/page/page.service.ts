@@ -9,9 +9,9 @@ import { RowService } from 'modules/row/row.service';
 import { COLUMN_IDS, GENERAL, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
-import { ImportService } from 'modules/import/import.service';
-import { Col } from 'modules/col/col.entity';
+import { ItemService } from 'modules/item/item.service';
 import { Format } from 'modules/format/format.entity';
+import { FormatService } from 'modules/format/format.service';
 
 @Injectable()
 export class PageService {
@@ -25,6 +25,8 @@ export class PageService {
     private readonly cellService: CellService,
     private readonly rowService: RowService,
     private readonly colService: ColService,
+    private readonly itemService: ItemService,
+    private readonly formatService: FormatService,
   ) {}
 
   /**
@@ -79,44 +81,25 @@ export class PageService {
   }
 
   async getPageColumns(pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const pgCols = await this.findPageColumns(pageId);
-      const pgColResponse = [];
+    const pgCols = await this.findPageColumns(pageId);
+    const pgColResponse: any = [];
 
-      for (const col of pgCols) {
-        console.log('Console.log(Column) ', col);
-        const colFormat = await this.entityManager.findOne(Format, {
-          where: {
-            Object: col.column_id,
-          },
-        });
-        const colStatuses = await this.getColStatuses(colFormat);
-        console.log('Console.log(Column Statuses) ', colStatuses);
-
-        pgColResponse.push({
-          title: col.column_name.trim(),
-          field: this.transformColName(col.column_name),
-          status: colStatuses,
-        });
-      }
-
-      return {
-        success: true,
-        data: {
-          column_names: pgColResponse,
+    for (const col of pgCols) {
+      const colFormat = await this.entityManager.findOne(Format, {
+        where: {
+          Object: col.column_id,
         },
-        error: '',
-        statusCode: 200,
-      };
-    } catch (error) {
-      console.error(error);
-      return {
-        success: false,
-        data: null,
-        error: (error as Error).message,
-        statusCode: 500,
-      };
+      });
+      const colStatuses = await this.getColStatuses(colFormat);
+
+      pgColResponse.push({
+        col: col.column_id,
+        title: col.column_name.trim(),
+        field: this.transformColName(col.column_name),
+        status: colStatuses,
+      });
     }
+    return pgColResponse;
   }
 
   /**
@@ -438,7 +421,6 @@ export class PageService {
         statusCode: 200,
       };
     } catch (error) {
-      console.error(error);
       return {
         success: false,
         data: null,
@@ -450,129 +432,185 @@ export class PageService {
   /**
    * Finds Pg All In DataBase based on provided Pg ID.
    *
-   * @param {number} pageId - The ID of the PG to find.
+   * @param {number} Pg - The ID of the PG to find.
    * @returns {Promise<any>} The reponse of Pg type.
    */
-  async getonePageData(pageId: number): Promise<any> {
-    try {
-      const page = await this.entityManager.findOne(Page, {
-        where: { Pg: pageId },
-        relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
-      });
+  async getonePageData(Pg: number): Promise<any> {
+    const page = await this.entityManager.findOne(Page, {
+      where: { Pg },
+      relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+    });
 
-      if (!page) {
-        throw new Error('Page not found');
+    if (!page) {
+      throw new Error('Page not found');
+    }
+
+    const pageColumns = await this.getPageColumns(Pg);
+
+    const rowsWithItems = await this.extractRowsWithItems(page.rows, pageColumns);
+
+    const transformedData = this.transformData(rowsWithItems);
+
+    return await this.enrichData(transformedData);
+  }
+
+  private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
+    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number }>> = {};
+
+    for (const rowEl of rows) {
+      const Row = rowEl.Row;
+
+      if (!rowsWithItems[Row]) {
+        rowsWithItems[Row] = [];
       }
 
-      // Extract the page_name
-      const pageName = page.PageName || 'All Pages'; // Adjust if your Page entity has a different property for the name
+      for (const cellEl of rowEl.cells) {
+        const Cell = cellEl.Cell;
+        const Col = cellEl.Col;
+        const itemIds = this.parseItemIds(cellEl.Items);
+        const Items = await this.getItemValues(itemIds);
+        const field = this.getFieldByCol(Col, pageColumns);
 
-      // Extract all item IDs from cells
-      const itemIdsSet = new Set<number>();
-      for (const row of page.rows) {
-        for (const cell of row.cells) {
-          if (cell.Items) {
-            let itemsArray: number[] = [];
-
-            // Ensure cell.Items is handled correctly based on its type
-            if (typeof cell.Items === 'string') {
-              //@ts-ignore
-              itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
-                .split(',')
-                .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
-            } else if (Array.isArray(cell.Items)) {
-              itemsArray = cell.Items as number[];
-            }
-
-            itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
-          }
-        }
+        rowsWithItems[Row].push({
+          Col,
+          Cell,
+          RowLevel: rowEl.RowLevel,
+          [field]: Items,
+        });
       }
-      const itemIds = Array.from(itemIdsSet);
+    }
 
-      // Retrieve the complete records of each item ID
-      const items = await this.entityManager.findByIds(Item, itemIds);
+    return rowsWithItems;
+  }
 
-      // Replace item IDs in cells with full item records and update item JSON attribute
-      for (const row of page.rows) {
-        for (const cell of row.cells) {
-          if (cell.Items) {
-            let itemsArray: number[] = [];
+  private parseItemIds(items: string): number[] {
+    return items
+      .replace(/[{}]/g, '')
+      .split(',')
+      .map((id) => parseInt(id.trim(), 10))
+      .filter((id) => !isNaN(id));
+  }
 
-            // Ensure cell.Items is handled correctly based on its type
-            if (typeof cell.Items === 'string') {
-              // @ts-ignore
-              itemsArray = cell.Items.replace(/[{}]/g, '') // Remove braces
-                .split(',')
-                .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
-            } else if (Array.isArray(cell.Items)) {
-              itemsArray = cell.Items as number[];
-            }
+  private async enrichData(data: any[]): Promise<any[]> {
+    const enrichedData = [];
 
-            cell.Items = itemsArray.map((itemId) => {
-              const item = items.find((item) => item.Item === itemId);
-              if (item) {
-                // Update the JSON attribute
-                item.JSON = {
-                  ...item.JSON,
-                  [pageId]: pageName,
-                };
-              }
-              return item || itemId;
-            }) as any;
-          }
-        }
-      }
+    for (const record of data) {
+      let enrichedRecord = { ...record };
 
-      // Columns definition
-      const columns = [
-        { title: 'Row', field: 'row_id', frozen: true, tooltip: true, width: 'auto', editor: false },
-        { title: 'Page ID', field: 'page_id', frozen: true, width: 'auto', tooltip: true, editor: false },
-        { title: 'Page Name', field: 'page_name', width: 'auto', editor: false, tooltip: true },
-        { title: 'Page Type', field: 'page_type', tooltip: true, width: 'auto', editor: false },
-        { title: 'Page Edition', field: 'page_edition', tooltip: true, width: 'auto', editor: false },
-        { title: 'Page Owner', field: 'page_owner', tooltip: true, width: 'auto', editor: false },
-        { title: 'Page URL', field: 'page_url', tooltip: true, width: 'auto', editor: false },
-        { title: 'Page Seo', field: 'page_seo', tooltip: true, width: 'auto', editor: false },
-        { title: 'Page Status', field: 'page_status', tooltip: true, width: 'auto', editor: false },
-        { title: 'Page Comment', field: 'page_comment', tooltip: true, width: 'auto', editor: false },
-        { title: 'Row Type', field: 'row_type', tooltip: true, width: 'auto', editor: false },
-        { title: 'Row Status', field: 'row_status', tooltip: true, width: 'auto', editor: false },
-      ];
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'row');
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'page_id');
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'col_id');
 
-      // Transform the page data into the tabular format
-      const OnePageData = page.rows.map((row) => ({
-        row_id: row.Row,
-        page_id: page.Pg,
-        page_name: pageName, // Use actual page name
-        page_type: 'Page List', // Example value, replace with actual data if available
-        page_edition: 'Default', // Example value, replace with actual data if available
-        page_owner: 'Admin', // Example value, replace with actual data if available
-        page_url: 'URL to open this Page', // Example value, replace with actual data if available
-        page_seo: 'Pg; Page; Pages', // Example value, replace with actual data if available
-        page_status: 'System; DDS Page', // Example value, replace with actual data if available
-        page_comment: 'Page Not Found', // Example value, replace with actual data if available
-        row_type: 'Pg-Row', // Example value, replace with actual data if available
-        row_status: 'System', // Example value, replace with actual data if available
-      }));
+      enrichedData.push(enrichedRecord);
+    }
 
+    return enrichedData;
+  }
+
+  private async enrichRecord(record: any, key: string): Promise<any> {
+    if (key in record && record[key]) {
+      const format = await this.formatService.findOneByColumnName('Object', record[key]);
       return {
-        success: true,
-        data: OnePageData,
-        columns,
-        error: '',
-        statusCode: 200,
-      };
-    } catch (error) {
-      console.error(error);
-      return {
-        success: false,
-        data: null,
-        error: (error as Error).message,
-        statusCode: 500,
+        ...record,
+        [`${key}_comment`]: format?.Comment ?? null,
+        [`${key}_status`]: format?.Status ?? null,
       };
     }
+    return record;
   }
+
+  async getItemValues(itemIds: number[]) {
+    const items = await this.itemService.getItemsByIds(itemIds);
+
+    // Use Promise.all to handle async operations in map
+    const results = await Promise.all(
+      items.map(async (item) => {
+        if (item.JSON) {
+          // If JSON is not null, return the JSON object
+          let jsonValue = null;
+          for (const key in item.JSON) {
+            if (item.JSON.hasOwnProperty(key)) {
+              jsonValue = item.JSON[key];
+              break; // Assuming you want the first key-value pair
+            }
+          }
+          return jsonValue;
+        } else {
+          const itemObject = item.ItemObject;
+          //   const PageItemObject = item.PageObjectItem;
+          if (itemObject) {
+            const cell = itemObject.cells[0];
+            if (cell && cell.Items) {
+              const objectItemIds = cell.Items.toString()
+                .replace(/[{}]/g, '')
+                .split(',')
+                .map((id) => parseInt(id.trim(), 10))
+                .filter((id) => !isNaN(id));
+
+              const objectItems = await this.itemService.getItemsByIds(objectItemIds);
+              return objectItems.map((objectItem) => {
+                if (objectItem.JSON) {
+                  // If JSON is not null, return the JSON object
+                  let ObjectJsonValue = null;
+                  for (const key in objectItem.JSON) {
+                    if (objectItem.JSON.hasOwnProperty(key)) {
+                      ObjectJsonValue = objectItem.JSON[key];
+                      break; // Assuming you want the first key-value pair
+                    }
+                  }
+                  return ObjectJsonValue;
+                }
+              });
+            }
+          }
+          return item.Object;
+        }
+      }),
+    );
+
+    return results;
+  }
+
+  // Function to get field value by passing the col value
+  getFieldByCol(col: number, pageColumns: any): string | undefined {
+    const columnFieldMap: Record<string, string> = {};
+    for (const col of pageColumns) {
+      columnFieldMap[col.col] = col.field;
+    }
+    return columnFieldMap[col];
+  }
+
+  transformData(data) {
+    const transformedData = [];
+
+    Object.keys(data).forEach((key) => {
+      const pageObject = {};
+      let rowLevel: any[];
+      data[key].forEach((obj: { [x: string]: any[] }) => {
+        // Capture the RowLevel value
+        rowLevel = obj.RowLevel;
+        Object.keys(obj).forEach((col) => {
+          if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel') {
+            if (!pageObject[col]) {
+              pageObject[col] = [];
+            }
+            pageObject[col].push(...obj[col].map((item) => item));
+          }
+        });
+      });
+      // Concatenate array values with semicolons and create the final page object
+      const finalPageObject = {};
+      Object.keys(pageObject).forEach((col) => {
+        finalPageObject[col] = pageObject[col].join(';');
+      });
+      finalPageObject['row'] = key;
+      finalPageObject['RowLevel'] = rowLevel;
+      transformedData.push(finalPageObject);
+    });
+
+    return transformedData;
+  }
+
   /**
    * Finds Pg All Data based on provided Pg ID.
    *

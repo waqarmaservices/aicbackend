@@ -1,4 +1,5 @@
 import { Row } from 'modules/row/row.entity';
+import { Format } from 'modules/format/format.entity';
 import { Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 /**
@@ -19,4 +20,7 @@ export class Page {
   @OneToMany(() => Row, (row) => row.Pg)
   rows: Row[];
   PageName: string;
+
+  @OneToMany(() => Format, (format) => format.formatObject)
+  formats: Format[];
 }
