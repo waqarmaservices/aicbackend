@@ -11,11 +11,13 @@ import { ItemService } from 'modules/item/item.service';
 import { ColService } from 'modules/col/col.service';
 import { Col } from 'modules/col/col.entity';
 import { Item } from 'modules/item/item.entity';
+import { Format } from 'modules/format/format.entity';
+import { FormatService } from 'modules/format/format.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Page, Cell, Row, Col, Item])],
+  imports: [TypeOrmModule.forFeature([Page, Cell, Row, Col, Item, Format])],
   controllers: [PageController],
-  providers: [PageService, CellService, RowService, ColService, ItemService],
+  providers: [PageService, CellService, RowService, ColService, ItemService, FormatService],
   exports: [PageService],
 })
 export class PageModule {}

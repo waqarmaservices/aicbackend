@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Row } from '../row/row.entity';
+import { Page } from '../page/page.entity';
+import { Col } from '../col/col.entity';
 
 /**
  * Represents a item entity in the system.
@@ -59,4 +61,12 @@ export class Item {
   @ManyToOne(() => Row, (row) => row.ObjectItems)
   @JoinColumn({ name: 'Object' })
   ItemObject: Row;
+
+  @ManyToOne(() => Page, (page) => page.Pg)
+  @JoinColumn({ name: 'Object' })
+  PageObjectItem: Page;
+
+//   @ManyToOne(() => Col, (col) => col.Col)
+//   @JoinColumn({ name: 'Object' })
+//   ColObjectItem: Col;
 }

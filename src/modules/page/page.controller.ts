@@ -60,7 +60,7 @@ export class PageController {
     }
   }
 
-  @Get('full/:pageId')
+  @Get('content/:pageId')
   async getonePageData(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
       const data = await this.pageService.getonePageData(pageId);

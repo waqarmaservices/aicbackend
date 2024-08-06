@@ -475,7 +475,7 @@ export class PageService {
         });
       }
     }
-    // return rowsWithItems;
+    return rowsWithItems;
     const transformData = this.transformData(rowsWithItems);
     return transformData;
     return { pageColumns, pageData: transformData };
@@ -499,6 +499,7 @@ export class PageService {
           return jsonValue;
         } else {
           const itemObject = item.ItemObject;
+          //   const PageItemObject = item.PageObjectItem;
           if (itemObject) {
             const cell = itemObject.cells[0];
             if (cell && cell.Items) {
