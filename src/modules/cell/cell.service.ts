@@ -48,4 +48,10 @@ export class CellService {
   async deleteCell(id: number): Promise<void> {
     await this.cellRepository.delete(id);
   }
+
+  async findAllByColumnName(columnName: string, value: number): Promise<Cell[]> {
+    return await this.cellRepository.find({
+      where: { [columnName]: [value] },
+    });
+  }
 }
