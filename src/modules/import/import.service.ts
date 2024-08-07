@@ -790,7 +790,12 @@ export class ImportService {
           outerRow.Row < allRows[innerIndex].Row
         ) {
           await this.rowService.updateRow(outerRow.Row, {
-            SiblingRow: allRows[innerIndex].RowLevel == 0 ? null : allRows[innerIndex],
+            SiblingRow:
+              outerRow.Row == SYSTEM_INITIAL.CURRENCIES
+                ? null
+                : allRows[innerIndex].RowLevel == 0
+                  ? null
+                  : allRows[innerIndex],
           });
           break;
         }
