@@ -451,7 +451,11 @@ export class PageService {
 
     const transformedData = this.transformData(rowsWithItems);
 
-    return await this.enrichData(transformedData);
+    const enrichData = await this.enrichData(transformedData);
+    return {
+      pageColumns: pageColumns,
+      pageData: enrichData,
+    };
   }
 
   private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
@@ -459,7 +463,6 @@ export class PageService {
 
     for (const rowEl of rows) {
       const Row = rowEl.Row;
-
       if (!rowsWithItems[Row]) {
         rowsWithItems[Row] = [];
       }
@@ -470,7 +473,6 @@ export class PageService {
         const itemIds = this.parseItemIds(cellEl.Items);
         const Items = await this.getItemValues(itemIds);
         const field = this.getFieldByCol(Col, pageColumns);
-
         rowsWithItems[Row].push({
           Col,
           Cell,
@@ -497,9 +499,9 @@ export class PageService {
     for (const record of data) {
       let enrichedRecord = { ...record };
 
-      enrichedRecord = await this.enrichRecord(enrichedRecord, 'row');
-      enrichedRecord = await this.enrichRecord(enrichedRecord, 'page_id');
-      enrichedRecord = await this.enrichRecord(enrichedRecord, 'col_id');
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'row', 'row');
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'page_id', 'page');
+      enrichedRecord = await this.enrichRecord(enrichedRecord, 'col_id', 'col');
 
       enrichedData.push(enrichedRecord);
     }
@@ -507,16 +509,45 @@ export class PageService {
     return enrichedData;
   }
 
-  private async enrichRecord(record: any, key: string): Promise<any> {
+  private async enrichRecord(record: any, key: string, objectKey: string): Promise<any> {
     if (key in record && record[key]) {
       const format = await this.formatService.findOneByColumnName('Object', record[key]);
+      let comment = null;
+      let status = null;
+      if (format?.Comment) {
+        for (const key in format?.Comment) {
+          if (format?.Comment.hasOwnProperty(key)) {
+            comment = format?.Comment[key];
+            break; // want the first key-value pair
+          }
+        }
+      }
+      if (format.Status) {
+        status = format.Status;
+      }
       return {
         ...record,
-        [`${key}_comment`]: format?.Comment ?? null,
-        [`${key}_status`]: format?.Status ?? null,
+        [`${objectKey}_comment`]: comment ?? null,
+        [`${objectKey}_status`]: status ?? null,
       };
     }
     return record;
+  }
+
+  private async extractStatusRowsWithItems(rows: any[]) {
+    const rowsWithItems: any = [];
+
+    for (const rowEl of rows) {
+      const Row = rowEl.Row;
+
+      if (!rowsWithItems[Row]) {
+        rowsWithItems[Row] = [];
+      }
+      const statusRowsCell = await this.cellService.findOneByColumnName('Row', Row);
+      return statusRowsCell;
+    }
+
+    return rowsWithItems;
   }
 
   async getItemValues(itemIds: number[]) {
@@ -535,6 +566,10 @@ export class PageService {
             }
           }
           return jsonValue;
+        } else if (item.DateTime) {
+          return item.DateTime;
+        } else if (item.Num) {
+          return item.Num;
         } else {
           const itemObject = item.ItemObject;
           //   const PageItemObject = item.PageObjectItem;
