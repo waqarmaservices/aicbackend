@@ -463,7 +463,6 @@ export class PageService {
 
     for (const rowEl of rows) {
       const Row = rowEl.Row;
-
       if (!rowsWithItems[Row]) {
         rowsWithItems[Row] = [];
       }
@@ -474,7 +473,6 @@ export class PageService {
         const itemIds = this.parseItemIds(cellEl.Items);
         const Items = await this.getItemValues(itemIds);
         const field = this.getFieldByCol(Col, pageColumns);
-
         rowsWithItems[Row].push({
           Col,
           Cell,
@@ -568,6 +566,10 @@ export class PageService {
             }
           }
           return jsonValue;
+        } else if (item.DateTime) {
+          return item.DateTime;
+        } else if (item.Num) {
+          return item.Num;
         } else {
           const itemObject = item.ItemObject;
           //   const PageItemObject = item.PageObjectItem;
