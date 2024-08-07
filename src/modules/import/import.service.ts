@@ -1410,7 +1410,7 @@ export class ImportService {
           }
           const createdCell = await this.cellService.createCell({
             Col: COLUMN_IDS.ALL_LABELS.VALUE_DEFAULTDATA, // Col-ID of "Value Default-Data"
-            Row: 3000000201, // As per setup sheet - Row.Row = 0, Modify this to Row: 0
+            Row: createdRow.Row, // As per setup sheet - Row.Row = 0, Modify this to Row: 0
             Items: createdItemIds,
           });
           await this.formatService.updateFormat(createdFormat.Format, {
