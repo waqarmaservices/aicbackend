@@ -32,7 +32,7 @@ export class CellService {
   async getOneCell(id: number): Promise<Cell> {
     const cell = await this.cellRepository.findOne({
       where: { Cell: id },
-      relations: ['Col', 'Row'],
+      relations: ['CellRow', 'CellCol'],
     });
     if (!cell) {
       throw new Error('Cell not found');
@@ -47,5 +47,11 @@ export class CellService {
 
   async deleteCell(id: number): Promise<void> {
     await this.cellRepository.delete(id);
+  }
+
+  async findAllByColumnName(columnName: string, value: number): Promise<Cell[]> {
+    return await this.cellRepository.find({
+      where: { [columnName]: [value] },
+    });
   }
 }

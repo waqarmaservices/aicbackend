@@ -66,4 +66,31 @@ export class FormatService {
       where: { [colName]: colValue },
     });
   }
+
+  async findOneByColumnName(colName: string, colValue: string): Promise<Format> {
+    return this.formatRepository.findOne({
+      where: { [colName]: colValue },
+    });
+  }
+  async updateFormatOnRowDelete(rowId: number, userId: number): Promise<Format> {
+    // Find the format entry by the rowId (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: rowId } });
+
+    if (!format) {
+        throw new Error('Format not found');
+    }
+
+    // Set the Deleted field to the Row entity reference
+    format.Deleted = 3000000320 as any;  // Reference to the Row entity
+
+    // Set the DeletedBy field to the User entity reference
+    format.DeletedBy = userId  as any;  // Reference to the User entity
+
+    // Set the current timestamp to DeletedAt
+    format.DeletedAt = new Date();
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+}
+
 }
