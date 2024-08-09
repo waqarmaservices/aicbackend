@@ -1,13 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Row } from './row.entity';
+import { PageService } from 'modules/page/page.service';
 
 @Injectable()
 export class RowService {
   constructor(
     @InjectRepository(Row)
     private readonly rowRepository: Repository<Row>,
+    @Inject(forwardRef(() => PageService))
+    private readonly pageService: PageService,
   ) {}
 
   createRow(payload: any): Promise<Row> {
