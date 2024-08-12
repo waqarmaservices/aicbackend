@@ -109,7 +109,8 @@ export class PageService {
    * @returns {string} The transformed Col name.
    */
   public transformColName(column: string): string {
-    const colName = column == GENERAL.Row ? GENERAL.RowId : column;
+    // const colName = column == GENERAL.Row ? GENERAL.RowId : column;
+    const colName = column;
 
     return colName
       .toLowerCase()
