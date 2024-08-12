@@ -175,4 +175,14 @@ export class PageController {
    * @param {number} pageId - The ID of the PG to find.
    * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
    */
+
+  @Get('colid/:pageId')
+  async  getPageColumnsids(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+    try {
+      const data = await this.pageService. getPageColumnsids(pageId);
+      return new ApiResponse(true, data, '', 200);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+    }
+  }
 }
