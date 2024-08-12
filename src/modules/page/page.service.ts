@@ -1585,4 +1585,15 @@ export class PageService {
    * @param {number} pageId - The ID of the PG to find.
    * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
    */
+   //get the page column ids
+   async getPageColumnsids(pageId: number): Promise<{ column_names: any[] }> {
+    const pgCols = await this.findPageColumns(pageId);
+
+    const column_names = pgCols.map(col => ({
+        column_id: col.column_id,
+        column_name: col.column_name,
+    }));
+
+    return { column_names };
+}
 }

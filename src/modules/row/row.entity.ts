@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { Page } from '../page/page.entity';
 import { Cell } from '../cell/cell.entity';
 import { Item } from '../item/item.entity';
@@ -16,7 +16,7 @@ export class Row {
    *
    * This is an auto-incrementing bigint value.
    */
-  @PrimaryColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Row: number;
 
   @ManyToOne(() => Page, { eager: true })
