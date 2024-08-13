@@ -213,7 +213,7 @@ export class ImportService {
 
       // Create a tFormat for the page
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.PAGE,
         Object: page.Pg,
         Status: statuses,
@@ -222,7 +222,7 @@ export class ImportService {
 
       // Create a tFormat for the row
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
@@ -434,7 +434,7 @@ export class ImportService {
 
       // Create a tFormat record for the col
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.COLUMN,
         Object: col.Col,
         Status: colStatuses,
@@ -451,7 +451,7 @@ export class ImportService {
 
       // Create a tFormat for the row
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
@@ -514,15 +514,17 @@ export class ImportService {
       // Check and insert col data type
       if (COLUMN_NAMES.Col_DataType in colEl && colEl.Col_DataType != null) {
         const colDataTypeObjectId = await this.getRowId('JSON', colEl.Col_DataType);
-        const createdItem = await this.itemService.createItem({
-          DataType: dropDownRowId,
-          Object: colDataTypeObjectId.Row,
-        });
-        await this.cellService.createCell({
-          Col: COLUMN_IDS.ALL_COLS.COL_DATATYPE,
-          Row: createdRow.Row,
-          Items: [createdItem.Item],
-        });
+        if (colDataTypeObjectId) {
+          const createdItem = await this.itemService.createItem({
+            DataType: dropDownRowId,
+            Object: colDataTypeObjectId?.Row,
+          });
+          await this.cellService.createCell({
+            Col: COLUMN_IDS.ALL_COLS.COL_DATATYPE,
+            Row: createdRow.Row,
+            Items: [createdItem.Item],
+          });
+        }
       }
 
       // Check and insert col dropdown source
@@ -725,7 +727,7 @@ export class ImportService {
 
       // Create a format record for the row
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: row.Row,
         Owner: user.User,
@@ -889,7 +891,7 @@ export class ImportService {
       // Create tFormat record for the newly created row
       const user = await this.userService.getLastInsertedRecord();
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
@@ -970,7 +972,7 @@ export class ImportService {
       // Create a tFormat record for the newly created row
       const user = await this.userService.getLastInsertedRecord();
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
@@ -994,15 +996,17 @@ export class ImportService {
       // Check and insert row type
       if (COLUMN_NAMES.Row_Type in regionEl && regionEl.Row_Type != null) {
         const rowTypeRowId = await this.getRowId('JSON', regionEl.Row_Type);
-        const createdItem = await this.itemService.createItem({
-          DataType: mlTextRowId,
-          Object: rowTypeRowId.Row,
-        });
-        await this.cellService.createCell({
-          Col: COLUMN_IDS.SHARED.ROW_TYPE,
-          Row: createdRow.Row,
-          Items: [createdItem.Item],
-        });
+        if (rowTypeRowId) {
+          const createdItem = await this.itemService.createItem({
+            DataType: mlTextRowId,
+            Object: rowTypeRowId?.Row,
+          });
+          await this.cellService.createCell({
+            Col: COLUMN_IDS.SHARED.ROW_TYPE,
+            Row: createdRow.Row,
+            Items: [createdItem.Item],
+          });
+        }
       }
     }
   }
@@ -1052,7 +1056,7 @@ export class ImportService {
       // Create a tFormat record for the newly created row
       const user = await this.userService.getLastInsertedRecord();
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
@@ -1143,7 +1147,7 @@ export class ImportService {
       // Create a tFormat record for the newly created row
       const user = await this.userService.getLastInsertedRecord();
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
@@ -1246,7 +1250,7 @@ export class ImportService {
 
       // Create a tFormat record for the newly created row
       await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
@@ -1352,7 +1356,7 @@ export class ImportService {
 
       // Create a tFormat record for the newly created row
       const createdFormat = await this.formatService.createFormat({
-        User: user.User,
+        User: null,
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
