@@ -1517,15 +1517,36 @@ export class ImportService {
    * @param {any} colValue - The value to search for in the specified column.
    * @returns {Promise<any | undefined>} - A promise that resolves to the row entity if found, or undefined if not.
    */
-  private async getRowId(colName: string, colValue: any): Promise<any | undefined> {
+  private async getRowId(
+    colName: string,
+    colValue: any,
+    pageIds: any = [PAGE_IDS.ALL_TOKENS],
+  ): Promise<any | undefined> {
     const item = await this.itemService.findOneByColumnName(colName, colValue);
-    if (item) {
-      const cell = await this.cellService.findOneByColumnName('Items', item.Item);
+    const rows = await this.rowService.getRowsByPgs(pageIds);
+    const itemIds: number[] = [];
+    for (const row of rows) {
+      for (const cell of row.cells) {
+        const items = this.parseItemIds(String(cell.Items));
+        itemIds.push(...items);
+      }
+    }
+    const matchingItemId = itemIds.find((id) => id == item?.Item) || null;
+    if (matchingItemId) {
+      const cell = await this.cellService.findOneByColumnName('Items', matchingItemId);
       if (cell.CellRow?.Row) {
         const rowEntity = await this.rowService.findOne(cell.CellRow.Row);
         return rowEntity;
       }
     }
+  }
+
+  private parseItemIds(items: string): number[] {
+    return items
+      .replace(/[{}]/g, '')
+      .split(',')
+      .map((id) => parseInt(id.trim(), 10))
+      .filter((id) => !isNaN(id));
   }
 
   /**

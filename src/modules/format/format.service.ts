@@ -77,20 +77,19 @@ export class FormatService {
     const format = await this.formatRepository.findOne({ where: { Object: rowId } });
 
     if (!format) {
-        throw new Error('Format not found');
+      throw new Error('Format not found');
     }
 
     // Set the Deleted field to the Row entity reference
-    format.Deleted = 3000000320 as any;  // Reference to the Row entity
+    format.Deleted = 3000000320 as any; // Reference to the Row entity
 
     // Set the DeletedBy field to the User entity reference
-    format.DeletedBy = userId  as any;  // Reference to the User entity
+    format.DeletedBy = userId as any; // Reference to the User entity
 
     // Set the current timestamp to DeletedAt
     format.DeletedAt = new Date();
 
     // Save the updated format entry
     return await this.formatRepository.save(format);
-}
-
+  }
 }

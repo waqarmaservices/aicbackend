@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Row } from './row.entity';
 import { PageService } from 'modules/page/page.service';
 
@@ -89,5 +89,12 @@ export class RowService {
       .where('tRow.Pg = :pageId', { pageId })
       .orderBy('tRow.Row', 'DESC')
       .getOne();
+  }
+
+  async getRowsByPgs(Pgs: number[]): Promise<Row[]> {
+    return await this.rowRepository.find({
+      where: { Pg: In(Pgs) },
+      relations: ['cells'],
+    });
   }
 }

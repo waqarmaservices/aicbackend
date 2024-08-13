@@ -60,43 +60,43 @@ export class FormatController {
     }
   }
   @Put('delete-row/:rowId')
-async deleteRowAndUpdateFormat(
+  async deleteRowAndUpdateFormat(
     @Param('rowId') rowId: number,
-    @Body('userId') userId: number
-): Promise<ApiResponse<any>> { // Use `any` for the response type to match your custom structure
+    @Body('userId') userId: number,
+  ): Promise<ApiResponse<any>> {
+    // Use `any` for the response type to match your custom structure
     try {
-        const updatedFormat = await this.formatService.updateFormatOnRowDelete(rowId, userId);
+      const updatedFormat = await this.formatService.updateFormatOnRowDelete(rowId, userId);
 
-        // Build the response data to match the desired structure
-        const responseData = {
-            Format: {
-                Format: updatedFormat.Format,
-                Object: updatedFormat.Object,
-                User: updatedFormat.User,
-                ObjectType: updatedFormat.ObjectType,
-                Container: updatedFormat.Container,
-                PgFreezeCol: updatedFormat.PgFreezeCol,
-                PgExpand: updatedFormat.PgExpand,
-                PgSort: updatedFormat.PgSort,
-                PgFilter: updatedFormat.PgFilter,
-                ColOrder: updatedFormat.ColOrder,
-                ColMinWidth: updatedFormat.ColMinWidth,
-                ItemOrder: updatedFormat.ItemOrder,
-                Status: updatedFormat.Status,
-                FontStyle: updatedFormat.FontStyle,
-                Formula: updatedFormat.Formula,
-                Comment: updatedFormat.Comment,
-                TxList: updatedFormat.TxList,
-                Deleted: updatedFormat.Deleted,
-                DeletedBy: updatedFormat.DeletedBy,
-                DeletedAt: updatedFormat.DeletedAt.toISOString()
-            }
-        };
+      // Build the response data to match the desired structure
+      const responseData = {
+        Format: {
+          Format: updatedFormat.Format,
+          Object: updatedFormat.Object,
+          User: updatedFormat.User,
+          ObjectType: updatedFormat.ObjectType,
+          Container: updatedFormat.Container,
+          PgFreezeCol: updatedFormat.PgFreezeCol,
+          PgExpand: updatedFormat.PgExpand,
+          PgSort: updatedFormat.PgSort,
+          PgFilter: updatedFormat.PgFilter,
+          ColOrder: updatedFormat.ColOrder,
+          ColMinWidth: updatedFormat.ColMinWidth,
+          ItemOrder: updatedFormat.ItemOrder,
+          Status: updatedFormat.Status,
+          FontStyle: updatedFormat.FontStyle,
+          Formula: updatedFormat.Formula,
+          Comment: updatedFormat.Comment,
+          TxList: updatedFormat.TxList,
+          Deleted: updatedFormat.Deleted,
+          DeletedBy: updatedFormat.DeletedBy,
+          DeletedAt: updatedFormat.DeletedAt.toISOString(),
+        },
+      };
 
-        return new ApiResponse(true, responseData, '', HttpStatus.OK);
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
     } catch (error) {
-        return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-}
-
+  }
 }
