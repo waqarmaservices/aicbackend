@@ -132,7 +132,7 @@ export class ImportService {
     // Insert all units sheet data into the database
     await this.insertAllUnitsSheetData(allUnitsSheetData);
 
-    // Insert all labels sheet data into the database
+    // // Insert all labels sheet data into the database
     await this.insertAllLabelsSheetData(allLabelsSheetData);
 
     // Populate sibling rows
@@ -1322,10 +1322,8 @@ export class ImportService {
     const dropDownRowId = await this.getRowId('JSON', TOKEN_NAMES.DropDown);
     const dropDownSourceRowId = await this.getRowId('JSON', TOKEN_NAMES.DropDownSource);
     const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText);
-    const ddsTypeRowId = (await this.getRowId('JSON', TOKEN_NAMES.DDSType)).Row; // DDS-Type as 3000000375
     const valueDataTypeRowId = await this.getRowId('JSON', TOKEN_NAMES.ValueDataType);
     const formulaRowId = await this.getRowId('JSON', TOKEN_NAMES.Formula);
-    const validateDataRowId = (await this.getRowId('JSON', TOKEN_NAMES.Formula)).Row; // Validate Data as 3000000382
 
     // Filter out rows where all elements are null
     const filteredAllLabelsData = sheetData.filter((row) => !this.isAllNull(row));
@@ -1346,6 +1344,7 @@ export class ImportService {
         Row_Level: this.calculateRowLevel(row), // Calculate row level based on the row data
       };
     }
+
     for (const labelEl of allLabelsData) {
       // Creating a new row in the database
       const createdRow = await this.rowService.createRow({
@@ -1393,7 +1392,7 @@ export class ImportService {
           for (const rowId of rowsIds) {
             const createdItem = await this.itemService.createItem({
               DataType: dropDownSourceRowId,
-              JSON: { [ddsTypeRowId]: rowId },
+              JSON: { [SYSTEM_INITIAL.EXCLUDE_DDS_HEAD]: rowId },
             });
             createdItemIds.push(createdItem.Item);
           }
@@ -1438,7 +1437,7 @@ export class ImportService {
         } else if (key == COLUMN_NAMES.Value_Formula && val) {
           const createdItem = await this.itemService.createItem({
             DataType: formulaRowId,
-            JSON: { [validateDataRowId]: val },
+            JSON: { [SYSTEM_INITIAL.CALCULATE_DATA]: val },
           });
           await this.cellService.createCell({
             Col: COLUMN_IDS.ALL_LABELS.VALUE_FORMULA, // Col-ID of "Value Formula"
