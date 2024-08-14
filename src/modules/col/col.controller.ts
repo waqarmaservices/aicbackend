@@ -8,17 +8,12 @@ export class ColController {
   constructor(private readonly colService: ColService) {}
 
   @Post()
-  async createCol(): Promise<ApiResponse<any>> {
+  async createCol(): Promise<ApiResponse<Col>> {
     try {
       const col = await this.colService.createCol();
       return new ApiResponse(true, col, undefined, HttpStatus.CREATED);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        undefined,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -60,6 +55,33 @@ export class ColController {
     try {
       await this.colService.deleteCol(id);
       return new ApiResponse(true, null, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  // Create Page with Format record
+  @Post('createcolformat')
+  async createPageWithFormat(): Promise<ApiResponse<any>> {
+    try {
+      // Call the service to create the Columns and Format
+      const result = await this.colService.createColAndFormat();
+
+      // Structure the response data
+      const responseData = {
+        Columns_Format: {
+          Column: {
+            Col: result.createdcol.Col,
+          },
+          Format: {
+            Format: result.createdFormat.Format,
+            Object: result.createdFormat.Object,
+            User: result.createdFormat.User,
+            ObjectType: result.createdFormat.ObjectType,
+          },
+        },
+      };
+
+      return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }

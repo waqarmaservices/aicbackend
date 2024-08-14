@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Col } from './col.entity';
+import { Format } from 'modules/format/format.entity';
+import { FormatService } from 'modules/format/format.service';
+import { SYSTEM_INITIAL } from '../../constants';
 
 @Injectable()
 export class ColService {
   constructor(
     @InjectRepository(Col)
     private readonly colRepository: Repository<Col>,
+    private readonly formatService: FormatService,
   ) {}
 
   /**
@@ -59,5 +63,21 @@ export class ColService {
    */
   async deleteCol(id: number): Promise<void> {
     await this.colRepository.delete(id);
+  }
+
+  // Add Columns record With Format Record
+  async createColAndFormat(): Promise<{ createdcol: Col; createdFormat: Format }> {
+    // Step 1:Create the new column entity
+    const createdcol = await this.createCol();
+
+    // Step 2 :Create the corresponding format
+    const createdFormat = await this.formatService.createFormat({
+      User: SYSTEM_INITIAL.USER_ID as any, // Assuming SYSTEM_INITIAL is defined somewhere in your code
+      ObjectType: SYSTEM_INITIAL.COLUMN as any, // Assuming SYSTEM_INITIAL.COLUMN is the object type for a Column
+      Object: createdcol.Col,
+    });
+
+    // Return both created entities
+    return { createdcol, createdFormat };
   }
 }

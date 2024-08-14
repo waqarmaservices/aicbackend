@@ -1,13 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Row } from './row.entity';
+import { PageService } from 'modules/page/page.service';
+import { FormatService } from 'modules/format/format.service';
+import { Format } from 'modules/format/format.entity';
+import { SYSTEM_INITIAL } from '../../constants';
+import { Col } from 'modules/col/col.entity';
+import { CellService } from 'modules/cell/cell.service';
+import { Cell } from 'modules/cell/cell.entity';
 
 @Injectable()
 export class RowService {
   constructor(
     @InjectRepository(Row)
     private readonly rowRepository: Repository<Row>,
+    private readonly formatService: FormatService,
+    private readonly cellService: CellService,
+    @Inject(forwardRef(() => PageService))
+    private readonly pageService: PageService,
   ) {}
 
   createRow(payload: any): Promise<Row> {
@@ -86,5 +97,47 @@ export class RowService {
       .where('tRow.Pg = :pageId', { pageId })
       .orderBy('tRow.Row', 'DESC')
       .getOne();
+  }
+
+  async getRowsByPgs(Pgs: number[]): Promise<Row[]> {
+    return await this.rowRepository.find({
+      where: { Pg: In(Pgs) },
+      relations: ['cells'],
+    });
+  }
+
+  async createRowWithFormat(payload: any): Promise<{ createdRow: Row; createdFormat: Format; createdCells: Cell[] }> {
+    // Step 1: Create the Row entity
+    const createdRow = await this.rowRepository.save({
+      Pg: payload.Pg,
+      RowLevel: payload.RowLevel,
+      ParentRow: payload.ParentRow,
+      SiblingRow: payload.SiblingRow,
+    });
+
+    // Step 2: Create the Format entity
+    const createdFormat = await this.formatService.createFormat({
+      User: SYSTEM_INITIAL.USER_ID as any,
+      ObjectType: SYSTEM_INITIAL.ROW as any,
+      Object: createdRow.Row,
+    });
+
+    // Step 3: Identify the column IDs using PageService
+    const pageColumns = await this.pageService.getPageColumnsids(payload.Pg);
+    const columnIds = pageColumns.column_names.map((col) => col.column_id);
+
+    // Step 4: Create cells for each column ID
+    const createdCells: Cell[] = [];
+    for (const colId of columnIds) {
+      const createdCell = await this.cellService.createCell({
+        Row: createdRow.Row,
+        Col: colId,
+        // Add any additional properties needed for the cell here
+      });
+      createdCells.push(createdCell);
+    }
+
+    // Return the created row, format, and cells
+    return { createdRow, createdFormat, createdCells };
   }
 }

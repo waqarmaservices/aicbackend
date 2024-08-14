@@ -109,7 +109,8 @@ export class PageService {
    * @returns {string} The transformed Col name.
    */
   public transformColName(column: string): string {
-    const colName = column == GENERAL.Row ? GENERAL.RowId : column;
+    // const colName = column == GENERAL.Row ? GENERAL.RowId : column;
+    const colName = column;
 
     return colName
       .toLowerCase()
@@ -1584,4 +1585,31 @@ export class PageService {
    * @param {number} pageId - The ID of the PG to find.
    * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
    */
+  //get the page column ids
+  async getPageColumnsids(pageId: number): Promise<{ column_names: any[] }> {
+    const pgCols = await this.findPageColumns(pageId);
+
+    const column_names = pgCols.map((col) => ({
+      column_id: col.column_id,
+      column_name: col.column_name,
+    }));
+
+    return { column_names };
+  }
+
+  // Add Page Record with Format record
+  async createPageWithFormat(): Promise<{ createdPage: Page; createdFormat: Format }> {
+    // Step 1: Create the Page entity
+    const createdPage = await this.createPage(); // Reuse your existing createPage function
+
+    // Step 2: Create the Format entity associated with the created Page
+    const createdFormat = await this.formatService.createFormat({
+      User: SYSTEM_INITIAL.USER_ID as any, // Assuming SYSTEM_INITIAL is defined somewhere in your code
+      ObjectType: SYSTEM_INITIAL.PAGE as any, // Assuming SYSTEM_INITIAL.PAGE is the object type for a page
+      Object: createdPage.Pg,
+    });
+
+    // Return both created entities
+    return { createdPage, createdFormat };
+  }
 }
