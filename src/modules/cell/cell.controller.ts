@@ -41,7 +41,7 @@ export class CellController {
   }
 
   @Put(':id')
-  async updateCell(@Param('id') id: number, @Body() updateData: Partial<Cell>): Promise<ApiResponse<Cell>> {
+  async updateCell(@Param('id') id: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
     try {
       const updatedCell = await this.cellService.updateCell(id, updateData);
       return new ApiResponse(true, updatedCell, '', HttpStatus.OK);
