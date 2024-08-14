@@ -72,9 +72,55 @@ export class FormatService {
       where: { [colName]: colValue },
     });
   }
+
+  // Delete Row record
   async updateFormatOnRowDelete(rowId: number, userId: number): Promise<Format> {
     // Find the format entry by the rowId (stored in the Object field)
     const format = await this.formatRepository.findOne({ where: { Object: rowId } });
+
+    if (!format) {
+      throw new Error('Format not found');
+    }
+
+    // Set the Deleted field to the Row entity reference
+    format.Deleted = 3000000320 as any; // Reference to the Row entity
+
+    // Set the DeletedBy field to the User entity reference
+    format.DeletedBy = userId as any; // Reference to the User entity
+
+    // Set the current timestamp to DeletedAt
+    format.DeletedAt = new Date();
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
+
+  // Delete Page Record
+  async updateFormatOnpageDelete(Pg: number, userId: number): Promise<Format> {
+    // Find the format entry by the page Id (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: Pg } });
+
+    if (!format) {
+      throw new Error('Format not found');
+    }
+
+    // Set the Deleted field to the Row entity reference
+    format.Deleted = 3000000320 as any; // Reference to the Row entity
+
+    // Set the DeletedBy field to the User entity reference
+    format.DeletedBy = userId as any; // Reference to the User entity
+
+    // Set the current timestamp to DeletedAt
+    format.DeletedAt = new Date();
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
+
+  // Delete Columns Record
+  async updateFormatOnColumnsDelete(Col: number, userId: number): Promise<Format> {
+    // Find the format entry by the Columns Id (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: Col } });
 
     if (!format) {
       throw new Error('Format not found');

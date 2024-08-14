@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus } from '@ne
 import { FormatService } from './format.service';
 import { ApiResponse } from '../../common/dtos/api-response.dto';
 import { Format } from './format.entity';
+import { Col } from 'modules/col/col.entity';
 
 @Controller('formats')
 export class FormatController {
@@ -68,32 +69,61 @@ export class FormatController {
     try {
       const updatedFormat = await this.formatService.updateFormatOnRowDelete(rowId, userId);
 
-      // Build the response data to match the desired structure
-      const responseData = {
-        Format: {
-          Format: updatedFormat.Format,
-          Object: updatedFormat.Object,
-          User: updatedFormat.User,
-          ObjectType: updatedFormat.ObjectType,
-          Container: updatedFormat.Container,
-          PgFreezeCol: updatedFormat.PgFreezeCol,
-          PgExpand: updatedFormat.PgExpand,
-          PgSort: updatedFormat.PgSort,
-          PgFilter: updatedFormat.PgFilter,
-          ColOrder: updatedFormat.ColOrder,
-          ColMinWidth: updatedFormat.ColMinWidth,
-          ItemOrder: updatedFormat.ItemOrder,
-          Status: updatedFormat.Status,
-          FontStyle: updatedFormat.FontStyle,
-          Formula: updatedFormat.Formula,
-          Comment: updatedFormat.Comment,
-          TxList: updatedFormat.TxList,
-          Deleted: updatedFormat.Deleted,
-          DeletedBy: updatedFormat.DeletedBy,
-          DeletedAt: updatedFormat.DeletedAt.toISOString(),
+      // Build the response data with only available attributes
+      const responseData: any = {
+        Delete_Row: {
+          Format: updatedFormat.Format?.toString(),
+          Object: updatedFormat.Object?.toString(),
+          Deleted: updatedFormat.Deleted?.toString(),
+          DeletedBy: updatedFormat.DeletedBy?.toString(),
+          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
         },
       };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  @Put('delete-Pg/:Pg')
+  async updateFormatOnpageDelete(@Param('Pg') Pg: number, @Body('userId') userId: number): Promise<ApiResponse<any>> {
+    // Use `any` for the response type to match your custom structure
+    try {
+      const updatedFormat = await this.formatService.updateFormatOnpageDelete(Pg, userId);
 
+      // Build the response data with only available attributes
+      const responseData: any = {
+        Delete_Page: {
+          Format: updatedFormat.Format?.toString(),
+          Object: updatedFormat.Object?.toString(),
+          Deleted: updatedFormat.Deleted?.toString(),
+          DeletedBy: updatedFormat.DeletedBy?.toString(),
+          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+        },
+      };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  @Put('delete-Col/:Col')
+  async updateFormatOnColumnsDelete(
+    @Param('Col') Col: number,
+    @Body('userId') userId: number,
+  ): Promise<ApiResponse<any>> {
+    // Use `any` for the response type to match your custom structure
+    try {
+      const updatedFormat = await this.formatService.updateFormatOnColumnsDelete(Col, userId);
+
+      // Build the response data with only available attributes
+      const responseData: any = {
+        Delete_Column: {
+          Format: updatedFormat.Format?.toString(),
+          Object: updatedFormat.Object?.toString(),
+          Deleted: updatedFormat.Deleted?.toString(),
+          DeletedBy: updatedFormat.DeletedBy?.toString(),
+          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+        },
+      };
       return new ApiResponse(true, responseData, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);

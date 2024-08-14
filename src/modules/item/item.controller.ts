@@ -58,4 +58,43 @@ export class ItemController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Post('createitemupdatecell')
+  async createItemAndUpdateCell(@Body() payload: any): Promise<ApiResponse<any>> {
+    try {
+      const { createdItem, updatedCell } = await this.itemService.createItemAndUpdateCell(payload);
+
+      // Construct the response structure
+      const responseData = {
+        'Item-Creation': {
+          createdItem: {
+            Item: createdItem.Item.toString(),
+            DataType: createdItem.DataType,
+            Object: createdItem.Object,
+            SmallInt: createdItem.SmallInt,
+            BigInt: createdItem.BigInt,
+            Num: createdItem.Num,
+            Color: createdItem.Color,
+            DateTime: createdItem.DateTime,
+            JSON: createdItem.JSON,
+            Qty: createdItem.Qty,
+            Unit: createdItem.Unit,
+            StdQty: createdItem.StdQty,
+            StdUnit: createdItem.StdUnit,
+            Foreign: createdItem.Foreign,
+          },
+          updatedCell: {
+            Cell: updatedCell.Cell.toString(),
+            Col: updatedCell.Col.toString(),
+            Row: updatedCell.Row.toString(),
+            Items: updatedCell.Items, // Convert item IDs to string
+          },
+        },
+      };
+
+      return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

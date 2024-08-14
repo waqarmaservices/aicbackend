@@ -40,7 +40,7 @@ export class CellService {
     return cell;
   }
 
-  async updateCell(id: number, updateData: Partial<Cell>): Promise<Cell> {
+  async updateCell(id: number, updateData: Partial<any>): Promise<any> {
     await this.cellRepository.update(id, updateData);
     return this.findOne(id);
   }

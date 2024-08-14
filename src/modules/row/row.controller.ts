@@ -63,4 +63,38 @@ export class RowController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  @Post('create-row')
+  async createRowAndCells(@Body() payload: any): Promise<ApiResponse<any>> {
+    try {
+      const { createdRow, createdFormat, createdCells } = await this.rowService.createRowWithFormat(payload);
+
+      // Construct the response structure
+      const responseData = {
+        'Add-Row': {
+          createdRow: {
+            Row: createdRow.Row.toString(),
+            Pg: createdRow.Pg,
+            RowLevel: createdRow.RowLevel,
+            ParentRow: createdRow.ParentRow,
+            SiblingRow: createdRow.SiblingRow,
+          },
+          createdFormat: {
+            Format: createdFormat.Format.toString(),
+            Object: createdFormat.Object.toString(),
+            User: createdFormat.User,
+            ObjectType: createdFormat.ObjectType,
+          },
+          createdCells: createdCells.map((cell) => ({
+            Col: cell.Col.toString(),
+            Row: cell.Row.toString(),
+            Cell: cell.Cell.toString(),
+          })),
+        },
+      };
+
+      return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

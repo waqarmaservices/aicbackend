@@ -175,4 +175,41 @@ export class PageController {
    * @param {number} pageId - The ID of the PG to find.
    * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
    */
+
+  @Get('colid/:pageId')
+  async getPageColumnsids(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+    try {
+      const data = await this.pageService.getPageColumnsids(pageId);
+      return new ApiResponse(true, data, '', 200);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+    }
+  }
+  // Create Page with Format record
+  @Post('createpageformat')
+  async createPageWithFormat(): Promise<ApiResponse<any>> {
+    try {
+      // Call the service to create the Page and Format
+      const result = await this.pageService.createPageWithFormat();
+
+      // Structure the response data
+      const responseData = {
+        PageFormat: {
+          Page: {
+            Pg: result.createdPage.Pg,
+          },
+          Format: {
+            Format: result.createdFormat.Format,
+            Object: result.createdFormat.Object,
+            User: result.createdFormat.User,
+            ObjectType: result.createdFormat.ObjectType,
+          },
+        },
+      };
+
+      return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
