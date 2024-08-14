@@ -7,9 +7,9 @@ import { Format } from 'modules/format/format.entity';
 import { FormatService } from 'modules/format/format.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Col, Format])],
-    controllers: [ColController],
-    providers: [ColService, FormatService],
-    exports: [ColService],
+  imports: [TypeOrmModule.forFeature([Col, Format])],
+  controllers: [ColController],
+  providers: [ColService, FormatService],
+  exports: [ColService],
 })
-export class ColModule { }
+export class ColModule {}
