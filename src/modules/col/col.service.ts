@@ -8,12 +8,11 @@ import { SYSTEM_INITIAL } from '../../constants';
 
 @Injectable()
 export class ColService {
-    constructor(
-        @InjectRepository(Col)
-        private readonly colRepository: Repository<Col>,
-        private readonly formatService: FormatService,
-    ) { }
-
+  constructor(
+    @InjectRepository(Col)
+    private readonly colRepository: Repository<Col>,
+    private readonly formatService: FormatService,
+  ) {}
     /**
      * Creates a new Col.
      *
@@ -23,26 +22,24 @@ export class ColService {
         const colData = this.colRepository.create();
         return await this.colRepository.save(colData);
     }
+  /**
+   * Finds all Cols.
+   *
+   * @returns {Promise<Col[]>} An array of all Cols.
+   */
+  async findAll(): Promise<Col[]> {
+    return await this.colRepository.find();
+  }
 
-    /**
-     * Finds all Cols.
-     *
-     * @returns {Promise<Col[]>} An array of all Cols.
-     */
-    async findAll(): Promise<Col[]> {
-        return await this.colRepository.find();
-    }
-
-    /**
-     * Finds one Col based on provided Col ID.
-     *
-     * @param {number} id - The ID of the Col to find.
-     * @returns {Promise<Col | null>} The found Col, or null if not found.
-     */
-    async findOne(id: number): Promise<Col | null> {
-        return await this.colRepository.findOne({ where: { Col: id } });
-    }
-
+  /**
+   * Finds one Col based on provided Col ID.
+   *
+   * @param {number} id - The ID of the Col to find.
+   * @returns {Promise<Col | null>} The found Col, or null if not found.
+   */
+  async findOne(id: number): Promise<Col | null> {
+    return await this.colRepository.findOne({ where: { Col: id } });
+  }
     /**
      * Updates one Col based on provided Col ID.
      *
@@ -77,8 +74,6 @@ export class ColService {
         // Return the Column value of the deleted Column
         return Column.Col;
     }
-
-
     // Add Columns record With Format Record
     async createColAndFormat(): Promise<{ createdcol: Col; createdFormat: Format }> {
 
@@ -95,7 +90,4 @@ export class ColService {
         // Return both created entities
         return { createdcol, createdFormat };
     }
-
-
-
 }

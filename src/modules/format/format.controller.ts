@@ -6,8 +6,7 @@ import { Col } from 'modules/col/col.entity';
 
 @Controller('formats')
 export class FormatController {
-    constructor(private readonly formatService: FormatService) { }
-
+  constructor(private readonly formatService: FormatService) {}
     @Post()
     async createFormat(@Body() payload: any): Promise<ApiResponse<any>> {
         try {
@@ -58,7 +57,6 @@ export class FormatController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @Get(':id')
     async findOne(@Param('id') id: number): Promise<ApiResponse<any>> {
         try {
@@ -99,7 +97,6 @@ export class FormatController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @Put(':id')
     async updateFormat(@Param('id') id: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
         try {
@@ -139,8 +136,7 @@ export class FormatController {
         } catch (error) {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
+  }
     @Delete(':id')
     async deleteFormat(@Param('id') id: number): Promise<ApiResponse<any>> {
         try {
@@ -161,75 +157,72 @@ export class FormatController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    @Put('delete-row/:rowId')
-    async deleteRowAndUpdateFormat(
-        @Param('rowId') rowId: number,
-        @Body('userId') userId: number
-    ): Promise<ApiResponse<any>> { // Use `any` for the response type to match your custom structure
-        try {
-            const updatedFormat = await this.formatService.updateFormatOnRowDelete(rowId, userId);
-
-            // Build the response data with only available attributes
-            const responseData: any = {
-                Delete_Row: {
-                    Format: updatedFormat.Format?.toString(),
-                    Object: updatedFormat.Object?.toString(),
-                    Deleted: updatedFormat.Deleted?.toString(),
-                    DeletedBy: updatedFormat.DeletedBy?.toString(),
-                    DeletedAt: updatedFormat.DeletedAt?.toISOString(),
-                }
-            };
-            return new ApiResponse(true, responseData, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+  @Put('delete-row/:rowId')
+  async deleteRowAndUpdateFormat(
+    @Param('rowId') rowId: number,
+    @Body('userId') userId: number,
+  ): Promise<ApiResponse<any>> {
+    // Use `any` for the response type to match your custom structure
+    try {
+      const updatedFormat = await this.formatService.updateFormatOnRowDelete(rowId, userId);
+      // Build the response data with only available attributes
+      const responseData: any = {
+        Delete_Row: {
+          Format: updatedFormat.Format?.toString(),
+          Object: updatedFormat.Object?.toString(),
+          Deleted: updatedFormat.Deleted?.toString(),
+          DeletedBy: updatedFormat.DeletedBy?.toString(),
+          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+        },
+      };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    @Put('delete-Pg/:Pg')
-    async updateFormatOnpageDelete(
-        @Param('Pg') Pg: number,
-        @Body('userId') userId: number
-    ): Promise<ApiResponse<any>> { // Use `any` for the response type to match your custom structure
-        try {
-            const updatedFormat = await this.formatService.updateFormatOnpageDelete(Pg, userId);
+  }
+  @Put('delete-Pg/:Pg')
+  async updateFormatOnpageDelete(@Param('Pg') Pg: number, @Body('userId') userId: number): Promise<ApiResponse<any>> {
+    // Use `any` for the response type to match your custom structure
+    try {
+      const updatedFormat = await this.formatService.updateFormatOnpageDelete(Pg, userId);
 
-            // Build the response data with only available attributes
-            const responseData: any = {
-                Delete_Page: {
-                    Format: updatedFormat.Format?.toString(),
-                    Object: updatedFormat.Object?.toString(),
-                    Deleted: updatedFormat.Deleted?.toString(),
-                    DeletedBy: updatedFormat.DeletedBy?.toString(),
-                    DeletedAt: updatedFormat.DeletedAt?.toISOString(),
-                }
-            };
-            return new ApiResponse(true, responseData, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      // Build the response data with only available attributes
+      const responseData: any = {
+        Delete_Page: {
+          Format: updatedFormat.Format?.toString(),
+          Object: updatedFormat.Object?.toString(),
+          Deleted: updatedFormat.Deleted?.toString(),
+          DeletedBy: updatedFormat.DeletedBy?.toString(),
+          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+        },
+      };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    @Put('delete-Col/:Col')
-    async updateFormatOnColumnsDelete(
-        @Param('Col') Col: number,
-        @Body('userId') userId: number
-    ): Promise<ApiResponse<any>> { // Use `any` for the response type to match your custom structure
-        try {
-            const updatedFormat = await this.formatService.updateFormatOnColumnsDelete(Col, userId);
+  }
+  @Put('delete-Col/:Col')
+  async updateFormatOnColumnsDelete(
+    @Param('Col') Col: number,
+    @Body('userId') userId: number,
+  ): Promise<ApiResponse<any>> {
+    // Use `any` for the response type to match your custom structure
+    try {
+      const updatedFormat = await this.formatService.updateFormatOnColumnsDelete(Col, userId);
 
-            // Build the response data with only available attributes
-            const responseData: any = {
-                Delete_Column: {
-                    Format: updatedFormat.Format?.toString(),
-                    Object: updatedFormat.Object?.toString(),
-                    Deleted: updatedFormat.Deleted?.toString(),
-                    DeletedBy: updatedFormat.DeletedBy?.toString(),
-                    DeletedAt: updatedFormat.DeletedAt?.toISOString(),
-                }
-            };
-            return new ApiResponse(true, responseData, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      // Build the response data with only available attributes
+      const responseData: any = {
+        Delete_Column: {
+          Format: updatedFormat.Format?.toString(),
+          Object: updatedFormat.Object?.toString(),
+          Deleted: updatedFormat.Deleted?.toString(),
+          DeletedBy: updatedFormat.DeletedBy?.toString(),
+          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+        },
+      };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
+  }
 }

@@ -8,9 +8,9 @@ import { Cell } from '../cell/cell.entity';
  */
 @Entity('tCol')
 export class Col {
-    @PrimaryGeneratedColumn('increment', { type: 'bigint' })
-    Col: number;
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  Col: number;
 
-    @OneToMany(() => Cell, (cell) => cell.CellCol)
-    cells: Cell[];
+  @OneToMany(() => Cell, (cell) => cell.CellCol)
+  cells: Cell[];
 }

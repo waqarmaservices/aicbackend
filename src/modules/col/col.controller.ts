@@ -6,8 +6,7 @@ import { Column } from 'typeorm';
 
 @Controller('col')
 export class ColController {
-    constructor(private readonly colService: ColService) { }
-
+  constructor(private readonly colService: ColService) {}
     @Post()
     async createCol(): Promise<ApiResponse<any>> {
         try {
@@ -22,8 +21,6 @@ export class ColController {
                     Col: col.Col,
                 },
             };
-
-
             return new ApiResponse(true, data, '', HttpStatus.CREATED);
         } catch (error) {
             return new ApiResponse(
@@ -34,17 +31,15 @@ export class ColController {
             );
         }
     }
-
-    @Get()
-    async findAll(): Promise<ApiResponse<any>> {
-        try {
-            const cols = await this.colService.findAll();
-            return new ApiResponse(true, cols, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+  @Get()
+  async findAll(): Promise<ApiResponse<any>> {
+    try {
+      const cols = await this.colService.findAll();
+      return new ApiResponse(true, cols, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
+  }
     @Get(':id')
     async findOne(@Param('id') id: number): Promise<ApiResponse<any>> {
         try {
@@ -64,7 +59,6 @@ export class ColController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @Put(':id')
     async updateCol(@Param('id') id: number, @Body() updateData: Partial<Col>): Promise<ApiResponse<any>> {
         try {
@@ -84,7 +78,6 @@ export class ColController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @Delete(':id')
     async deleteCol(@Param('id') id: number): Promise<ApiResponse<any>> {
         try {
@@ -105,33 +98,31 @@ export class ColController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    // Create Page with Format record
-    @Post('createcolformat')
-    async createPageWithFormat(): Promise<ApiResponse<any>> {
-        try {
-            // Call the service to create the Columns and Format
-            const result = await this.colService.createColAndFormat();
+  // Create Page with Format record
+  @Post('createcolformat')
+  async createPageWithFormat(): Promise<ApiResponse<any>> {
+    try {
+      // Call the service to create the Columns and Format
+      const result = await this.colService.createColAndFormat();
 
-            // Structure the response data
-            const responseData = {
-                Columns_Format: {
-                    Column: {
-                        Col: result.createdcol.Col
-                    },
-                    Format: {
-                        Format: result.createdFormat.Format,
-                        Object: result.createdFormat.Object,
-                        User: result.createdFormat.User,
-                        ObjectType: result.createdFormat.ObjectType
-                    }
-                }
-            };
+      // Structure the response data
+      const responseData = {
+        Columns_Format: {
+          Column: {
+            Col: result.createdcol.Col,
+          },
+          Format: {
+            Format: result.createdFormat.Format,
+            Object: result.createdFormat.Object,
+            User: result.createdFormat.User,
+            ObjectType: result.createdFormat.ObjectType,
+          },
+        },
+      };
 
-            return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-
+  }
 }

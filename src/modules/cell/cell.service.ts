@@ -5,6 +5,7 @@ import { Cell } from './cell.entity';
 
 @Injectable()
 export class CellService {
+
     constructor(
         @InjectRepository(Cell)
         private readonly cellRepository: Repository<Cell>,
@@ -69,8 +70,6 @@ export class CellService {
         // Return the deleted cell details
         return cell;
     }
-
-
     async findAllByColumnName(columnName: string, value: number): Promise<Cell[]> {
         return await this.cellRepository.find({
             where: { [columnName]: [value] },
