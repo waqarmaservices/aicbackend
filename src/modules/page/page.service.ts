@@ -34,7 +34,7 @@ export class PageService {
      *
      * @returns {Promise<Page>} The newly created PG.
      */
-    async createPage(): Promise<Page> {
+    async createPage(): Promise<any> {
         const pageData = this.pageRepository.create();
         return await this.pageRepository.save(pageData);
     }
@@ -54,7 +54,7 @@ export class PageService {
      * @param {number} id - The ID of the PG to find.
      * @returns {Promise<Page | null>} The found PG, or null if not found.
      */
-    async findOne(id: number): Promise<Page | null> {
+    async findOne(id: number): Promise<any | null> {
         return await this.pageRepository.findOne({ where: { Pg: id } });
     }
 
@@ -66,9 +66,16 @@ export class PageService {
      * @returns {Promise<Page | null>} The updated PG, or null if not found.
      */
     async updatePage(id: number, updateData: Partial<Page>): Promise<Page | null> {
+        // First, update the entity by its ID
         await this.pageRepository.update(id, updateData);
-        return await this.findOne(id);
+
+        // Then, retrieve the updated entity by the Pg field
+        const updatedPage = await this.pageRepository.findOne({ where: { Pg: updateData.Pg } });
+
+        return updatedPage;
     }
+
+
 
     /**
      * Deletes one PG based on provided PG ID.
@@ -76,9 +83,21 @@ export class PageService {
      * @param {number} id - The ID of the PG to delete.
      * @returns {Promise<void>}
      */
-    async deletePage(id: number): Promise<void> {
+    async deletePage(id: number): Promise<any | null> {
+        // Fetch the page to get the Pg value before deletion
+        const page = await this.pageRepository.findOne({ where: { Pg: id } });
+
+        if (!page) {
+            return null;  // Return null if the page does not exist
+        }
+
+        // Delete the page by its ID
         await this.pageRepository.delete(id);
+
+        // Return the Pg value of the deleted page
+        return page.Pg;
     }
+
 
     async getPageColumns(pageId: number): Promise<ApiResponse<any>> {
         const pgCols = await this.findPageColumns(pageId);
@@ -1598,7 +1617,7 @@ export class PageService {
     }
 
     // Add Page Record with Format record 
-    async createPageWithFormat(): Promise<{ createdPage: Page; createdFormat: Format }> {
+    async createPageWithFormat(): Promise<{ createdPage: any; createdFormat: Format }> {
 
         // Step 1: Create the Page entity
         const createdPage = await this.createPage(); // Reuse your existing createPage function
@@ -1606,7 +1625,7 @@ export class PageService {
         // Step 2: Create the Format entity associated with the created Page
         const createdFormat = await this.formatService.createFormat({
             User: SYSTEM_INITIAL.USER_ID as any,  // Assuming SYSTEM_INITIAL is defined somewhere in your code
-            ObjectType: SYSTEM_INITIAL.PAGE as any, // Assuming SYSTEM_INITIAL.PAGE is the object type for a page
+            ObjectType: SYSTEM_INITIAL.ROW as any, // Assuming SYSTEM_INITIAL.PAGE is the object type for a page
             Object: createdPage.Pg,
         });
 

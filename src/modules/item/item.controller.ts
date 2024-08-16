@@ -11,7 +11,30 @@ export class ItemController {
     async createItem(@Body() payload: any): Promise<ApiResponse<any>> {
         try {
             const item = await this.itemService.createItem(payload);
-            return new ApiResponse(true, item, '', HttpStatus.CREATED);
+            if (!item) {
+                return new ApiResponse(false, null, 'Cell not created', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                Creted_Item: {
+                    Item: item.Item,
+                    Inherit: item.Inherit,
+                    Object: item.Object,
+                    DataType: item.DataType,
+                    SmallInt: item.SmallInt,
+                    Num: item.Num,
+                    BigInt: item.BigInt,
+                    Color: item.Color,
+                    DateTime: item.DateTime,
+                    JSON: item.JSON,
+                    Qty: item.Qty,
+                    Unit: item.Unit,
+                    StdUnit: item.StdUnit,
+                    Foreign: item.Foreign
+                },
+            };
+            return new ApiResponse(true, data, '', HttpStatus.CREATED);
         } catch (error) {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -28,32 +51,87 @@ export class ItemController {
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: number): Promise<ApiResponse<Item>> {
+    async findOne(@Param('id') id: number): Promise<ApiResponse<any>> {
         try {
             const item = await this.itemService.findOne(id);
             if (!item) {
                 return new ApiResponse(false, null, 'Item not found', HttpStatus.NOT_FOUND);
             }
-            return new ApiResponse(true, item, '', HttpStatus.OK);
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                Item_Data: {
+                    Item: item.Item,
+                    Inherit: item.Inherit,
+                    Object: item.Object,
+                    DataType: item.DataType,
+                    SmallInt: item.SmallInt,
+                    Num: item.Num,
+                    BigInt: item.BigInt,
+                    Color: item.Color,
+                    DateTime: item.DateTime,
+                    JSON: item.JSON,
+                    Qty: item.Qty,
+                    Unit: item.Unit,
+                    StdUnit: item.StdUnit,
+                    Foreign: item.Foreign
+                },
+            };
+            return new ApiResponse(true, data, '', HttpStatus.OK);
         } catch (error) {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     @Put(':id')
-    async updateItem(@Param('id') id: number, @Body() updateData: Partial<Item>): Promise<ApiResponse<Item>> {
+    async updateItem(@Param('id') id: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
         try {
             const updatedItem = await this.itemService.updateItem(id, updateData);
-            return new ApiResponse(true, updatedItem, '', HttpStatus.OK);
+            if (!updatedItem) {
+                return new ApiResponse(false, null, 'Item not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                updated_Item: {
+                    Item: updateData.Item,
+                    Inherit: updateData.Inherit,
+                    Object: updateData.Object,
+                    DataType: updateData.DataType,
+                    SmallInt: updateData.SmallInt,
+                    Num: updateData.Num,
+                    BigInt: updateData.BigInt,
+                    Color: updateData.Color,
+                    DateTime: updateData.DateTime,
+                    JSON: updateData.JSON,
+                    Qty: updateData.Qty,
+                    Unit: updateData.Unit,
+                    StdUnit: updateData.StdUnit,
+                    Foreign: updateData.Foreign
+                },
+            };
+
+
+            return new ApiResponse(true, data, '', HttpStatus.OK);
         } catch (error) {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Delete(':id')
-    async deleteItem(@Param('id') id: number): Promise<ApiResponse<void>> {
+    async deleteItem(@Param('id') id: number): Promise<ApiResponse<any>> {
         try {
-            await this.itemService.deleteItem(id);
-            return new ApiResponse(true, null, '', HttpStatus.OK);
+            const deletedItems = await this.itemService.deleteItem(id);
+            if (!deletedItems) {
+                return new ApiResponse(false, null, 'Item not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                Deleted_Item: {
+                    Item: deletedItems,
+                },
+            };
+            return new ApiResponse(true, data, '', HttpStatus.OK);
         } catch (error) {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }

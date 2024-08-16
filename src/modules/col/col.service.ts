@@ -19,7 +19,7 @@ export class ColService {
      *
      * @returns {Promise<Col>} The newly created Col.
      */
-    async createCol(): Promise<Col> {
+    async createCol(): Promise<any> {
         const colData = this.colRepository.create();
         return await this.colRepository.save(colData);
     }
@@ -51,8 +51,11 @@ export class ColService {
      * @returns {Promise<Col | null>} The updated Col, or null if not found.
      */
     async updateCol(id: number, updateData: Partial<Col>): Promise<Col | null> {
+        // First, update the entity by its ID
         await this.colRepository.update(id, updateData);
-        return await this.findOne(id);
+        // Then, retrieve the updated entity by the Col field
+        const updateCol = await this.colRepository.findOne({ where: { Col: updateData.Col } });
+        return updateCol;
     }
 
     /**
@@ -61,8 +64,18 @@ export class ColService {
      * @param {number} id - The ID of the Col to delete.
      * @returns {Promise<void>}
      */
-    async deleteCol(id: number): Promise<void> {
+    async deleteCol(id: number): Promise<any | null> {
+        // Fetch the Column to get the Col value before deletion
+        const Column = await this.colRepository.findOne({ where: { Col: id } })
+
+        if (!Column) {
+            return null;  // Return null if the Column does not exist
+        }
+
+        // Delete the Column by its ID
         await this.colRepository.delete(id);
+        // Return the Column value of the deleted Column
+        return Column.Col;
     }
 
 
@@ -75,7 +88,7 @@ export class ColService {
         // Step 2 :Create the corresponding format
         const createdFormat = await this.formatService.createFormat({
             User: SYSTEM_INITIAL.USER_ID as any,  // Assuming SYSTEM_INITIAL is defined somewhere in your code
-            ObjectType: SYSTEM_INITIAL.COLUMN as any, // Assuming SYSTEM_INITIAL.COLUMN is the object type for a Column
+            ObjectType: SYSTEM_INITIAL.ROW as any, // Assuming SYSTEM_INITIAL.COLUMN is the object type for a Column
             Object: createdcol.Col,
         });
 

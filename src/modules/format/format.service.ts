@@ -57,9 +57,35 @@ export class FormatService {
         return this.findOne(id);
     }
 
-    async deleteFormat(id: number): Promise<void> {
+    async deleteFormat(id: number): Promise<Format | null> {
+        const format = await this.formatRepository.findOne({
+            where: { Format: id },
+            relations: [
+                'User',
+                'ObjectType',
+                'PgNestedCol',
+                'PgLevelSet',
+                'PgSearchSet',
+                'RowSetTick',
+                'Owner',
+                'Default',
+                'Unit',
+                'Deleted',
+                'DeletedBy',
+            ], // Include all necessary relations
+        });
+
+        if (!format) {
+            return null; // Return null if the Format is not found
+        }
+
+        // Delete the format
         await this.formatRepository.delete(id);
+
+        // Return the deleted format details
+        return format;
     }
+
 
     async findAllByColumnName(colName: string, colValue: string): Promise<Format[]> {
         return this.formatRepository.find({
