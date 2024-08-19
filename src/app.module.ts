@@ -5,8 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import appConfig from './config/app.config';
 import { typeOrmAsyncConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AuthModule } from './modules/auth/auth.module';
 import { PageModule } from './modules/page/page.module';
 import { ColModule } from './modules/col/col.module';
@@ -32,8 +31,10 @@ import { ImportModule } from './modules/import/import.module';
       isGlobal: true,
       load: [appConfig],
     }),
+    CacheModule.register({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
-    CacheModule.register(),
     AuthModule,
     PageModule,
     ColModule,
@@ -58,10 +59,11 @@ import { ImportModule } from './modules/import/import.module';
   ],
   providers: [
     AppService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
-    },
+    // TODP: Disable auto caching responses, only doing for specific route
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: CacheInterceptor,
+    // },
   ],
 })
 export class AppModule {}

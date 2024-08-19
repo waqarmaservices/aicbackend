@@ -201,3 +201,6 @@ export const GENERAL = {
   Row: 'Row',
   RowId: 'Row Id',
 };
+export const PAGE_CACHE = {
+  NEVER_EXPIRE: 0
+}

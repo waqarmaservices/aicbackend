@@ -142,6 +142,18 @@ export class PageController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
         }
     }
+
+    @Put('clearcache/:pageId')
+    async clearPageCache(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+        try {
+            const data = await this.pageService.clearPageCache(pageId.toString());
+            return new ApiResponse(true, data, '', 200);
+        } catch (error) {
+            console.log(error);
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+        }
+    }
+    
     @Get('fulltocken/:pageId')
     async getOnePageAllTokens(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
         try {
