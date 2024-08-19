@@ -536,6 +536,11 @@ export class PageService {
     return cache ? cache : false;
     }
 
+    public async clearPageCache(cacheKey: string) {
+        await this.cacheManager.set(cacheKey, '');
+        return 'Cache has been cleared for page ' + cacheKey;
+    }
+
     private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
         const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number }>> = {};
 
