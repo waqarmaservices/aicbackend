@@ -111,7 +111,6 @@ export class PageController {
       const data = await this.pageService.getonePageData(pageId);
       return new ApiResponse(true, data, '', 200);
     } catch (error) {
-      console.log(error);
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }
@@ -132,85 +131,10 @@ export class PageController {
     }
   }
 
-  @Get('fullcolumns/:pageId')
-  async getOneCollPageData(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOneCollPageData(pageId);
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-
   @Put('clearcache/:pageId')
   async clearPageCache(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
       const data = await this.pageService.clearPageCache(pageId.toString());
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      console.log(error);
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-
-  @Get('fulltocken/:pageId')
-  async getOnePageAllTokens(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOnePageAllTokens(pageId);
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-  @Get('fulllanguages/:pageId')
-  async getOnePageAlllanguages(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOnePageAlllanguages(pageId);
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-  @Get('fullregion/:pageId')
-  async getOnePageAllregions(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOnePageAllregions(pageId);
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-  @Get('fullsupplier/:pageId')
-  async getOnePageAllsupplier(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOnePageAllsupplier(pageId);
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-  @Get('fullmodels/:pageId')
-  async getOnePageAllmodels(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOnePageAllmodels(pageId);
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-  @Get('fullunits/:pageId')
-  async getOnePageAllunits(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOnePageAllunits(pageId);
-      return new ApiResponse(true, data, '', 200);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
-    }
-  }
-  @Get('fulllabes/:pageId')
-  async getOnePageAlllabes(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
-    try {
-      const data = await this.pageService.getOnePageAlllabes(pageId);
       return new ApiResponse(true, data, '', 200);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
