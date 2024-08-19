@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Row } from './row.entity';
 import { PageService } from 'modules/page/page.service';
 import { FormatService } from 'modules/format/format.service';
@@ -167,6 +167,13 @@ export class RowService {
 
         // Return the created row, format, and cells
         return { createdRow, createdFormat, createdCells };
+    }
+
+    async getRowsByPgs(Pgs: number[]): Promise<Row[]> {
+        return await this.rowRepository.find({
+          where: { Pg: In(Pgs) },
+          relations: ['cells'],
+        });
     }
 
 }
