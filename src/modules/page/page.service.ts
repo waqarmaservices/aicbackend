@@ -506,13 +506,14 @@ export class PageService {
         const cacheKey = page.Pg.toString();
         const fileName = cacheKey + '.json'
     
-        this.createJsonFile(fileName, response);
-    
-        const parsedJsonFile = this.readJsonFile(fileName);
-    
-        await this.cacheManager.set(cacheKey, JSON.stringify(parsedJsonFile), PAGE_CACHE.NEVER_EXPIRE);
+        // TODO: We will remove the below lines, as these are using for cashing using JSON file
+        // this.createJsonFile(fileName, response);
+        // const parsedJsonFile = this.readJsonFile(fileName);
+        // await this.cacheManager.set(cacheKey, JSON.stringify(parsedJsonFile), PAGE_CACHE.NEVER_EXPIRE);
+
+        await this.cacheManager.set(cacheKey, JSON.stringify(response), PAGE_CACHE.NEVER_EXPIRE);
           
-        return parsedJsonFile;
+        return response;
     }
 
     private createJsonFile(fileName: string, data: any) {
