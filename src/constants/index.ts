@@ -202,5 +202,5 @@ export const GENERAL = {
   RowId: 'Row Id',
 };
 export const PAGE_CACHE = {
-  NEVER_EXPIRE: 0
-}
+  NEVER_EXPIRE: 0,
+};
