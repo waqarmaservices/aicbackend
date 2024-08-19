@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, In, Repository } from 'typeorm';
 import { Page } from './page.entity';
@@ -6,16 +6,23 @@ import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
-import { COLUMN_IDS, GENERAL, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
+import { COLUMN_IDS, GENERAL, PAGE_CACHE, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
 import { ItemService } from 'modules/item/item.service';
 import { Format } from 'modules/format/format.entity';
 import { FormatService } from 'modules/format/format.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class PageService {
+    private readonly uploadPath = path.join('uploads');
     constructor(
+        @Inject(CACHE_MANAGER) 
+        private cacheManager: Cache,
         @InjectRepository(Page)
         private readonly pageRepository: Repository<Page>,
         @InjectRepository(Cell)
@@ -27,7 +34,12 @@ export class PageService {
         private readonly colService: ColService,
         private readonly itemService: ItemService,
         private readonly formatService: FormatService,
-    ) { }
+    ) { 
+        // Create the upload directory if it doesn't exist
+        if (!fs.existsSync(this.uploadPath)) {
+            fs.mkdirSync(this.uploadPath, { recursive: true });
+        }
+    }
 
     /**
      * Creates a new PG.
@@ -465,17 +477,63 @@ export class PageService {
             throw new Error('Page not found');
         }
 
+        const response = await this.cachePageResponse(page);
+        return response;
+    }
+
+    private async cachePageResponse(page: Page) {
+        const Pg = Number(page.Pg);
+       
+        const cachedPage = await this.getPageFromCache(Pg.toString());
+       
+        if (cachedPage) {
+          return JSON.parse(cachedPage);
+        }
+        
         const pageColumns = await this.getPageColumns(Pg);
-
+    
         const rowsWithItems = await this.extractRowsWithItems(page.rows, pageColumns);
-
+    
         const transformedData = this.transformData(rowsWithItems);
-
+    
         const enrichData = await this.enrichData(transformedData);
-        return {
-            pageColumns: pageColumns,
-            pageData: enrichData,
+        
+        const response = {
+          pageColumns: pageColumns,
+          pageData: enrichData,
         };
+    
+        const cacheKey = page.Pg.toString();
+        const fileName = cacheKey + '.json'
+    
+        this.createJsonFile(fileName, response);
+    
+        const parsedJsonFile = this.readJsonFile(fileName);
+    
+        await this.cacheManager.set(cacheKey, JSON.stringify(parsedJsonFile), PAGE_CACHE.NEVER_EXPIRE);
+          
+        return parsedJsonFile;
+    }
+
+    private createJsonFile(fileName: string, data: any) {
+        const filePath = path.join(this.uploadPath, fileName);
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+    }
+    
+    private readJsonFile(fileName: string) {
+    const filePath = path.join(this.uploadPath, fileName);
+    if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(fileContent);
+    } else {
+        throw new Error('File not found');
+    }
+    }
+    
+    private async getPageFromCache(cacheKey: string) {
+    const cache: string = await this.cacheManager.get(cacheKey);
+
+    return cache ? cache : false;
     }
 
     private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
