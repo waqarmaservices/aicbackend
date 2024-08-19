@@ -7,30 +7,25 @@ import { Column } from 'typeorm';
 @Controller('col')
 export class ColController {
   constructor(private readonly colService: ColService) {}
-    @Post()
-    async createCol(): Promise<ApiResponse<any>> {
-        try {
-            const col = await this.colService.createCol();
-            if (!col) {
-                return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
-            }
+  @Post()
+  async createCol(): Promise<ApiResponse<any>> {
+    try {
+      const col = await this.colService.createCol();
+      if (!col) {
+        return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
+      }
 
-            // Wrap the Pg attribute inside the Page object
-            const data = {
-                Column: {
-                    Col: col.Col,
-                },
-            };
-            return new ApiResponse(true, data, '', HttpStatus.CREATED);
-        } catch (error) {
-            return new ApiResponse(
-                false,
-                null,
-                'Something went wrong. Please try again',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
+      // Wrap the Pg attribute inside the Page object
+      const data = {
+        Column: {
+          Col: col.Col,
+        },
+      };
+      return new ApiResponse(true, data, '', HttpStatus.CREATED);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
   @Get()
   async findAll(): Promise<ApiResponse<any>> {
     try {
@@ -40,64 +35,64 @@ export class ColController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-    @Get(':id')
-    async findOne(@Param('id') id: number): Promise<ApiResponse<any>> {
-        try {
-            const col = await this.colService.findOne(id);
-            if (!col) {
-                return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
-            }
+  @Get(':id')
+  async findOne(@Param('id') id: number): Promise<ApiResponse<any>> {
+    try {
+      const col = await this.colService.findOne(id);
+      if (!col) {
+        return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
+      }
 
-            // Wrap the Pg attribute inside the Page object
-            const data = {
-                Column: {
-                    Col: col.Col,
-                },
-            };
-            return new ApiResponse(true, data, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      // Wrap the Pg attribute inside the Page object
+      const data = {
+        Column: {
+          Col: col.Col,
+        },
+      };
+      return new ApiResponse(true, data, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    @Put(':id')
-    async updateCol(@Param('id') id: number, @Body() updateData: Partial<Col>): Promise<ApiResponse<any>> {
-        try {
-            const updatedCol = await this.colService.updateCol(id, updateData);
-            if (!updatedCol) {
-                return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
-            }
+  }
+  @Put(':id')
+  async updateCol(@Param('id') id: number, @Body() updateData: Partial<Col>): Promise<ApiResponse<any>> {
+    try {
+      const updatedCol = await this.colService.updateCol(id, updateData);
+      if (!updatedCol) {
+        return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
+      }
 
-            // Wrap the Pg attribute inside the Page object
-            const data = {
-                Column: {
-                    Col: updatedCol.Col,
-                },
-            };
-            return new ApiResponse(true, data, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      // Wrap the Pg attribute inside the Page object
+      const data = {
+        Column: {
+          Col: updatedCol.Col,
+        },
+      };
+      return new ApiResponse(true, data, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    @Delete(':id')
-    async deleteCol(@Param('id') id: number): Promise<ApiResponse<any>> {
-        try {
-            const deletedColumn = await this.colService.deleteCol(id);
-            // If the column was not found (i.e., deletedColumn is null), return a 404 response
-            if (!deletedColumn) {
-                return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
-            }
+  }
+  @Delete(':id')
+  async deleteCol(@Param('id') id: number): Promise<ApiResponse<any>> {
+    try {
+      const deletedColumn = await this.colService.deleteCol(id);
+      // If the column was not found (i.e., deletedColumn is null), return a 404 response
+      if (!deletedColumn) {
+        return new ApiResponse(false, null, 'Col not found', HttpStatus.NOT_FOUND);
+      }
 
-            // Wrap the Pg attribute inside the Page object
-            const data = {
-                Deleted_Column: {
-                    Col: deletedColumn,
-                },
-            };
-            return new ApiResponse(true, data, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      // Wrap the Pg attribute inside the Page object
+      const data = {
+        Deleted_Column: {
+          Col: deletedColumn,
+        },
+      };
+      return new ApiResponse(true, data, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
   // Create Page with Format record
   @Post('createcolformat')
   async createPageWithFormat(): Promise<ApiResponse<any>> {
