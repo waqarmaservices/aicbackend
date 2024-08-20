@@ -630,11 +630,12 @@ export class PageService {
         rowType = rowTypes.join(';');
       }
 
+      // row_commnet, row_status & row_type would be part of every page
       return {
         ...record,
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
-        [`${objectKey}_type`]: rowType ?? null,
+        [`row_type`]: rowType ?? null,
       };
     }
 
