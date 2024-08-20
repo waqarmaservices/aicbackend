@@ -22,8 +22,26 @@ export class ItemService {
         return this.itemRepository.find();
     }
 
-    async findOne(id: number): Promise<Item> {
-        return this.itemRepository.findOne({ where: { Item: id } });
+    async findOne(itemId: number): Promise<Item> {
+        return this.itemRepository.findOne({ 
+            where: { Item: itemId },
+            select: [
+                'Item',
+                'DataType',
+                'Object',
+                'SmallInt',
+                'BigInt',
+                'Num',
+                'Color',
+                'DateTime',
+                'JSON',
+                'Qty',
+                'Unit',
+                'StdQty',
+                'StdUnit',
+                'Foreign'
+            ]
+         });
     }
 
     async findOneByColumnName(colName: string, colValue: string): Promise<Item> {
@@ -32,10 +50,13 @@ export class ItemService {
         });
     }
 
-    async updateItem(id: number, updateData: Partial<Item>): Promise<Item> {
-        await this.itemRepository.update(id, updateData);
-        return this.findOne(id);
-    }
+    async updateItem(itemId: number, itemAttributes: Partial<Item>): Promise<Item> {
+        // Update the item with the provided attributes
+        await this.itemRepository.update(itemId, itemAttributes);
+        
+        // Return the updated item
+        return this.itemRepository.findOne({ where: { Item: itemId } });
+      }
 
     async deleteItem(id: number): Promise<void> {
         await this.itemRepository.delete(id);
@@ -58,7 +79,6 @@ export class ItemService {
     }
 
     // Create Item table with Updation of Cell
-
     async createItemAndUpdateCell(payload: any): Promise<{ createdItem: Item; updatedCell: Cell }> {
 
         // Step 1: Create the Item entity
@@ -108,5 +128,88 @@ export class ItemService {
 
         // Return the created item and the updated cell
         return { createdItem, updatedCell };
+    }
+
+    //  Get cell Data Match Item Id Update Item Table
+    async getCellAndUpdateItem(payload: any): Promise<{ updatedItem: Item; cell: Cell }> {
+        // Step 1: Find the Cell entity using the cell ID from the payload
+        const cellId = payload.cellId;
+        const cell = await this.cellService.findOne(cellId);
+
+        if (!cell) {
+            throw new Error('Cell not found');
+        }
+
+        // Step 2: Extract the Items array from the Cell entity
+        let itemsArray: number[] = [];
+        if (typeof cell.Items === 'string') {
+            itemsArray = (cell.Items as string)
+                .replace(/[{}]/g, '') // Remove braces
+                .split(',')
+                .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+        } else if (Array.isArray(cell.Items)) {
+            itemsArray = cell.Items as number[];
+        }
+        console.log(itemsArray);
+
+        // Step 3: Validate the itemId from the payload against the Items array
+        const itemId = payload.itemId;
+        if (!itemsArray.includes(itemId)) {
+            throw new Error('Item ID does not exist in the Items array of the Cell');
+        }
+
+        // Step 4: Find the corresponding Item in the Items array
+        const item = await this.itemRepository.findOne({ where: { Item: itemId } });
+
+        if (!item) {
+            throw new Error('Item not found');
+        }
+
+        // Step 5: Update the Item entity with the new data from the payload
+        if (item.JSON && typeof item.JSON === 'object') {
+            // Merge existing JSON with new key-value pair from the payload
+            item.JSON = {
+                ...item.JSON,
+                ...payload.JSON // Add new key-value pairs from the payload
+            };
+        } else {
+            // If the item.JSON is not an object, initialize it with the payload JSON
+            item.JSON = payload.JSON;
+        }
+
+        await this.itemRepository.update(
+            { Item: itemId }, // Criteria to find the item to update
+            {
+                DataType: payload.DataType,
+                Object: payload.Object,
+                SmallInt: payload.SmallInt,
+                BigInt: payload.BigInt,
+                Num: payload.Num,
+                Color: payload.Color,
+                DateTime: payload.DateTime,
+                JSON: item.JSON, // Update JSON with merged data
+                Qty: payload.Qty,
+                Unit: payload.Unit,
+                StdQty: payload.StdQty,
+                StdUnit: payload.StdUnit,
+                Foreign: payload.Foreign,
+            }
+        );
+
+        // Step 6: Retrieve the fully updated item, selecting all required fields and relations
+        const updatedItem = await this.itemRepository.findOne({
+            where: { Item: itemId },
+            relations: ['DataType', 'Unit', 'StdUnit'] // Include related entities
+        });
+
+        if (!updatedItem) {
+            throw new Error('Updated Item not found');
+        }
+
+        // Step 7: Return the updated Item and Cell
+        return {
+            updatedItem,
+            cell
+        };
     }
 }

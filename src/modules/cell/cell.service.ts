@@ -19,9 +19,9 @@ export class CellService {
         return await this.cellRepository.find({ relations: ['Col', 'Row'] });
     }
 
-    async findOne(id: number): Promise<Cell> {
-        return this.cellRepository.findOne({ where: { Cell: id } });
-    }
+    async findOne(cellId: number): Promise<Cell> {
+        return this.cellRepository.findOne({ where: { Cell: cellId } });
+      }
 
     async findOneByColumnName(columnName: string, value: number): Promise<Cell> {
         return await this.cellRepository.findOne({
