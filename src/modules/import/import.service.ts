@@ -292,6 +292,7 @@ export class ImportService {
         Row: pageEl.Row,
         Pg: PAGE_IDS.ALL_PAGES,
         RowLevel: 1,
+        RowType: pageEl.Row_Type ? [pgRowId.Row] : [],
       });
 
       // Retrieve the last inserted user record
@@ -418,19 +419,6 @@ export class ImportService {
           });
         }
       }
-
-      // Check and insert row type
-      if (COLUMN_NAMES.Row_Type in pageEl) {
-        const createdItem = await this.itemService.createItem({
-          DataType: dropDownRowId,
-          Object: pgRowId.Row,
-        });
-        await this.cellService.createCell({
-          Col: COLUMN_IDS.SHARED.ROW_TYPE,
-          Row: createdRow.Row,
-          Items: [createdItem.Item],
-        });
-      }
     }
   }
 
@@ -536,6 +524,7 @@ export class ImportService {
         Row: colEl.Row,
         Pg: PAGE_IDS.ALL_COLS,
         RowLevel: 1,
+        RowType: colEl.Row_Type ? [colRowRowId.Row] : [],
       });
 
       // Create a tFormat for the row
@@ -645,19 +634,6 @@ export class ImportService {
           });
         }
       }
-
-      // Check and insert row type
-      if (COLUMN_NAMES.Row_Type in colEl && colEl.Row_Type != null) {
-        const createdItem = await this.itemService.createItem({
-          DataType: dropDownRowId,
-          Object: colRowRowId.Row,
-        });
-        await this.cellService.createCell({
-          Col: COLUMN_IDS.SHARED.ROW_TYPE,
-          Row: createdRow.Row,
-          Items: [createdItem.Item],
-        });
-      }
     }
   }
 
@@ -728,7 +704,6 @@ export class ImportService {
         Row_level: this.calculateRowLevel(row.slice(1, 6)),
       };
     }
-
     // Insert tFormat records for token rows
     await this.rowFormatRecord(allTokenData);
 
@@ -928,6 +903,7 @@ export class ImportService {
     // Retrieve row IDs for different Token IDs
     const rowStatuses = await this.processStatus(languagesData[0], 'Row_Status');
     const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText, [PAGE_IDS.ALL_UNITS]);
+    const nodeRowId = await this.getRowId('JSON', TOKEN_NAMES.Node);
 
     // Iterate through each processed lang element
     for (const langEL of languagesData) {
@@ -968,15 +944,12 @@ export class ImportService {
 
       // Check and insert row type
       if (COLUMN_NAMES.Row_Type in langEL && langEL.Row_Type != null) {
-        const createdItem = await this.itemService.createItem({
-          DataType: mlTextRowId,
-          Object: SYSTEM_INITIAL.DEFAULT,
-        });
-        await this.cellService.createCell({
-          Col: COLUMN_IDS.SHARED.ROW_TYPE,
-          Row: createdRow.Row,
-          Items: [createdItem.Item],
-        });
+        const row_type = langEL.Row_Type == 'Node' ? nodeRowId.Row : SYSTEM_INITIAL.DEFAULT;
+        if (row_type) {
+          await this.rowService.updateRow(createdRow.Row, {
+            RowType: [row_type],
+          });
+        }
       }
     }
   }
@@ -1051,14 +1024,8 @@ export class ImportService {
       if (COLUMN_NAMES.Row_Type in regionEl && regionEl.Row_Type != null) {
         const rowTypeRowId = await this.getRowId('JSON', regionEl.Row_Type);
         if (rowTypeRowId) {
-          const createdItem = await this.itemService.createItem({
-            DataType: mlTextRowId,
-            Object: rowTypeRowId?.Row,
-          });
-          await this.cellService.createCell({
-            Col: COLUMN_IDS.SHARED.ROW_TYPE,
-            Row: createdRow.Row,
-            Items: [createdItem.Item],
+          await this.rowService.updateRow(createdRow.Row, {
+            RowType: [rowTypeRowId?.Row],
           });
         }
       }
@@ -1135,18 +1102,8 @@ export class ImportService {
       if (COLUMN_NAMES.Row_Type in supplierEl && supplierEl.Row_Type != null) {
         const rowTypeRowIds = await this.processStatus(supplierEl, 'Row_Type');
         if (rowTypeRowIds != null && rowTypeRowIds.length > 0) {
-          const itemIds = [];
-          for (const rowTypeId of rowTypeRowIds) {
-            const createdItem = await this.itemService.createItem({
-              DataType: mlTextRowId,
-              Object: rowTypeId,
-            });
-            itemIds.push(createdItem.Item);
-          }
-          await this.cellService.createCell({
-            Col: COLUMN_IDS.SHARED.ROW_TYPE,
-            Row: createdRow.Row,
-            Items: itemIds,
+          await this.rowService.updateRow(createdRow.Row, {
+            RowType: rowTypeRowIds,
           });
         }
       }
@@ -1239,18 +1196,8 @@ export class ImportService {
       if (COLUMN_NAMES.Row_Type in modelEl && modelEl.Row_Type != null) {
         const rowTypeRowIds = await this.processStatus(modelEl, 'Row_Type');
         if (rowTypeRowIds != null && rowTypeRowIds.length > 0) {
-          const itemIds = [];
-          for (const rowTypeId of rowTypeRowIds) {
-            const createdItem = await this.itemService.createItem({
-              DataType: mlTextRowId,
-              Object: rowTypeId,
-            });
-            itemIds.push(createdItem.Item);
-          }
-          await this.cellService.createCell({
-            Col: COLUMN_IDS.SHARED.ROW_TYPE,
-            Row: createdRow.Row,
-            Items: itemIds,
+          await this.rowService.updateRow(createdRow.Row, {
+            RowType: rowTypeRowIds,
           });
         }
       }
@@ -1286,7 +1233,6 @@ export class ImportService {
     for (const unitEl of allUnitsData) {
       // Retrieve row IDs for different token IDs
       const numberRowId = await this.getRowId('JSON', TOKEN_NAMES.Number, [PAGE_IDS.ALL_UNITS]);
-      const dropDownRowId = await this.getRowId('JSON', TOKEN_NAMES.DropDown, [PAGE_IDS.ALL_UNITS]);
       const rowStatuses = await this.processStringToRowIds(unitEl.Row_Status);
 
       // Create a new row in the database for the unit
@@ -1316,20 +1262,10 @@ export class ImportService {
       }
 
       // Check and insert row type if available
-      if (COLUMN_NAMES.Row_Type in unitEl && unitEl.ROW_TYPE) {
-        const rowTypes = await this.processStringToRowIds(unitEl.ROW_TYPE as string);
-        const createdItemIds = [];
-        for (const rowId of rowTypes) {
-          const createdItem = await this.itemService.createItem({
-            DataType: dropDownRowId,
-            Object: rowId,
-          });
-          createdItemIds.push(createdItem.Item);
-        }
-        await this.cellService.createCell({
-          Col: COLUMN_IDS.SHARED.ROW_TYPE, // Col-ID of "Row Type"
-          Row: row.Row,
-          Items: createdItemIds,
+      if (COLUMN_NAMES.Row_Type in unitEl && unitEl.Row_Type) {
+        const rowTypes = await this.processStringToRowIds(unitEl.Row_Type as string);
+        await this.rowService.updateRow(row.Row, {
+          RowType: rowTypes,
         });
       }
     }
@@ -1477,18 +1413,8 @@ export class ImportService {
           });
         } else if (key == COLUMN_NAMES.Row_Type && val) {
           const rowTypes = await this.processStringToRowIds(val as string);
-          const createdItemIds = [];
-          for (const rowId of rowTypes) {
-            const createdItem = await this.itemService.createItem({
-              DataType: dropDownRowId,
-              Object: rowId,
-            });
-            createdItemIds.push(createdItem.Item);
-          }
-          await this.cellService.createCell({
-            Col: COLUMN_IDS.SHARED.ROW_TYPE, // Col-ID of "Row Type"
-            Row: createdRow.Row,
-            Items: createdItemIds,
+          await this.rowService.updateRow(createdRow.Row, {
+            RowType: rowTypes,
           });
         } else if (key == COLUMN_NAMES.Row_Status && val) {
           const statusesRowIds = await this.processStringToRowIds(val as string);
@@ -1511,9 +1437,7 @@ export class ImportService {
    */
   private async updateRowType(allTokenData: any[]): Promise<void> {
     // Retrieve the Row IDs of token IDs
-    const dropDownRowId = await this.getRowId('JSON', TOKEN_NAMES.DropDown, [PAGE_IDS.ALL_UNITS]);
     const nodeRowId = await this.getRowId('JSON', TOKEN_NAMES.Node);
-
     // Iterate through each token in the provided data
     for (const tokenEl of allTokenData) {
       // Find the existing row in the database using the token's Row ID
@@ -1522,19 +1446,9 @@ export class ImportService {
       // Check if Row_Type is specified for the current token
       if (tokenEl.Row_Type != null) {
         // Determine the appropriate object ID based on the Row_Type
-        const object = tokenEl.Row_Type == 'Node' ? nodeRowId.Row : SYSTEM_INITIAL.DEFAULT;
-
-        // Create an item
-        const createdItem = await this.itemService.createItem({
-          DataType: dropDownRowId,
-          Object: tokenEl.Row_Type ? object : null,
-        });
-
-        // Associate the created item with the cell corresponding to the token's Row
-        await this.cellService.createCell({
-          Col: COLUMN_IDS.SHARED.ROW_TYPE,
-          Row: tokenRow.Row,
-          Items: [createdItem.Item],
+        const row_type = tokenEl.Row_Type == 'Node' ? nodeRowId.Row : SYSTEM_INITIAL.DEFAULT;
+        await this.rowService.updateRow(tokenRow.Row, {
+          RowType: [row_type],
         });
       }
     }

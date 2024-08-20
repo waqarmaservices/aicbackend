@@ -36,11 +36,20 @@ export class ItemService {
     await this.itemRepository.update(id, updateData);
     return this.findOne(id);
   }
+  async deleteItem(id: number): Promise<any | null> {
+    // Fetch the page to get the Pg value before deletion
+    const Item = await this.itemRepository.findOne({ where: { Item: id } });
 
-  async deleteItem(id: number): Promise<void> {
+    if (!Item) {
+      return null; // Return null if the page does not exist
+    }
+
+    // Delete the page by its ID
     await this.itemRepository.delete(id);
-  }
 
+    // Return the Pg value of the deleted page
+    return Item.Item;
+  }
   async updateItemsByItems(Items: number[], updateData: Partial<Item>): Promise<void> {
     await this.itemRepository
       .createQueryBuilder()

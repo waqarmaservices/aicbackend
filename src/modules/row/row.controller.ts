@@ -11,14 +11,26 @@ export class RowController {
   async createRow(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
       const row = await this.rowService.createRow(payload);
-      return new ApiResponse(true, row, undefined, HttpStatus.CREATED);
+      if (!row) {
+        return new ApiResponse(false, null, 'Row not created', HttpStatus.NOT_FOUND);
+      }
+
+      // Construct the response data with all attributes
+      const data = {
+        Row: {
+          Row: row.Row,
+          Pg: row.Pg, // This will include the Page details
+          Share: row.Share, // This will include the Share Row details
+          Inherit: row.Inherit,
+          RowLevel: row.RowLevel,
+          ParentRow: row.ParentRow, // This will include the Parent Row details
+          SiblingRow: row.SiblingRow, // This will include the Sibling Row details
+        },
+      };
+
+      return new ApiResponse(true, data, '', HttpStatus.CREATED);
     } catch (error) {
-      return new ApiResponse(
-        false,
-        undefined,
-        'Something went wrong. Please try again',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -32,33 +44,75 @@ export class RowController {
     }
   }
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<ApiResponse<Row>> {
+  async findOne(@Param('id') id: number): Promise<ApiResponse<any>> {
     try {
       const row = await this.rowService.findOne(id);
       if (!row) {
         return new ApiResponse(false, null, 'Row not found', HttpStatus.NOT_FOUND);
       }
-      return new ApiResponse(true, row, '', HttpStatus.OK);
+
+      // Wrap the attributes in the response
+      const data = {
+        Row: {
+          Row: row.Row,
+          Pg: row.Pg,
+          Share: row.Share,
+          Inherit: row.Inherit,
+          RowLevel: row.RowLevel,
+          ParentRow: row.ParentRow,
+          SiblingRow: row.SiblingRow,
+        },
+      };
+
+      return new ApiResponse(true, data, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Put(':id')
-  async updateRow(@Param('id') id: number, @Body() updateData: Partial<Row>): Promise<ApiResponse<Row>> {
+  async updateRow(@Param('id') id: number, @Body() updateData: Partial<Row>): Promise<ApiResponse<any>> {
     try {
       const updatedRow = await this.rowService.updateRow(id, updateData);
-      return new ApiResponse(true, updatedRow, '', HttpStatus.OK);
+
+      if (!updatedRow) {
+        return new ApiResponse(false, null, 'Row not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Wrap the attributes in the response
+      const data = {
+        Update_Row: {
+          Row: updatedRow.Row,
+          Pg: updatedRow.Pg,
+          Share: updatedRow.Share,
+          Inherit: updatedRow.Inherit,
+          RowLevel: updatedRow.RowLevel,
+          ParentRow: updatedRow.ParentRow,
+          SiblingRow: updatedRow.SiblingRow,
+        },
+      };
+
+      return new ApiResponse(true, data, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Delete(':id')
-  async deleteRow(@Param('id') id: number): Promise<ApiResponse<void>> {
+  async deleteRow(@Param('id') id: number): Promise<ApiResponse<any>> {
     try {
-      await this.rowService.deleteRow(id);
-      return new ApiResponse(true, null, '', HttpStatus.OK);
+      const deleteRow = await this.rowService.deleteRow(id);
+      if (!deleteRow) {
+        return new ApiResponse(false, null, 'Row not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Wrap the attributes in the response
+      const data = {
+        Deleted_Row: {
+          Row: deleteRow,
+        },
+      };
+      return new ApiResponse(true, data, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }

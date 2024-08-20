@@ -33,6 +33,9 @@ export class Row {
   @Column({ type: 'smallint' })
   RowLevel: number;
 
+  @Column({ array: true, type: 'bigint' })
+  RowType: number[];
+
   @ManyToOne(() => Row, { nullable: true })
   @JoinColumn({ name: 'ParentRow' })
   ParentRow: Row;

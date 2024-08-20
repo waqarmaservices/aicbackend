@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Row } from './row.entity';
 import { PageService } from 'modules/page/page.service';
 import { FormatService } from 'modules/format/format.service';
@@ -21,21 +21,38 @@ export class RowService {
     private readonly pageService: PageService,
   ) {}
 
-  createRow(payload: any): Promise<Row> {
-    const rowData = this.rowRepository.create(payload as Partial<Row>);
-    return this.rowRepository.save(rowData);
-  }
+  async createRow(payload: any): Promise<Row> {
+    // Step 1: Create the row data
+    const rowData = this.rowRepository.create(payload);
 
+    // Step 2: Save the row data to the database
+    const savedRow = await this.rowRepository.save(rowData);
+
+    // Ensure `savedRow` is treated as a single `Row` object
+    const savedRowId = (savedRow as unknown as Row).Row;
+
+    // Step 3: Fetch the saved row with all relations to return a complete response
+    const completeRow = await this.rowRepository.findOne({
+      where: { Row: savedRowId },
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'], // Ensure all necessary relations are included
+    });
+
+    // If for some reason `completeRow` is null, handle it
+    if (!completeRow) {
+      throw new Error('Row not found after creation');
+    }
+
+    return completeRow;
+  }
   async findAll(): Promise<any> {
     return this.rowRepository.find({});
   }
-
-  async findOne(id: number): Promise<Row> {
+  async findOne(id: number): Promise<Row | null> {
     return this.rowRepository.findOne({
       where: { Row: id },
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'], // Include all the necessary relations
     });
   }
-
   async findOneByColumnName(col: string, value: number | string): Promise<Row> {
     return await this.rowRepository.findOne({
       where: { [col]: value },
@@ -58,13 +75,32 @@ export class RowService {
       .getOne();
   }
 
-  async updateRow(id: number, updateData: Partial<Row>): Promise<Row> {
+  async updateRow(id: number, updateData: Partial<Row>): Promise<Row | null> {
+    // First, update the entity by its ID
     await this.rowRepository.update(id, updateData);
-    return this.findOne(id);
+
+    // Then, retrieve the updated entity using the original ID
+    const updatedRow = await this.rowRepository.findOne({
+      where: { Row: id },
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'], // Include all the necessary relations
+    });
+
+    return updatedRow;
   }
 
-  async deleteRow(id: number): Promise<void> {
+  async deleteRow(id: number): Promise<any | null> {
+    // Fetch the Row to get the Row value before deletion
+    const row = await this.rowRepository.findOne({ where: { Row: id } });
+
+    if (!row) {
+      return null; // Return null if the Row does not exist
+    }
+
+    // Delete the Row by its ID
     await this.rowRepository.delete(id);
+
+    // Return the Row value of the deleted page
+    return row.Row;
   }
 
   async findAllOrderByIdAsc(): Promise<Row[]> {
@@ -98,14 +134,6 @@ export class RowService {
       .orderBy('tRow.Row', 'DESC')
       .getOne();
   }
-
-  async getRowsByPgs(Pgs: number[]): Promise<Row[]> {
-    return await this.rowRepository.find({
-      where: { Pg: In(Pgs) },
-      relations: ['cells'],
-    });
-  }
-
   async createRowWithFormat(payload: any): Promise<{ createdRow: Row; createdFormat: Format; createdCells: Cell[] }> {
     // Step 1: Create the Row entity
     const createdRow = await this.rowRepository.save({
@@ -139,5 +167,12 @@ export class RowService {
 
     // Return the created row, format, and cells
     return { createdRow, createdFormat, createdCells };
+  }
+
+  async getRowsByPgs(Pgs: number[]): Promise<Row[]> {
+    return await this.rowRepository.find({
+      where: { Pg: In(Pgs) },
+      relations: ['cells'],
+    });
   }
 }

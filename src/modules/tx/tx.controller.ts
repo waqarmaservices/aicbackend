@@ -8,15 +8,24 @@ export class TxController {
   constructor(private readonly txService: TxService) {}
 
   @Post()
-  async createTx(@Body() payload: any): Promise<ApiResponse<Tx[]>> {
+  async createTx(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
       const tx = await this.txService.createTx(payload);
-      return new ApiResponse(true, tx, '', HttpStatus.CREATED);
+      // Construct the response data if creation is successful
+      const data = {
+        Tx: tx.Tx,
+        TxType: tx.TxType,
+        TxAuditTrail: tx.TxAuditTrail,
+        TxUser: tx.TxUser,
+        TxDateTime: tx.TxDateTime,
+        TxXID: tx.TxXID,
+      };
+      return new ApiResponse(true, { Transaction: data }, '', HttpStatus.CREATED);
     } catch (error) {
+      console.error('Error in createTx:', error);
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   @Get()
   async findAll(): Promise<ApiResponse<Tx[]>> {
     try {
@@ -28,33 +37,73 @@ export class TxController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<ApiResponse<Tx>> {
+  async getOneTx(@Param('id') id: number): Promise<ApiResponse<any>> {
     try {
-      const tx = await this.txService.findOne(id);
+      const tx = await this.txService.getOneTx(id);
       if (!tx) {
-        return new ApiResponse(false, null, 'Tx not found', HttpStatus.NOT_FOUND);
+        return new ApiResponse(false, null, 'Transaction not found', HttpStatus.NOT_FOUND);
       }
-      return new ApiResponse(true, tx, '', HttpStatus.OK);
+
+      // Construct response data
+      const data = {
+        Tx: tx.Tx,
+        TxType: tx.TxType,
+        TxAuditTrail: tx.TxAuditTrail,
+        TxUser: tx.TxUser,
+        TxDateTime: tx.TxDateTime,
+        TxXID: tx.TxXID,
+      };
+
+      return new ApiResponse(true, { Transaction: data }, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Put(':id')
-  async updateTx(@Param('id') id: number, @Body() updateData: Partial<Tx>): Promise<ApiResponse<Tx>> {
+  async updateTx(@Param('id') id: number, @Body() updateData: Partial<Tx>): Promise<ApiResponse<any>> {
     try {
       const updatedTx = await this.txService.updateTx(id, updateData);
-      return new ApiResponse(true, updatedTx, '', HttpStatus.OK);
+      if (!updatedTx) {
+        return new ApiResponse(false, null, 'Transaction not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Construct response data
+      const data = {
+        Tx: updatedTx.Tx,
+        TxType: updatedTx.TxType,
+        TxAuditTrail: updatedTx.TxAuditTrail,
+        TxUser: updatedTx.TxUser,
+        TxDateTime: updatedTx.TxDateTime,
+        TxXID: updatedTx.TxXID,
+      };
+
+      return new ApiResponse(true, { Updated_Transaction: data }, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Delete(':id')
-  async deleteTx(@Param('id') id: number): Promise<ApiResponse<void>> {
+  async deleteTx(@Param('id') id: number): Promise<ApiResponse<any>> {
     try {
-      await this.txService.deleteTx(id);
-      return new ApiResponse(true, null, '', HttpStatus.OK);
+      const deletedTx = await this.txService.deleteTx(id);
+      if (!deletedTx) {
+        return new ApiResponse(false, null, 'Transaction not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Construct response data
+      const data = {
+        Deleted_Transaction: {
+          Tx: deletedTx.Tx,
+          TxType: deletedTx.TxType,
+          TxUser: deletedTx.TxUser,
+          TxDateTime: deletedTx.TxDateTime,
+          TxXID: deletedTx.TxXID,
+        },
+      };
+
+      return new ApiResponse(true, data, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
