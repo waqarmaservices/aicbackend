@@ -14,13 +14,10 @@ export class CellService {
     const cellData = this.cellRepository.create(payload as Partial<Cell>);
     const savedCell = await this.cellRepository.save(cellData);
 
-    // Fetch the newly created cell with all relations
-    return this.cellRepository.findOne({
-      where: { Cell: savedCell.Cell },
-      relations: ['CellCol', 'CellRow', 'DataType'], // Include other relations as needed
-    });
-  }
-
+    async findOne(cellId: number): Promise<Cell> {
+        return this.cellRepository.findOne({ where: { Cell: cellId } });
+      }
+ 
   async findAll(): Promise<Cell[]> {
     return await this.cellRepository.find({ relations: ['Col', 'Row'] });
   }
