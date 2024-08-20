@@ -608,8 +608,7 @@ export class PageService {
 
       if (format.Status) {
         const statuses = await Promise.all(
-          format.Status
-            .toString()
+          format.Status.toString()
             .replace(/[{}]/g, '')
             .split(',')
             .map(async (status) => {
@@ -621,8 +620,7 @@ export class PageService {
 
       if (row?.RowType) {
         const rowTypes = await Promise.all(
-          row.RowType
-            .toString()
+          row.RowType.toString()
             .replace(/[{}]/g, '')
             .split(',')
             .map(async (type) => {
@@ -636,7 +634,7 @@ export class PageService {
         ...record,
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
-        [`${objectKey}_type`]: rowType?? null
+        [`${objectKey}_type`]: rowType ?? null,
       };
     }
 
