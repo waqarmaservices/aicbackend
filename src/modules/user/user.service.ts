@@ -32,9 +32,18 @@ export class UserService {
     await this.userRepository.update(id, updateData);
     return this.findOne(id);
   }
+  async deleteUser(id: number): Promise<any | null> {
+    // Fetch the user to get the user value before deletion
+    const user = await this.userRepository.findOne({ where: { User: id } });
 
-  async deleteUser(id: number): Promise<void> {
+    if (!user) {
+      return null; // Return null if the User does not exist
+    }
+
+    // Delete the user by its ID
     await this.userRepository.delete(id);
+    // Return the user value of the deleted User
+    return user.User;
   }
 
   async findOneUser(id: number): Promise<User> {

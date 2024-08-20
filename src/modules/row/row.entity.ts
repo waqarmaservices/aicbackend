@@ -16,7 +16,7 @@ export class Row {
    *
    * This is an auto-incrementing bigint value.
    */
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryColumn({ type: 'bigint' })
   Row: number;
 
   @ManyToOne(() => Page, { eager: true })
@@ -32,6 +32,9 @@ export class Row {
 
   @Column({ type: 'smallint' })
   RowLevel: number;
+
+  @Column({ array: true, type: 'bigint' })
+  RowType: number[];
 
   @ManyToOne(() => Row, { nullable: true })
   @JoinColumn({ name: 'ParentRow' })
