@@ -173,5 +173,46 @@ export class ItemController {
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Post('getcellandupdateitem')
+    async getCellAndUpdateItem(@Body() payload: any): Promise<ApiResponse<any>> {
+        try {
+            const { updatedItem, cell } = await this.itemService.getCellAndUpdateItem(payload);
+
+            // Construct the response structure
+            const responseData = {
+                "Cell- Data": {
+                    cell: {
+                        Cell: cell.Cell.toString(),
+                        Col: cell.Col.toString(),
+                        Row: cell.Row.toString(),
+                        Items: cell.Items,
+                    },
+                    updatedItem: {
+                        Item: updatedItem.Item.toString(),
+                        DataType: updatedItem.DataType ? {
+                            Row: updatedItem.DataType.Row.toString(),
+                            RowLevel: updatedItem.DataType.RowLevel.toString(),
+                        } : null,
+                        Object: updatedItem.Object ? updatedItem.Object.toString() : null,
+                        SmallInt: updatedItem.SmallInt,
+                        BigInt: updatedItem.BigInt.toString(),
+                        Num: updatedItem.Num.toString(),
+                        Color: updatedItem.Color ? updatedItem.Color.toString() : null,
+                        DateTime: updatedItem.DateTime.toISOString(),
+                        JSON: updatedItem.JSON,
+                        Qty: updatedItem.Qty.toString(),
+                        Unit: updatedItem.Unit ? updatedItem.Unit.Row.toString() : null,
+                        StdQty: updatedItem.StdQty.toString(),
+                        StdUnit: updatedItem.StdUnit ? updatedItem.StdUnit.Row.toString() : null,
+                        Foreign: updatedItem.Foreign
+                    },
+                },
+            };
+
+            return new ApiResponse(true, responseData, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
   }
-}

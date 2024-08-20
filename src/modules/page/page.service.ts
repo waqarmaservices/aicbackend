@@ -593,8 +593,10 @@ export class PageService {
   private async enrichRecord(record: any, key: string, objectKey: string): Promise<any> {
     if (key in record && record[key]) {
       const format = await this.formatService.findOneByColumnName('Object', record[key]);
+      const row = await this.rowService.findOne(record.row);
       let comment = null;
       let status = null;
+      let rowType = null;
       if (format?.Comment) {
         for (const key in format?.Comment) {
           if (format?.Comment.hasOwnProperty(key)) {
@@ -603,15 +605,40 @@ export class PageService {
           }
         }
       }
+
       if (format.Status) {
-        status = format.Status;
+        const statuses = await Promise.all(
+          format.Status.toString()
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map(async (status) => {
+              return await this.getRowJson(Number(status));
+            }),
+        );
+        status = statuses.join(';');
       }
+
+      if (row?.RowType) {
+        const rowTypes = await Promise.all(
+          row.RowType.toString()
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map(async (type) => {
+              return await this.getRowJson(Number(type));
+            }),
+        );
+        rowType = rowTypes.join(';');
+      }
+
+      // row_commnet, row_status & row_type would be part of every page
       return {
         ...record,
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
+        [`row_type`]: rowType ?? null,
       };
     }
+
     return record;
   }
 

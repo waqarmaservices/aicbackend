@@ -44,9 +44,9 @@ export class CellController {
   }
 
   @Get(':id')
-  async getOneCell(@Param('id') id: number): Promise<ApiResponse<any>> {
+  async getOneCell(@Param('id') cellId: number): Promise<ApiResponse<Cell>> {
     try {
-      const cell = await this.cellService.getOneCell(id);
+      const cell = await this.cellService.getOneCell(cellId);
       if (!cell) {
         return new ApiResponse(false, null, 'Cell not found', HttpStatus.NOT_FOUND);
       }
