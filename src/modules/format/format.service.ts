@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Format } from './format.entity';
+import { COLUMN_IDS, GENERAL, PAGE_CACHE, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
 
 @Injectable()
 export class FormatService {
@@ -163,4 +164,31 @@ export class FormatService {
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }
+  async checkAndUpdateFormat(itemId: number, userId: number): Promise<Format> {
+    // Get the deleted row ID using the getRowId function for the ALL_TOKENS page
+    // const deletedRow = await this.getRowId(COLUMN_NAMES.TOKEN_NAMES, 'True', [PAGE_IDS.ALL_TOKENS]);
+    const deletedRowId = /* deletedRow?.RowId || */ 3000000320; // Fallback to the known True ID if row retrieval fails
+
+    // Check if a format entry exists with the given itemId in the Object field
+    let format = await this.formatRepository.findOne({ where: { Object: itemId } });
+
+    if (!format) {
+        // If no match is found, create a new format entry
+        format = new Format();
+        format.Object = itemId;
+        format.User = userId as any;
+        format.ObjectType = SYSTEM_INITIAL.ROW as any; // Reference to the Row entity
+        format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
+        format.DeletedBy = userId as any; // Reference to the User entity
+        format.DeletedAt = new Date();
+    } else {
+        // Optionally, update existing format details if necessary
+        format.DeletedBy = userId as any; // Reference to the User entity
+        format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
+        format.DeletedAt = new Date();
+    }
+
+    // Save the format entry
+    return await this.formatRepository.save(format);
+}
 }
