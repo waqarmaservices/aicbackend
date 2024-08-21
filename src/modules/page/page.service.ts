@@ -597,10 +597,20 @@ export class PageService {
       let comment = null;
       let status = null;
       let rowType = null;
+      let colFormula = null;
       if (format?.Comment) {
         for (const key in format?.Comment) {
           if (format?.Comment.hasOwnProperty(key)) {
             comment = format?.Comment[key];
+            break; // want the first key-value pair
+          }
+        }
+      }
+
+      if (format?.Formula && objectKey == 'col') {
+        for (const key in format?.Formula) {
+          if (format?.Formula.hasOwnProperty(key)) {
+            colFormula = format?.Formula[key];
             break; // want the first key-value pair
           }
         }
@@ -636,6 +646,7 @@ export class PageService {
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
         [`row_type`]: rowType ?? null,
+        ...(colFormula ? { [`col_Formula`]: colFormula } : {}),
       };
     }
 
