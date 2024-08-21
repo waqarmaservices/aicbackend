@@ -6,7 +6,7 @@ import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
-import { COLUMN_IDS, GENERAL, PAGE_CACHE, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
+import { COLUMN_IDS, GENERAL, PAGE_CACHE, SHEET_NAMES, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
 import { ItemService } from 'modules/item/item.service';
@@ -316,12 +316,21 @@ export class PageService {
    * @param {number} rowId - The ID of the Pg to find.
    * @returns {string} The JSON string for Row ID.
    */
-  private async getRowJson(rowId: number): Promise<string> {
+  private async getRowJson(rowId: number, sheetName?: string): Promise<string> {
+    let searchColId = null;
+    if (sheetName == SHEET_NAMES.ALL_LABELS) {
+      searchColId = COLUMN_IDS.ALL_LABELS.LABELS;
+    } else if(sheetName == SHEET_NAMES.ALL_UNITS) {
+      searchColId = COLUMN_IDS.ALL_UNITS.UNIT;
+    } else {
+      searchColId = COLUMN_IDS.ALL_TOKENS.TOKEN;
+    }
+
     const row = await this.rowService.findOne(rowId);
     const cell = await this.entityManager.findOne(Cell, {
       where: {
         Row: row.Row,
-        Col: COLUMN_IDS.ALL_TOKENS.TOKEN,
+        Col: searchColId,
       },
     });
     if (cell) {
@@ -598,6 +607,7 @@ export class PageService {
       let status = null;
       let rowType = null;
       let colFormula = null;
+      let colDropDownSource = null;
       if (format?.Comment) {
         for (const key in format?.Comment) {
           if (format?.Comment.hasOwnProperty(key)) {
@@ -628,6 +638,28 @@ export class PageService {
         status = statuses.join(';');
       }
 
+      if (record.hasOwnProperty('col_dropdownsource') && objectKey == 'col') {
+        const colDropDownSources = await Promise.all(
+          record.col_dropdownsource
+            .split(';')
+            .map(async (colDds) => {
+              let rowJson = await this.getRowJson(Number(colDds));
+              if (rowJson) {
+                return rowJson;
+              } else {
+                rowJson = await this.getRowJson(Number(colDds), SHEET_NAMES.ALL_LABELS);
+                if (rowJson) {
+                  return rowJson;
+                } else {
+                  rowJson = await this.getRowJson(Number(colDds), SHEET_NAMES.ALL_UNITS);
+                  return rowJson
+                }
+              }
+            })
+        );
+        colDropDownSource = colDropDownSources.length > 0 ? colDropDownSources.join(';') : null;
+      }
+
       if (row?.RowType) {
         const rowTypes = await Promise.all(
           row.RowType.toString()
@@ -646,7 +678,8 @@ export class PageService {
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
         [`row_type`]: rowType ?? null,
-        ...(colFormula ? { [`col_Formula`]: colFormula } : {}),
+        ...(colDropDownSource ? { [`col_dropdownsource`]: colDropDownSource } : {}),
+        ...(colFormula ? { [`col_formula`]: colFormula } : {}),
       };
     }
 
