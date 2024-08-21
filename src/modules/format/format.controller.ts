@@ -224,4 +224,29 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  @Put('check-update-format/:itemId')
+    async checkAndUpdateFormat(
+        @Body('itemId') itemId: number,
+        @Body('userId') userId: number,
+    ): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.checkAndUpdateFormat(itemId, userId);
+
+            const responseData: any = {
+                Format: {
+                    Format: updatedFormat.Format,
+                    Object: updatedFormat.Object?.toString(),
+                    ObjectType: updatedFormat.ObjectType?.toString(),
+                    User: updatedFormat.User?.toString(),
+                    Deleted: updatedFormat.Deleted?.toString(),
+                    DeletedBy: updatedFormat.DeletedBy?.toString(),
+                    DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+                    
+                },
+            };
+            return new ApiResponse(true, responseData, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
