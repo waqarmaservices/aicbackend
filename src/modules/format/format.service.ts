@@ -191,4 +191,19 @@ export class FormatService {
     // Save the format entry
     return await this.formatRepository.save(format);
 }
+// check the column id exist in format and update the format table 
+async editColumnFormat(colid: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the colid (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: colid } });
+
+    if (!format) {
+        throw new Error('Format not found');
+    }
+
+    // Update the format entry with the provided data
+    Object.assign(format, updateData);
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+}
 }
