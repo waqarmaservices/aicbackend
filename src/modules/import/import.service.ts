@@ -1308,7 +1308,7 @@ export class ImportService {
         Row_Type: row[12] == null ? '' : row[12],
         Row_Status: row[13] == null ? '' : row[13],
         Row_Comment: row[14] == null ? '' : row[14],
-        Row_Level: this.calculateRowLevel(row), // Calculate row level based on the row data
+        Row_Level: this.calculateRowLevel(row.slice(1)), // Calculate row level based on the row data
       };
     }
 
