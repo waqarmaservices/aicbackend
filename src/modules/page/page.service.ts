@@ -316,34 +316,40 @@ export class PageService {
    * @param {number} rowId - The ID of the Pg to find.
    * @returns {string} The JSON string for Row ID.
    */
-  private async getRowJson(rowId: number, sheetName?: string): Promise<string> {
-    let searchColId = null;
-    if (sheetName == SHEET_NAMES.ALL_LABELS) {
-      searchColId = COLUMN_IDS.ALL_LABELS.LABELS;
-    } else if(sheetName == SHEET_NAMES.ALL_UNITS) {
-      searchColId = COLUMN_IDS.ALL_UNITS.UNIT;
-    } else {
-      searchColId = COLUMN_IDS.ALL_TOKENS.TOKEN;
-    }
+  private async getRowJson(rowId: number, sheetName?: string): Promise<string | null> {
+    const searchColId = this.getSearchColId(sheetName);
 
     const row = await this.rowService.findOne(rowId);
+    if (!row) return null;
+
     const cell = await this.entityManager.findOne(Cell, {
       where: {
         Row: row.Row,
         Col: searchColId,
       },
     });
-    if (cell) {
-      const itemId = cell.Items.toString().replace(/[{}]/g, '');
-      const item = await this.entityManager.findOne(Item, {
-        where: { Item: Number(itemId) },
-      });
+    if (!cell) return null;
 
-      return item.JSON[SYSTEM_INITIAL.ENGLISH];
-    }
+    const itemId = cell.Items?.toString().replace(/[{}]/g, '');
+    if (!itemId) return null;
 
-    return null;
+    const item = await this.entityManager.findOne(Item, {
+      where: { Item: Number(itemId) },
+    });
+    return item.JSON[SYSTEM_INITIAL.ENGLISH];
   }
+
+  private getSearchColId(sheetName?: string): number {
+    switch (sheetName) {
+      case SHEET_NAMES.ALL_LABELS:
+        return COLUMN_IDS.ALL_LABELS.LABELS;
+      case SHEET_NAMES.ALL_UNITS:
+        return COLUMN_IDS.ALL_UNITS.UNIT;
+      default:
+        return COLUMN_IDS.ALL_TOKENS.TOKEN;
+    }
+  }
+
   async getAllPages(): Promise<any> {
     try {
       const pages = await this.entityManager.find(Page, {
@@ -639,24 +645,19 @@ export class PageService {
       }
 
       if (record.hasOwnProperty('col_dropdownsource') && objectKey == 'col') {
+        const rowIds = record.col_dropdownsource.split(';');
+
         const colDropDownSources = await Promise.all(
-          record.col_dropdownsource
-            .split(';')
-            .map(async (colDds) => {
-              let rowJson = await this.getRowJson(Number(colDds));
-              if (rowJson) {
-                return rowJson;
-              } else {
-                rowJson = await this.getRowJson(Number(colDds), SHEET_NAMES.ALL_LABELS);
-                if (rowJson) {
-                  return rowJson;
-                } else {
-                  rowJson = await this.getRowJson(Number(colDds), SHEET_NAMES.ALL_UNITS);
-                  return rowJson
-                }
-              }
-            })
+          rowIds.map(async (id) => {
+            const rowId = Number(id);
+            return (
+              await this.getRowJson(rowId) ||
+              await this.getRowJson(rowId, SHEET_NAMES.ALL_LABELS) ||
+              await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS)
+            );
+          })
         );
+
         colDropDownSource = colDropDownSources.length > 0 ? colDropDownSources.join(';') : null;
       }
 
