@@ -720,7 +720,7 @@ export class PageService {
           }
           return jsonValue;
         } else if (item.DateTime) {
-          return item.DateTime;
+          return item.DateTime.toLocaleDateString();
         } else if (item.Num) {
           return item.Num;
         } else {
