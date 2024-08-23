@@ -6,7 +6,7 @@ import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
-import { COLUMN_IDS, GENERAL, PAGE_CACHE, SHEET_NAMES, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
+import { ALL_DATATYPES, COLUMN_IDS, GENERAL, PAGE_CACHE, SHEET_NAMES, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
 import { ItemService } from 'modules/item/item.service';
@@ -718,6 +718,9 @@ export class PageService {
               break; // Assuming you want the first key-value pair
             }
           }
+          if (item.ItemDataType == ALL_DATATYPES.DropDownSource && jsonValue) {
+            jsonValue = await this.getItemsFromRowIds(jsonValue)
+          }
           return jsonValue;
         } else if (item.DateTime) {
           return item.DateTime.toLocaleDateString();
@@ -757,6 +760,23 @@ export class PageService {
     );
 
     return results;
+  }
+
+  private async getItemsFromRowIds(ids: string) {
+    const rowIds = ids.split(';');
+
+    const items = await Promise.all(
+      rowIds.map(async (id) => {
+        const rowId = Number(id);
+        return (
+          await this.getRowJson(rowId) ||
+          await this.getRowJson(rowId, SHEET_NAMES.ALL_LABELS) ||
+          await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS)
+        );
+      })
+    );
+
+    return items.length > 0 ? items.join(';') : null;
   }
 
   // Function to get field value by passing the col value
