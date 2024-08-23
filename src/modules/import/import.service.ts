@@ -1341,7 +1341,7 @@ export class ImportService {
             Items: [createdItem.Item],
           });
         } else if (key == COLUMN_NAMES.Value_DataType && val) {
-          const objectRowId = await this.getRowId('JSON', val);
+          const objectRowId = await this.getRowId('JSON', val, [PAGE_IDS.ALL_UNITS]);
           if (objectRowId) {
             const createdItem = await this.itemService.createItem({
               DataType: dropDownRowId,
