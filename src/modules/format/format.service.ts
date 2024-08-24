@@ -212,4 +212,22 @@ export class FormatService {
         // Save the updated format entry
         return await this.formatRepository.save(format);
     }
+      // Update Page Format
+      async updatePageFormat(Pg: number, userId: number, updateFormat: Partial<Format>): Promise<Format> {
+        // Find the format entry by the page Id (stored in the Object field)
+        const format = await this.formatRepository.findOne({ where: { Object: Pg } });
+
+        if (!format) {
+            throw new Error('Format not found');
+        }
+
+        // Update the format fields with the new values from the DTO
+        Object.assign(format, updateFormat);
+
+        // Set the User entity reference
+        format.User = userId as any;
+
+        // Save the updated format entry
+        return await this.formatRepository.save(format);
+    }
 }
