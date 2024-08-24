@@ -295,5 +295,37 @@ export class FormatController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    @Put('update-PgFormat/:Pg')
+    async updatePageFormat(
+      @Param('Pg') Pg: number,
+      @Body('userId') userId: number,
+      @Body() updateFormat: Partial<any>,
+    ): Promise<ApiResponse<any>> {
+      try {
+        const updatedFormat = await this.formatService.updatePageFormat(Pg, userId, updateFormat);
+    
+        // Build the response data with updated attributes
+        const responseData: any = {
+          Updated_Page_Format: {
+            Format: updatedFormat.Format?.toString(),
+            Object: updatedFormat.Object?.toString(),
+            User: updatedFormat.User?.toString(),
+            PgNestedCol: updatedFormat.PgNestedCol,
+            PgFreezeCol: updatedFormat.PgFreezeCol,
+            PgExpand: updatedFormat.PgExpand,
+            PgSort: updatedFormat.PgSort,
+            PgFilter: updatedFormat.PgFilter,
+            PgLevelSet: updatedFormat.PgLevelSet,
+            PgSearchSet: updatedFormat.PgSearchSet,
+            FontStyle: updatedFormat.FontStyle,
+            Comment: updatedFormat.Comment,
+            TxList: updatedFormat.TxList,
+            
+          },
+        };
+        return new ApiResponse(true, responseData, '', HttpStatus.OK);
+      } catch (error) {
+        return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
 }
