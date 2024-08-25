@@ -482,7 +482,7 @@ export class PageService {
   async getonePageData(Pg: number): Promise<any> {
     const page = await this.entityManager.findOne(Page, {
       where: { Pg },
-      relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+      relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
     });
 
     if (!page) {
@@ -555,7 +555,7 @@ export class PageService {
   }
 
   private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
-    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number }>> = {};
+    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number, ParentRow: number }>> = {};
 
     for (const rowEl of rows) {
       const Row = rowEl.Row;
@@ -573,6 +573,7 @@ export class PageService {
           Col,
           Cell,
           RowLevel: rowEl.RowLevel,
+          ParentRow: rowEl.ParentRow,
           [field]: Items,
         });
       }
@@ -794,11 +795,13 @@ export class PageService {
     Object.keys(data).forEach((key) => {
       const pageObject = {};
       let rowLevel: any[];
+      let parentRow: any[];
       data[key].forEach((obj: { [x: string]: any[] }) => {
         // Capture the RowLevel value
         rowLevel = obj.RowLevel;
+        parentRow = obj.ParentRow;
         Object.keys(obj).forEach((col) => {
-          if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel') {
+          if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
             if (!pageObject[col]) {
               pageObject[col] = [];
             }
@@ -813,6 +816,7 @@ export class PageService {
       });
       finalPageObject['row'] = key;
       finalPageObject['RowLevel'] = rowLevel;
+      finalPageObject['ParentRow'] = parentRow;
       transformedData.push(finalPageObject);
     });
 
