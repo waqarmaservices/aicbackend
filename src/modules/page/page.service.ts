@@ -764,7 +764,7 @@ export class PageService {
   }
 
   private async getItemsFromRowIds(ids: string) {
-    const rowIds = ids.split(';');
+    const rowIds = ids.toString().split(';');
 
     const items = await Promise.all(
       rowIds.map(async (id) => {
