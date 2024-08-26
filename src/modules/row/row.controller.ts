@@ -120,12 +120,12 @@ export class RowController {
   @Post('createrowwithformat')
   async createRowWithFormat(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
-      const { createdRow,  createdFormat, createdCells  } = await this.rowService.createRowWithFormat(payload);
-  
+      const { createdRow, createdFormat, createdCells } = await this.rowService.createRowWithFormat(payload);
+
       if (!createdRow) {
         return new ApiResponse(false, null, 'Row not created', HttpStatus.NOT_FOUND);
       }
-  
+
       // Construct the response structure
       const responseData = {
         'Add-Row': {
@@ -138,7 +138,7 @@ export class RowController {
             ParentRow: createdRow.ParentRow, // This includes the Parent Row details
             SiblingRow: createdRow.SiblingRow, // This includes the Sibling Row details
           },
-           createdFormat: {
+          createdFormat: {
             Format: createdFormat.Format,
             Object: createdFormat.Object,
             User: createdFormat.User,
@@ -148,10 +148,10 @@ export class RowController {
             Col: cell.Col,
             Row: cell.Row,
             Cell: cell.Cell,
-          })), 
+          })),
         },
       };
-  
+
       return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);

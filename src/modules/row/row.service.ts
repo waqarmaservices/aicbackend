@@ -143,19 +143,19 @@ export class RowService {
 
     // Step 2: Fetch the saved row with all relations to return a complete response
     const completeRow = await this.rowRepository.findOne({
-        where: { Row: savedRowId },
-        relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'],
+      where: { Row: savedRowId },
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'],
     });
 
     if (!completeRow) {
-        throw new Error('Row not found after creation');
+      throw new Error('Row not found after creation');
     }
 
     // Step 3: Create the Format entity
     const formatPayload = {
-        User: SYSTEM_INITIAL.USER_ID,
-        ObjectType: SYSTEM_INITIAL.ROW,
-        Object: completeRow.Row,
+      User: SYSTEM_INITIAL.USER_ID,
+      ObjectType: SYSTEM_INITIAL.ROW,
+      Object: completeRow.Row,
     };
     const createdFormat = await this.formatService.createFormat(formatPayload);
 
@@ -166,17 +166,16 @@ export class RowService {
     // Step 5: Create cells for each column ID
     const createdCells: Cell[] = [];
     for (const colId of columnIds) {
-        const cellData = {
-            Row: completeRow.Row,
-            Col: parseInt(colId), // Convert the column ID to a number
-        };
-        const createdCell = await this.cellService.createCell(cellData);
-        createdCells.push(createdCell);
+      const cellData = {
+        Row: completeRow.Row,
+        Col: parseInt(colId), // Convert the column ID to a number
+      };
+      const createdCell = await this.cellService.createCell(cellData);
+      createdCells.push(createdCell);
     }
 
     return { createdRow: completeRow, createdFormat, createdCells };
-}
-
+  }
 
   async getRowsByPgs(Pgs: number[]): Promise<Row[]> {
     return await this.rowRepository.find({
