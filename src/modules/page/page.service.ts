@@ -6,7 +6,16 @@ import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
-import { ALL_DATATYPES, COLUMN_IDS, GENERAL, PAGE_CACHE, SHEET_NAMES, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
+import {
+  ALL_DATATYPES,
+  COLUMN_IDS,
+  GENERAL,
+  PAGE_CACHE,
+  SHEET_NAMES,
+  SYSTEM_INITIAL,
+  TOKEN_IDS,
+  TOKEN_NAMES,
+} from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
 import { ItemService } from 'modules/item/item.service';
@@ -548,7 +557,7 @@ export class PageService {
   }
 
   private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
-    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number, ParentRow: number }>> = {};
+    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number; ParentRow: number }>> = {};
 
     for (const rowEl of rows) {
       const Row = rowEl.Row;
@@ -694,7 +703,7 @@ export class PageService {
             }
           }
           if (item.DataType.Row == ALL_DATATYPES.DropDownSource && jsonValue) {
-            jsonValue = await this.getItemsFromRowIds(jsonValue)
+            jsonValue = await this.getItemsFromRowIds(jsonValue);
           }
           return jsonValue;
         } else if (item.DateTime) {
@@ -744,11 +753,11 @@ export class PageService {
       rowIds.map(async (id) => {
         const rowId = Number(id);
         return (
-          await this.getRowJson(rowId) ||
-          await this.getRowJson(rowId, SHEET_NAMES.ALL_LABELS) ||
-          await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS)
+          (await this.getRowJson(rowId)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_LABELS)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS))
         );
-      })
+      }),
     );
 
     return items.length > 0 ? items.join(';') : null;
