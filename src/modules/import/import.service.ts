@@ -107,7 +107,7 @@ export class ImportService {
 
     // Extract page IDs and insert into the database
     const pageIds = this.extractColHeaderValue(allPagesSheetData, 1);
-    await this.insertRecordIntotPG(pageIds, [2000000001, 2000000002]);
+    await this.insertRecordIntotPG(pageIds, [2000000001]);
 
     // Insert all units sheet data into the database
     await this.insertTokenUnitsSheetData(allTokensSheetData, allUnitsSheetData);
@@ -136,7 +136,7 @@ export class ImportService {
     // Insert all models sheet data into the database
     await this.insertAllModelsSheetData(allModelsSheetData);
 
-    // Insert all labels sheet data into the database
+    // // Insert all labels sheet data into the database
     await this.insertAllLabelsSheetData(allLabelsSheetData);
 
     // Populate sibling rows
@@ -145,6 +145,8 @@ export class ImportService {
     // Populate parent rows
     await this.populateParentRowColumn();
 
+    await this.updateRecordIntotPG(pageIds);
+
     return 'Data Imported Successfully!';
   }
 
@@ -152,13 +154,13 @@ export class ImportService {
     const allUnitsData = [];
     for (const [rowIndex, row] of allUnitsSheetData.entries()) {
       allUnitsData[rowIndex] = {
-        Row: row[1],
-        Unit: row.slice(2, 6).find((value) => value != null),
-        Unit_Factor: row[6] ?? row[6],
-        Row_Type: row[7] ?? row[7],
-        Row_Status: row[8] ?? row[8],
-        Row_Comment: row[9] || row[10] ? ((row[9] || '') + ' ' + (row[10] ?? '')).trim() : null,
-        Row_Level: this.calculateRowLevel(row.slice(2)),
+        Row: row[0],
+        Unit: row.slice(1, 5).find((value) => value != null),
+        Unit_Factor: row[5] ?? row[5],
+        Row_Type: row[6] ?? row[6],
+        Row_Status: row[7] ?? row[7],
+        Row_Comment: row[8] || row[9] ? ((row[9] || '') + ' ' + (row[9] ?? '')).trim() : null,
+        Row_Level: this.calculateRowLevel(row.slice(1)),
       };
     }
 
@@ -244,6 +246,24 @@ export class ImportService {
     for (const {} of pageIds) {
       // Create a new tPg record for each page ID
       await this.pageService.createPage(cols);
+    }
+  }
+
+  /**
+   * Update page records into the database.
+   *
+   * @param {string[]} pageIds - An array of page IDs to be inserted.
+   * @returns {Promise<void>} - A promise that resolves when the insertion is complete.
+   */
+  private async updateRecordIntotPG(pageIds: string[]): Promise<void> {
+    for (const pg of pageIds) {
+      const pageColumns = await this.pageService.getPageColumns(Number(pg));
+      const Cols = pageColumns.map((col) => col.col);
+      await this.pageService.updatePage(Number(pg), { Cols });
+
+      const filteredCols = pageColumns.filter((col) => !col.status.includes('Hidden'));
+      const PgCols = filteredCols.map((col) => col.col);
+      await this.formatService.updateFormatByObject(Number(pg), { PgCols });
     }
   }
 
@@ -403,10 +423,15 @@ export class ImportService {
             });
             itemIds.push(createdItem.Item);
           }
-          await this.cellService.createCell({
+          const createdCell = await this.cellService.createCell({
             Col: COLUMN_IDS.ALL_PAGES.PAGE_SEO,
             Row: createdRow.Row,
             Items: itemIds,
+          });
+          await this.formatService.createFormat({
+            ObjectType: SYSTEM_INITIAL.CELL,
+            Object: createdCell.Cell,
+            CellItems: itemIds,
           });
         } else {
           const createdItem = await this.itemService.createItem({
@@ -449,8 +474,12 @@ export class ImportService {
     }
 
     const statuses = await (this.isSemicolonSeparated(el[key])
-      ? Promise.all(el[key].split(';').map(async (status) => (await this.getRowId('JSON', status.trim()))?.Row))
-      : [(await this.getRowId('JSON', el[key].trim()))?.Row]);
+      ? Promise.all(
+          el[key]
+            .split(';')
+            .map(async (status) => (await this.getRowId('JSON', status.trim(), [PAGE_IDS.ALL_TOKENS]))?.Row),
+        )
+      : [(await this.getRowId('JSON', el[key].trim(), [PAGE_IDS.ALL_TOKENS]))?.Row]);
     return statuses;
   }
 
@@ -618,10 +647,15 @@ export class ImportService {
             });
             itemIds.push(createdItem.Item);
           }
-          await this.cellService.createCell({
+          const createdCell = await this.cellService.createCell({
             Col: COLUMN_IDS.ALL_COLS.COL_DROPDOWNSOURCE,
             Row: createdRow.Row,
             Items: itemIds,
+          });
+          await this.formatService.createFormat({
+            ObjectType: SYSTEM_INITIAL.CELL,
+            Object: createdCell.Cell,
+            CellItems: itemIds,
           });
         } else {
           const createdItem = await this.itemService.createItem({
@@ -1219,13 +1253,13 @@ export class ImportService {
     const allUnitsData = [];
     for (const [rowIndex, row] of sheetData.entries()) {
       allUnitsData[rowIndex] = {
-        Row: row[1],
-        Unit: row.slice(2, 6).find((value) => value != null),
-        Unit_Factor: row[6] ?? row[6],
-        Row_Type: row[7] ?? row[7],
-        Row_Status: row[8] ?? row[8],
-        Row_Comment: row[9] || row[10] ? ((row[9] || '') + ' ' + (row[10] ?? '')).trim() : null,
-        Row_Level: this.calculateRowLevel(row.slice(2)),
+        Row: row[0],
+        Unit: row.slice(1, 5).find((value) => value != null),
+        Unit_Factor: row[5] ?? row[5],
+        Row_Type: row[6] ?? row[6],
+        Row_Status: row[7] ?? row[7],
+        Row_Comment: row[8] || row[9] ? ((row[9] || '') + ' ' + (row[9] ?? '')).trim() : null,
+        Row_Level: this.calculateRowLevel(row.slice(1)),
       };
     }
 
@@ -1364,11 +1398,18 @@ export class ImportService {
             });
             createdItemIds.push(createdItem.Item);
           }
-          await this.cellService.createCell({
+          const createdCell = await this.cellService.createCell({
             Col: COLUMN_IDS.ALL_LABELS.VALUE_DROPDOWNSOURCE, // Col-ID of "Value DropDown-Source"
             Row: createdRow.Row,
             Items: createdItemIds,
           });
+          if (createdItemIds.length >= 2) {
+            await this.formatService.createFormat({
+              ObjectType: SYSTEM_INITIAL.CELL,
+              Object: createdCell.Cell,
+              CellItems: createdItemIds,
+            });
+          }
         } else if (key == COLUMN_NAMES.Value_DefaultData && val && valueDataTypeRowId) {
           const colValues = String(val).split(';'); // Split default data by semicolon
           const createdItemIds = [];
@@ -1384,6 +1425,13 @@ export class ImportService {
             Row: createdRow.Row, // As per setup sheet - Row.Row = 0, Modify this to Row: 0
             Items: createdItemIds,
           });
+          if (createdItemIds.length >= 2) {
+            await this.formatService.createFormat({
+              ObjectType: SYSTEM_INITIAL.CELL,
+              Object: createdCell.Cell,
+              CellItems: createdItemIds,
+            });
+          }
           await this.formatService.updateFormat(createdFormat.Format, {
             Default: createdCell,
           });
@@ -1397,11 +1445,18 @@ export class ImportService {
             });
             createdItemIds.push(createdItem.Item);
           }
-          await this.cellService.createCell({
+          const createdCell = await this.cellService.createCell({
             Col: COLUMN_IDS.ALL_LABELS.VALUE_STATUS, // Col-ID of "Value_Status"
             Row: createdRow.Row,
             Items: createdItemIds,
           });
+          if (createdItemIds.length >= 2) {
+            await this.formatService.createFormat({
+              ObjectType: SYSTEM_INITIAL.CELL,
+              Object: createdCell.Cell,
+              CellItems: createdItemIds,
+            });
+          }
         } else if (key == COLUMN_NAMES.Value_Formula && val) {
           const createdItem = await this.itemService.createItem({
             DataType: formulaRowId,

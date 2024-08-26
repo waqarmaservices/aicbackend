@@ -60,6 +60,10 @@ export class FormatService {
     return this.findOne(id);
   }
 
+  async updateFormatByObject(Object: number, updateData: Partial<Format>) {
+    await this.formatRepository.update({ Object: Object }, updateData);
+  }
+
   async deleteFormat(id: number): Promise<Format | null> {
     const format = await this.formatRepository.findOne({
       where: { Format: id },

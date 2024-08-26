@@ -110,7 +110,7 @@ export class PageService {
     return page.Pg;
   }
 
-  async getPageColumns(pageId: number): Promise<ApiResponse<any>> {
+  async getPageColumns(pageId: number) {
     const pgCols = await this.findPageColumns(pageId);
     const pgColResponse: any = [];
 
@@ -156,7 +156,6 @@ export class PageService {
    */
   async getColStatuses(colFormat: Format): Promise<any> {
     const colStatuses = colFormat.Status.toString().replace(/[{}]/g, '').split(',');
-    console.log('Col Status IDS', colStatuses);
     const response = await Promise.all(
       colStatuses.map(async (status) => {
         return await this.getRowJson(Number(status));
@@ -319,8 +318,8 @@ export class PageService {
    * @returns {string} The JSON string for Row ID.
    */
   private async getRowJson(rowId: number, sheetName?: string): Promise<string | null> {
+    if (!rowId) return null;
     const searchColId = this.getSearchColId(sheetName);
-
     const row = await this.rowService.findOne(rowId);
     if (!row) return null;
 
