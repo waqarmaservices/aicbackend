@@ -6,7 +6,16 @@ import { Item } from 'modules/item/item.entity';
 import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
-import { COLUMN_IDS, GENERAL, PAGE_CACHE, SHEET_NAMES, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
+import {
+  ALL_DATATYPES,
+  COLUMN_IDS,
+  GENERAL,
+  PAGE_CACHE,
+  SHEET_NAMES,
+  SYSTEM_INITIAL,
+  TOKEN_IDS,
+  TOKEN_NAMES,
+} from '../../constants';
 import { ApiResponse } from 'common/dtos/api-response.dto';
 import { ColService } from 'modules/col/col.service';
 import { ItemService } from 'modules/item/item.service';
@@ -308,36 +317,40 @@ export class PageService {
    * @param {number} rowId - The ID of the Pg to find.
    * @returns {string} The JSON string for Row ID.
    */
-  private async getRowJson(rowId: number, sheetName?: string): Promise<string> {
-    let searchColId = null;
-    if (sheetName == SHEET_NAMES.ALL_LABELS) {
-      searchColId = COLUMN_IDS.ALL_LABELS.LABELS;
-    } else if (sheetName == SHEET_NAMES.ALL_UNITS) {
-      searchColId = COLUMN_IDS.ALL_UNITS.UNIT;
-    } else {
-      searchColId = COLUMN_IDS.ALL_TOKENS.TOKEN;
-    }
+  private async getRowJson(rowId: number, sheetName?: string): Promise<string | null> {
+    if (!rowId) return null;
+    const searchColId = this.getSearchColId(sheetName);
+    const row = await this.rowService.findOne(rowId);
+    if (!row) return null;
 
-    if (rowId) {
-      const row = await this.rowService.findOne(rowId);
-      const cell = await this.entityManager.findOne(Cell, {
-        where: {
-          Row: row.Row,
-          Col: searchColId,
-        },
-      });
-      if (cell) {
-        const itemId = cell.Items.toString().replace(/[{}]/g, '');
-        const item = await this.entityManager.findOne(Item, {
-          where: { Item: Number(itemId) },
-        });
+    const cell = await this.entityManager.findOne(Cell, {
+      where: {
+        Row: row.Row,
+        Col: searchColId,
+      },
+    });
+    if (!cell) return null;
 
-        return item.JSON[SYSTEM_INITIAL.ENGLISH];
-      }
-    }
+    const itemId = cell.Items?.toString().replace(/[{}]/g, '');
+    if (!itemId) return null;
 
-    return null;
+    const item = await this.entityManager.findOne(Item, {
+      where: { Item: Number(itemId) },
+    });
+    return item.JSON[SYSTEM_INITIAL.ENGLISH];
   }
+
+  private getSearchColId(sheetName?: string): number {
+    switch (sheetName) {
+      case SHEET_NAMES.ALL_LABELS:
+        return COLUMN_IDS.ALL_LABELS.LABELS;
+      case SHEET_NAMES.ALL_UNITS:
+        return COLUMN_IDS.ALL_UNITS.UNIT;
+      default:
+        return COLUMN_IDS.ALL_TOKENS.TOKEN;
+    }
+  }
+
   async getAllPages(): Promise<any> {
     try {
       const pages = await this.entityManager.find(Page, {
@@ -470,7 +483,7 @@ export class PageService {
   async getonePageData(Pg: number): Promise<any> {
     const page = await this.entityManager.findOne(Page, {
       where: { Pg },
-      relations: ['rows', 'rows.cells', 'rows.cells.CellCol'],
+      relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
     });
 
     if (!page) {
@@ -543,7 +556,7 @@ export class PageService {
   }
 
   private async extractRowsWithItems(rows: any[], pageColumns: any): Promise<Record<number, Array<any>>> {
-    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number }>> = {};
+    const rowsWithItems: Record<number, Array<{ Col: number; Cell: number; RowLevel: number; ParentRow: number }>> = {};
 
     for (const rowEl of rows) {
       const Row = rowEl.Row;
@@ -561,6 +574,7 @@ export class PageService {
           Col,
           Cell,
           RowLevel: rowEl.RowLevel,
+          ParentRow: rowEl.ParentRow,
           [field]: Items,
         });
       }
@@ -601,7 +615,6 @@ export class PageService {
       let status = null;
       let rowType = null;
       let colFormula = null;
-      let colDropDownSource = null;
       if (format?.Comment) {
         for (const key in format?.Comment) {
           if (format?.Comment.hasOwnProperty(key)) {
@@ -632,26 +645,6 @@ export class PageService {
         status = statuses.join(';');
       }
 
-      if (record.hasOwnProperty('col_dropdownsource') && objectKey == 'col') {
-        const colDropDownSources = await Promise.all(
-          record.col_dropdownsource.split(';').map(async (colDds) => {
-            let rowJson = await this.getRowJson(Number(colDds));
-            if (rowJson) {
-              return rowJson;
-            } else {
-              rowJson = await this.getRowJson(Number(colDds), SHEET_NAMES.ALL_LABELS);
-              if (rowJson) {
-                return rowJson;
-              } else {
-                rowJson = await this.getRowJson(Number(colDds), SHEET_NAMES.ALL_UNITS);
-                return rowJson;
-              }
-            }
-          }),
-        );
-        colDropDownSource = colDropDownSources.length > 0 ? colDropDownSources.join(';') : null;
-      }
-
       if (row?.RowType) {
         const rowTypes = await Promise.all(
           row.RowType.toString()
@@ -670,7 +663,6 @@ export class PageService {
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
         [`row_type`]: rowType ?? null,
-        ...(colDropDownSource ? { [`col_dropdownsource`]: colDropDownSource } : {}),
         ...(colFormula ? { [`col_formula`]: colFormula } : {}),
       };
     }
@@ -709,9 +701,12 @@ export class PageService {
               break; // Assuming you want the first key-value pair
             }
           }
+          if (item.DataType.Row == ALL_DATATYPES.DropDownSource && jsonValue) {
+            jsonValue = await this.getItemsFromRowIds(jsonValue);
+          }
           return jsonValue;
         } else if (item.DateTime) {
-          return item.DateTime;
+          return item.DateTime.toLocaleDateString();
         } else if (item.Num) {
           return item.Num;
         } else {
@@ -750,6 +745,23 @@ export class PageService {
     return results;
   }
 
+  private async getItemsFromRowIds(ids: string) {
+    const rowIds = ids.toString().split(';');
+
+    const items = await Promise.all(
+      rowIds.map(async (id) => {
+        const rowId = Number(id);
+        return (
+          (await this.getRowJson(rowId)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_LABELS)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS))
+        );
+      }),
+    );
+
+    return items.length > 0 ? items.join(';') : null;
+  }
+
   // Function to get field value by passing the col value
   getFieldByCol(col: number, pageColumns: any): string | undefined {
     const columnFieldMap: Record<string, string> = {};
@@ -765,11 +777,13 @@ export class PageService {
     Object.keys(data).forEach((key) => {
       const pageObject = {};
       let rowLevel: any[];
+      let parentRow: any[];
       data[key].forEach((obj: { [x: string]: any[] }) => {
         // Capture the RowLevel value
         rowLevel = obj.RowLevel;
+        parentRow = obj.ParentRow;
         Object.keys(obj).forEach((col) => {
-          if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel') {
+          if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
             if (!pageObject[col]) {
               pageObject[col] = [];
             }
@@ -784,6 +798,7 @@ export class PageService {
       });
       finalPageObject['row'] = key;
       finalPageObject['RowLevel'] = rowLevel;
+      finalPageObject['ParentRow'] = parentRow;
       transformedData.push(finalPageObject);
     });
 

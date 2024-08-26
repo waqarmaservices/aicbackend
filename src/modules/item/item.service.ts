@@ -84,7 +84,7 @@ export class ItemService {
   async getItemsByIds(itemIds: number[]): Promise<Item[]> {
     return await this.itemRepository.find({
       where: { Item: In(itemIds) },
-      relations: ['ItemObject.cells'],
+      relations: ['ItemObject.cells', 'DataType'],
     });
   }
 
