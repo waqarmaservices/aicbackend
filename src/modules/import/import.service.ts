@@ -100,13 +100,14 @@ export class ImportService {
       SHEET_NAMES.ALL_LABELS,
       SHEET_READ_OPTIONS.ALL_LABELS,
     );
-    // Extract page IDs and insert into the database
-    const pageIds = this.extractColHeaderValue(allPagesSheetData, 1);
-   /*  await this.insertRecordIntotPG(pageIds); */
 
     // Extract col IDs and insert into the database
     const colIds = this.extractColHeaderValue(allColsSheetData, 2);
     await this.insertRecordIntotCol(colIds);
+
+    // Extract page IDs and insert into the database
+    const pageIds = this.extractColHeaderValue(allPagesSheetData, 1);
+    await this.insertRecordIntotPG(pageIds, [2000000001, 2000000002]);
 
     // Insert all units sheet data into the database
     await this.insertTokenUnitsSheetData(allTokensSheetData, allUnitsSheetData);
@@ -239,12 +240,12 @@ export class ImportService {
    * @param {string[]} pageIds - An array of page IDs to be inserted.
    * @returns {Promise<void>} - A promise that resolves when the insertion is complete.
    */
- /*  private async insertRecordIntotPG(pageIds: string[]): Promise<void> {
+  private async insertRecordIntotPG(pageIds: string[], cols: number[]): Promise<void> {
     for (const {} of pageIds) {
       // Create a new tPg record for each page ID
-      await this.pageService.createPage();
+      await this.pageService.createPage(cols);
     }
-  } */
+  }
 
   /**
    * Inserts col records into the database.
