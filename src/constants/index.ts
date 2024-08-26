@@ -201,6 +201,11 @@ export const GENERAL = {
   Row: 'Row',
   RowId: 'Row Id',
 };
+
 export const PAGE_CACHE = {
   NEVER_EXPIRE: 0,
+};
+
+export const ALL_DATATYPES = {
+  DropDownSource: 3000001040,
 };
