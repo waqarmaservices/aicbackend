@@ -323,17 +323,17 @@ export class PageService {
       const cell = await this.entityManager.findOne(Cell, {
         where: {
           Row: row.Row,
-            Col: searchColId,
+          Col: searchColId,
         },
-        });
-        if (cell) {
+      });
+      if (cell) {
         const itemId = cell.Items.toString().replace(/[{}]/g, '');
         const item = await this.entityManager.findOne(Item, {
-            where: { Item: Number(itemId) },
+          where: { Item: Number(itemId) },
         });
-    
+
         return item.JSON[SYSTEM_INITIAL.ENGLISH];
-        }
+      }
     }
 
     return null;
