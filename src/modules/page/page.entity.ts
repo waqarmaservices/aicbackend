@@ -18,7 +18,7 @@ export class Page {
     Pg: number;
 
     @Column('bigint', { array: true })
-    Cols: bigint[];
+    Cols: number[];
 
     @OneToMany(() => Row, (row) => row.Pg)
     rows: Row[];

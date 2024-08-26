@@ -42,7 +42,7 @@ export class PageService {
     }
 
 
-    async createPage(cols: bigint[]): Promise<Page> {
+    async createPage(cols: number[]): Promise<Page> {
         // Create a new Page entity with validated data
         const pageData = this.pageRepository.create({ Cols: cols });
 
@@ -927,7 +927,7 @@ export class PageService {
     }
 
     // Add Page Record with Format record
-    async createPageWithFormat(cols: bigint[]): Promise<{ createdPage: any; createdFormat: Format }> {
+    async createPageWithFormat(cols: number[]): Promise<{ createdPage: any; createdFormat: Format }> {
         // Step 1: Create the Page entity
         const createdPage = await this.createPage(cols); // Pass the cols to the createPage function
 

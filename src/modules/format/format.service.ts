@@ -46,8 +46,6 @@ export class FormatService {
                 'PgLevelSet',
                 'PgSearchSet',
                 'RowSetTick',
-                'PgCols',
-                'CellItems',
                 'Owner',
                 'Default',
                 'Unit',

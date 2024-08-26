@@ -8,7 +8,7 @@ export class PageController {
     constructor(private readonly pageService: PageService) { }
 
     @Post()
-    async createPage(@Body() body: { cols: bigint[] }): Promise<ApiResponse<any>> {
+    async createPage(@Body() body: { cols: number[] }): Promise<ApiResponse<any>> {
         const { cols } = body;
         if (!Array.isArray(cols) || !cols.every(col => typeof col === 'number')) {
             return new ApiResponse(false, null, 'Invalid input: cols must be an array of bigints', HttpStatus.BAD_REQUEST);
@@ -177,7 +177,7 @@ export class PageController {
     }
     // Create Page with Format record
     @Post('createpageformat')
-    async createPageWithFormat(@Body() body: { cols: bigint[] }): Promise<ApiResponse<any>> {
+    async createPageWithFormat(@Body() body: { cols: number[] }): Promise<ApiResponse<any>> {
         const { cols } = body;
         if (!Array.isArray(cols) || !cols.every(col => typeof col === 'number')) {
             return new ApiResponse(false, null, 'Invalid input: cols must be an array of bigints', HttpStatus.BAD_REQUEST);
