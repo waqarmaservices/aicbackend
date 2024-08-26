@@ -20,9 +20,6 @@ export class Item {
   @JoinColumn({ name: 'DataType' })
   DataType: Row;
 
-  @Column({ name: 'DataType', type: 'bigint', nullable: true })
-  ItemDataType: number;
-
   @Column({ type: 'bigint', nullable: true })
   Object: number;
 

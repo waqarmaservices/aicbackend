@@ -712,7 +712,7 @@ export class PageService {
               break; // Assuming you want the first key-value pair
             }
           }
-          if (item.ItemDataType == ALL_DATATYPES.DropDownSource && jsonValue) {
+          if (item.DataType.Row == ALL_DATATYPES.DropDownSource && jsonValue) {
             jsonValue = await this.getItemsFromRowIds(jsonValue)
           }
           return jsonValue;
