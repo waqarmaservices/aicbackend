@@ -607,7 +607,6 @@ export class PageService {
       let status = null;
       let rowType = null;
       let colFormula = null;
-      let colDropDownSource = null;
       if (format?.Comment) {
         for (const key in format?.Comment) {
           if (format?.Comment.hasOwnProperty(key)) {
@@ -638,23 +637,6 @@ export class PageService {
         status = statuses.join(';');
       }
 
-      if (record.hasOwnProperty('col_dropdownsource') && objectKey == 'col') {
-        const rowIds = record.col_dropdownsource.split(';');
-
-        const colDropDownSources = await Promise.all(
-          rowIds.map(async (id) => {
-            const rowId = Number(id);
-            return (
-              await this.getRowJson(rowId) ||
-              await this.getRowJson(rowId, SHEET_NAMES.ALL_LABELS) ||
-              await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS)
-            );
-          })
-        );
-
-        colDropDownSource = colDropDownSources.length > 0 ? colDropDownSources.join(';') : null;
-      }
-
       if (row?.RowType) {
         const rowTypes = await Promise.all(
           row.RowType.toString()
@@ -673,7 +655,6 @@ export class PageService {
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
         [`row_type`]: rowType ?? null,
-        ...(colDropDownSource ? { [`col_dropdownsource`]: colDropDownSource } : {}),
         ...(colFormula ? { [`col_formula`]: colFormula } : {}),
       };
     }
