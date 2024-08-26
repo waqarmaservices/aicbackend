@@ -101,7 +101,7 @@ export class PageService {
     return page.Pg;
   }
 
-  async getPageColumns(pageId: number): Promise<ApiResponse<any>> {
+  async getPageColumns(pageId: number) {
     const pgCols = await this.findPageColumns(pageId);
     const pgColResponse: any = [];
 
@@ -147,7 +147,6 @@ export class PageService {
    */
   async getColStatuses(colFormat: Format): Promise<any> {
     const colStatuses = colFormat.Status.toString().replace(/[{}]/g, '').split(',');
-    console.log('Col Status IDS', colStatuses);
     const response = await Promise.all(
       colStatuses.map(async (status) => {
         return await this.getRowJson(Number(status));
@@ -319,20 +318,22 @@ export class PageService {
       searchColId = COLUMN_IDS.ALL_TOKENS.TOKEN;
     }
 
-    const row = await this.rowService.findOne(rowId);
-    const cell = await this.entityManager.findOne(Cell, {
-      where: {
-        Row: row.Row,
-        Col: searchColId,
-      },
-    });
-    if (cell) {
-      const itemId = cell.Items.toString().replace(/[{}]/g, '');
-      const item = await this.entityManager.findOne(Item, {
-        where: { Item: Number(itemId) },
-      });
-
-      return item.JSON[SYSTEM_INITIAL.ENGLISH];
+    if (rowId) {
+      const row = await this.rowService.findOne(rowId);
+      const cell = await this.entityManager.findOne(Cell, {
+        where: {
+          Row: row.Row,
+            Col: searchColId,
+        },
+        });
+        if (cell) {
+        const itemId = cell.Items.toString().replace(/[{}]/g, '');
+        const item = await this.entityManager.findOne(Item, {
+            where: { Item: Number(itemId) },
+        });
+    
+        return item.JSON[SYSTEM_INITIAL.ENGLISH];
+        }
     }
 
     return null;
