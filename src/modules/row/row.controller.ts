@@ -117,35 +117,41 @@ export class RowController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Post('create-row')
-  async createRowAndCells(@Body() payload: any): Promise<ApiResponse<any>> {
+  @Post('createrowwithformat')
+  async createRowWithFormat(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
-      const { createdRow, createdFormat, createdCells } = await this.rowService.createRowWithFormat(payload);
-
+      const { createdRow,  createdFormat, createdCells  } = await this.rowService.createRowWithFormat(payload);
+  
+      if (!createdRow) {
+        return new ApiResponse(false, null, 'Row not created', HttpStatus.NOT_FOUND);
+      }
+  
       // Construct the response structure
       const responseData = {
         'Add-Row': {
           createdRow: {
-            Row: createdRow.Row.toString(),
-            Pg: createdRow.Pg,
+            Row: createdRow.Row,
+            Pg: createdRow.Pg, // This includes the Page details
+            Share: createdRow.Share, // This includes the Share Row details
+            Inherit: createdRow.Inherit,
             RowLevel: createdRow.RowLevel,
-            ParentRow: createdRow.ParentRow,
-            SiblingRow: createdRow.SiblingRow,
+            ParentRow: createdRow.ParentRow, // This includes the Parent Row details
+            SiblingRow: createdRow.SiblingRow, // This includes the Sibling Row details
           },
-          createdFormat: {
-            Format: createdFormat.Format.toString(),
-            Object: createdFormat.Object.toString(),
+           createdFormat: {
+            Format: createdFormat.Format,
+            Object: createdFormat.Object,
             User: createdFormat.User,
             ObjectType: createdFormat.ObjectType,
           },
           createdCells: createdCells.map((cell) => ({
-            Col: cell.Col.toString(),
-            Row: cell.Row.toString(),
-            Cell: cell.Cell.toString(),
-          })),
+            Col: cell.Col,
+            Row: cell.Row,
+            Cell: cell.Cell,
+          })), 
         },
       };
-
+  
       return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
