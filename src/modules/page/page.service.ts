@@ -505,6 +505,8 @@ export class PageService {
 
     const pageColumns = await this.getPageColumns(Pg);
 
+    const orderedPageColumns = await this.getOrderedPageColumns(Pg, pageColumns);
+
     const rowsWithItems = await this.extractRowsWithItems(page.rows, pageColumns);
 
     const transformedData = this.transformData(rowsWithItems);
@@ -512,7 +514,7 @@ export class PageService {
     const enrichData = await this.enrichData(transformedData);
 
     const response = {
-      pageColumns: pageColumns,
+      pageColumns: orderedPageColumns,
       pageData: enrichData,
     };
 
@@ -527,6 +529,29 @@ export class PageService {
     await this.cacheManager.set(cacheKey, JSON.stringify(response), PAGE_CACHE.NEVER_EXPIRE);
 
     return response;
+  }
+
+  private async getOrderedPageColumns(Pg: number, pageColumns: any[]): Promise<any[]> {
+    // Retrieve the page format by column name
+    const pageFormat = await this.formatService.findOneByColumnName('Object', Pg.toString());
+    
+    // Extract and clean the ordered column IDs from the format
+    const orderedColumnIds = pageFormat.PgCols
+      .toString()
+      .replace(/[{}]/g, '')
+      .split(',')
+      .map(id => id.trim());
+
+    // Map through the orderedColumnIds to find and order the corresponding columns from pageColumns
+    const orderedColumns = orderedColumnIds.map(orderedColId =>
+      pageColumns.find((col: any) => col.col === orderedColId)
+    ).filter(Boolean); // Filter out any undefined values
+
+    // Filter and collect columns that are hidden
+    const hiddenColumns = pageColumns.filter(col => col.status.includes('Hidden'));
+
+    // Combine ordered columns with hidden columns
+    return [...orderedColumns, ...hiddenColumns];
   }
 
   private createJsonFile(fileName: string, data: any) {
