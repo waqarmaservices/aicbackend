@@ -303,9 +303,9 @@ export class FormatController {
       // Build the response data with updated attributes
       const responseData: any = {
         Updated_Page_Format: {
-          Format: updatedFormat.Format?.toString(),
-          Object: updatedFormat.Object?.toString(),
-          User: updatedFormat.User?.toString(),
+          Format: updatedFormat.Format,
+          Object: updatedFormat.Object,
+          User: updatedFormat.User,
           PgNestedCol: updatedFormat.PgNestedCol,
           PgFreezeCol: updatedFormat.PgFreezeCol,
           PgExpand: updatedFormat.PgExpand,
@@ -323,4 +323,114 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+    @Put('local-col/:colid')
+    async updatelocalcolls(@Param('colid') colid: number, @Body('userId') userId: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.updatelocalcolls(colid, userId, updateData);
+            if (!updatedFormat) {
+                return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+            }
+            // Construct the response data with the desired nested structure
+            const data = {
+                updated_local_col: {
+                    Format: updateData.Format || updatedFormat.Format,
+                    User: updateData.User || updatedFormat.User,
+                    Column_ID: updateData.Object || updatedFormat.Object,
+                    Status: updateData.Status || updatedFormat.Status,
+                    MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+                    FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+                    Comment: updateData.Comment || updatedFormat.Comment,
+                    Transactions: updateData.TxList || updatedFormat.TxList,
+                },
+            };
+
+            return new ApiResponse(true, data, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @Put('shared-col/:colid')
+    async updatesharedcolls(@Param('colid') colid: number, @Body('userId') userId: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.updatesharedcolls(colid, userId, updateData);
+
+            if (!updatedFormat) {
+                return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                updated_shared_col: {
+                    Format: updateData.Format || updatedFormat.Format,
+                    User: updateData.User || updatedFormat.User,
+                    Column_ID: updateData.Object || updatedFormat.Object,
+                    Status: updateData.Status || updatedFormat.Status,
+                    MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+                    FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+                    Comment: updateData.Comment || updatedFormat.Comment,
+                    Transactions: updateData.TxList || updatedFormat.TxList,
+                },
+            };
+
+            return new ApiResponse(true, data, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @Put('local-item/:itemId')
+    async updatelocalitem(@Param('itemId') itemId: number, @Body('userId') userId: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.updatelocalitem(itemId, userId, updateData);
+
+            if (!updatedFormat) {
+                return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                updated_local_item: {
+                    Format: updateData.Format || updatedFormat.Format,
+                    User: updateData.User || updatedFormat.User,
+                    Column_ID: updateData.Object || updatedFormat.Object,
+                    Status: updateData.Status || updatedFormat.Status,
+                    MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+                    FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+                    Comment: updateData.Comment || updatedFormat.Comment,
+                    Transactions: updateData.TxList || updatedFormat.TxList,
+                },
+            };
+
+            return new ApiResponse(true, data, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @Put('shared-item/:itemId')
+    async updateshareditem(@Param('itemId') itemId: number, @Body('userId') userId: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.updateshareditem(itemId, userId, updateData);
+
+            if (!updatedFormat) {
+                return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                updated_shared_item: {
+                    Format: updateData.Format || updatedFormat.Format,
+                    User: updateData.User || updatedFormat.User,
+                    Column_ID: updateData.Object || updatedFormat.Object,
+                    Status: updateData.Status || updatedFormat.Status,
+                    MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+                    FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+                    Comment: updateData.Comment || updatedFormat.Comment,
+                    Transactions: updateData.TxList || updatedFormat.TxList,
+                },
+            };
+
+            return new ApiResponse(true, data, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
