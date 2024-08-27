@@ -29,6 +29,9 @@ export class Format {
   @Column({ type: 'bigint', nullable: true })
   Container: number;
 
+  @Column('bigint', { array: true, nullable: true })
+  PgCols: number[]; // Represents the columns of the page
+
   @ManyToOne(() => Col, { nullable: true })
   @JoinColumn({ name: 'PgNestedCol' })
   PgNestedCol: Col;
@@ -53,18 +56,15 @@ export class Format {
   @Column({ type: 'jsonb', nullable: true })
   PgFilter: object;
 
+  @Column({ type: 'smallint', nullable: true })
+  ColMinWidth: number;
+
   @ManyToOne(() => Row, { nullable: true })
   @JoinColumn({ name: 'RowSetTick' })
   RowSetTick: Row;
 
-  @Column({ type: 'smallint', nullable: true })
-  ColOrder: number;
-
-  @Column({ type: 'smallint', nullable: true })
-  ColMinWidth: number;
-
-  @Column({ type: 'smallint', nullable: true })
-  ItemOrder: number;
+  @Column('bigint', { array: true, nullable: true })
+  CellItems: number[];
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'Owner' })

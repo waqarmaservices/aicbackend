@@ -12,7 +12,7 @@ export const SHEET_NAMES = {
 
 export const SHEET_READ_OPTIONS = {
   ALL_PAGES: { sheetRows: 15, skipRows: 7, skipColumnRows: 6 },
-  ALL_COLS: { skipRows: 3 },
+  ALL_COLS: { skipRows: 6, skipColumnRows: 5 },
   ALL_TOKENS: { skipRows: 3 },
   ALL_LANGUAGES: { skipRows: 3 },
   ALL_REGIONS: { skipRows: 3 },
@@ -27,16 +27,17 @@ export const SYSTEM_INITIAL = {
   ALL_COLS: 1000000002,
   ALL_TOKENS: 1000000003,
   ENGLISH: 3000000100,
-  ORIGINAL_URL: 3000000370,
+  ORIGINAL_URL: 3000000320,
   USER_ID: 3000000099,
   CURRENCIES: 3000000098,
   ALL_LANGUAGES: 1000000003,
-  DEFAULT: 3000000319,
-  PAGE: 3000000627,
-  COLUMN: 3000000634,
-  ROW: 3000000638,
-  EXCLUDE_DDS_HEAD: 3000000349,
-  CALCULATE_DATA: 3000000354,
+  DEFAULT: 3000000256,
+  PAGE: 3000000577,
+  COLUMN: 3000000584,
+  CELL: 3000000592,
+  ROW: 3000000588,
+  EXCLUDE_DDS_HEAD: 3000000296,
+  CALCULATE_DATA: 3000000304,
 };
 
 export const PAGE_IDS = {
@@ -174,26 +175,26 @@ export const TOKEN_NAMES = {
 };
 
 export const TOKEN_IDS = {
-  Row_Type: 3000000313,
+  Row_Type: 3000000260,
   Statuses: 3000000202,
   Category_Label: 3000002002,
   Product_Label: 3000002005,
-  Key: 3000000372,
-  Preference: 3000000380,
+  Key: 3000000322,
+  Preference: 3000000330,
   LevelSet_Label: 3000002043,
   True___False: 3000001046,
   SearchSet_Label: 3000002035,
-  Param_Opr: 3000000383,
-  Page_Type: 3000000301,
-  Edition: 3000000308,
+  Param_Opr: 3000000333,
+  Page_Type: 3000000248,
+  Edition: 3000000255,
   All_DataTypes: 3000001001,
   Display_Setting: 3000002084,
   Profile_Label: 3000001047,
-  User_Type: 3000000342,
+  User_Type: 3000000289,
   All_Units: 3000001055,
   All_Tokens: 3000000201,
   PAGE_TYPE: {
-    EACH_PAGE: 3000000302,
+    EACH_PAGE: 3000000249,
   },
 };
 
@@ -201,6 +202,11 @@ export const GENERAL = {
   Row: 'Row',
   RowId: 'Row Id',
 };
+
 export const PAGE_CACHE = {
   NEVER_EXPIRE: 0,
+};
+
+export const ALL_DATATYPES = {
+  DropDownSource: 3000001040,
 };

@@ -8,16 +8,22 @@ export class PageController {
   constructor(private readonly pageService: PageService) {}
 
   @Post()
-  async createPage(): Promise<ApiResponse<any>> {
+  async createPage(@Body() body: { cols: number[] }): Promise<ApiResponse<any>> {
+    const { cols } = body;
+    if (!Array.isArray(cols) || !cols.every((col) => typeof col === 'number')) {
+      return new ApiResponse(false, null, 'Invalid input: cols must be an array of bigints', HttpStatus.BAD_REQUEST);
+    }
+
     try {
-      const page = await this.pageService.createPage();
+      const page = await this.pageService.createPage(cols);
       if (!page) {
         return new ApiResponse(false, null, 'Page not Created', HttpStatus.NOT_FOUND);
       }
-      // Wrap the Pg attribute inside the Page object
+
       const data = {
         Page: {
           Pg: page.Pg,
+          Cols: page.Cols,
         },
       };
 
@@ -49,6 +55,7 @@ export class PageController {
       const data = {
         Page: {
           Pg: page.Pg,
+          Cols: page.Cols,
         },
       };
 
@@ -73,6 +80,7 @@ export class PageController {
       const data = {
         updated_Page: {
           Pg: updatedPage.Pg,
+          Cols: updatedPage.Cols,
         },
       };
 
@@ -168,10 +176,15 @@ export class PageController {
   }
   // Create Page with Format record
   @Post('createpageformat')
-  async createPageWithFormat(): Promise<ApiResponse<any>> {
+  async createPageWithFormat(@Body() body: { cols: number[] }): Promise<ApiResponse<any>> {
+    const { cols } = body;
+    if (!Array.isArray(cols) || !cols.every((col) => typeof col === 'number')) {
+      return new ApiResponse(false, null, 'Invalid input: cols must be an array of bigints', HttpStatus.BAD_REQUEST);
+    }
+
     try {
       // Call the service to create the Page and Format
-      const result = await this.pageService.createPageWithFormat();
+      const result = await this.pageService.createPageWithFormat(cols);
 
       // Structure the response data
       const responseData = {
@@ -184,6 +197,7 @@ export class PageController {
             Object: result.createdFormat.Object,
             User: result.createdFormat.User,
             ObjectType: result.createdFormat.ObjectType,
+            PgCols: result.createdFormat.PgCols, // Include PgCols in the response
           },
         },
       };

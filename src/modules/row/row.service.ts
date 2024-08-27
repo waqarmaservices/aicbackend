@@ -135,38 +135,46 @@ export class RowService {
       .getOne();
   }
   async createRowWithFormat(payload: any): Promise<{ createdRow: Row; createdFormat: Format; createdCells: Cell[] }> {
-    // Step 1: Create the Row entity
-    const createdRow = await this.rowRepository.save({
-      Pg: payload.Pg,
-      RowLevel: payload.RowLevel,
-      ParentRow: payload.ParentRow,
-      SiblingRow: payload.SiblingRow,
+    // Step 1: Create the row data
+    const rowData = this.rowRepository.create(payload);
+    const savedRow = await this.rowRepository.save(rowData);
+
+    const savedRowId = (savedRow as unknown as Row).Row;
+
+    // Step 2: Fetch the saved row with all relations to return a complete response
+    const completeRow = await this.rowRepository.findOne({
+      where: { Row: savedRowId },
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'],
     });
 
-    // Step 2: Create the Format entity
-    const createdFormat = await this.formatService.createFormat({
-      User: SYSTEM_INITIAL.USER_ID as any,
-      ObjectType: SYSTEM_INITIAL.ROW as any,
-      Object: createdRow.Row,
-    });
+    if (!completeRow) {
+      throw new Error('Row not found after creation');
+    }
 
-    // Step 3: Identify the column IDs using PageService
-    const pageColumns = await this.pageService.getPageColumnsids(payload.Pg);
-    const columnIds = pageColumns.column_names.map((col) => col.column_id);
+    // Step 3: Create the Format entity
+    const formatPayload = {
+      User: SYSTEM_INITIAL.USER_ID,
+      ObjectType: SYSTEM_INITIAL.ROW,
+      Object: completeRow.Row,
+    };
+    const createdFormat = await this.formatService.createFormat(formatPayload);
 
-    // Step 4: Create cells for each column ID
+    // Step 4: Extract column IDs from the `Pg.Cols` string
+    const columnIdsString = completeRow.Pg.Cols as unknown as string; // Assuming Cols is a string
+    const columnIds = columnIdsString.replace(/[{}]/g, '').split(','); // Remove braces and split by comma
+
+    // Step 5: Create cells for each column ID
     const createdCells: Cell[] = [];
     for (const colId of columnIds) {
-      const createdCell = await this.cellService.createCell({
-        Row: createdRow.Row,
-        Col: colId,
-        // Add any additional properties needed for the cell here
-      });
+      const cellData = {
+        Row: completeRow.Row,
+        Col: parseInt(colId), // Convert the column ID to a number
+      };
+      const createdCell = await this.cellService.createCell(cellData);
       createdCells.push(createdCell);
     }
 
-    // Return the created row, format, and cells
-    return { createdRow, createdFormat, createdCells };
+    return { createdRow: completeRow, createdFormat, createdCells };
   }
 
   async getRowsByPgs(Pgs: number[]): Promise<Row[]> {

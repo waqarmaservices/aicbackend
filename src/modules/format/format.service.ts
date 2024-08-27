@@ -23,6 +23,8 @@ export class FormatService {
         'ObjectType',
         'PgNestedCol',
         'PgLevelSet',
+        'PgCols',
+        'CellItems',
         'PgSearchSet',
         'RowSetTick',
         'Owner',
@@ -58,6 +60,10 @@ export class FormatService {
     return this.findOne(id);
   }
 
+  async updateFormatByObject(Object: number, updateData: Partial<Format>) {
+    await this.formatRepository.update({ Object: Object }, updateData);
+  }
+
   async deleteFormat(id: number): Promise<Format | null> {
     const format = await this.formatRepository.findOne({
       where: { Format: id },
@@ -68,6 +74,8 @@ export class FormatService {
         'PgLevelSet',
         'PgSearchSet',
         'RowSetTick',
+        'PgCols',
+        'CellItems',
         'Owner',
         'Default',
         'Unit',
@@ -173,31 +181,31 @@ export class FormatService {
     let format = await this.formatRepository.findOne({ where: { Object: itemId } });
 
     if (!format) {
-        // If no match is found, create a new format entry
-        format = new Format();
-        format.Object = itemId;
-        format.User = userId as any;
-        format.ObjectType = SYSTEM_INITIAL.ROW as any; // Reference to the Row entity
-        format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
-        format.DeletedBy = userId as any; // Reference to the User entity
-        format.DeletedAt = new Date();
+      // If no match is found, create a new format entry
+      format = new Format();
+      format.Object = itemId;
+      format.User = userId as any;
+      format.ObjectType = SYSTEM_INITIAL.ROW as any; // Reference to the Row entity
+      format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
+      format.DeletedBy = userId as any; // Reference to the User entity
+      format.DeletedAt = new Date();
     } else {
-        // Optionally, update existing format details if necessary
-        format.DeletedBy = userId as any; // Reference to the User entity
-        format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
-        format.DeletedAt = new Date();
+      // Optionally, update existing format details if necessary
+      format.DeletedBy = userId as any; // Reference to the User entity
+      format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
+      format.DeletedAt = new Date();
     }
 
     // Save the format entry
     return await this.formatRepository.save(format);
-}
-// check the column id exist in format and update the format table 
-async editColumnFormat(colid: number, updateData: Partial<Format>): Promise<Format> {
+  }
+  // check the column id exist in format and update the format table
+  async editColumnFormat(colid: number, updateData: Partial<Format>): Promise<Format> {
     // Find the format entry by the colid (stored in the Object field)
     const format = await this.formatRepository.findOne({ where: { Object: colid } });
 
     if (!format) {
-        throw new Error('Format not found');
+      throw new Error('Format not found');
     }
 
     // Update the format entry with the provided data
@@ -205,5 +213,23 @@ async editColumnFormat(colid: number, updateData: Partial<Format>): Promise<Form
 
     // Save the updated format entry
     return await this.formatRepository.save(format);
-}
+  }
+  // Update Page Format
+  async updatePageFormat(Pg: number, userId: number, updateFormat: Partial<Format>): Promise<Format> {
+    // Find the format entry by the page Id (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: Pg } });
+
+    if (!format) {
+      throw new Error('Format not found');
+    }
+
+    // Update the format fields with the new values from the DTO
+    Object.assign(format, updateFormat);
+
+    // Set the User entity reference
+    format.User = userId as any;
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
 }

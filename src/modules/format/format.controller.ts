@@ -21,9 +21,9 @@ export class FormatController {
           Container: format.Container,
           PgSort: format.PgSort,
           PgFilter: format.PgFilter,
-          ColOrder: format.ColOrder,
+          PgCols: format.PgCols,
+          CellItems: format.CellItems,
           ColMinWidth: format.ColMinWidth,
-          ItemOrder: format.ItemOrder,
           Status: format.Status,
           FontStyle: format.FontStyle,
           Formula: format.Formula,
@@ -72,9 +72,9 @@ export class FormatController {
           Container: format.Container,
           PgSort: format.PgSort,
           PgFilter: format.PgFilter,
-          ColOrder: format.ColOrder,
+          PgCols: format.PgCols,
+          CellItems: format.CellItems,
           ColMinWidth: format.ColMinWidth,
-          ItemOrder: format.ItemOrder,
           Status: format.Status,
           FontStyle: format.FontStyle,
           Formula: format.Formula,
@@ -112,9 +112,9 @@ export class FormatController {
           Container: updateData.Container,
           PgSort: updateData.PgSort,
           PgFilter: updateData.PgFilter,
-          ColOrder: updateData.ColOrder,
+          PgCols: updateData.PgCols,
+          CellItems: updateData.CellItems,
           ColMinWidth: updateData.ColMinWidth,
-          ItemOrder: updateData.ItemOrder,
           Status: updateData.Status,
           FontStyle: updateData.FontStyle,
           Formula: updateData.Formula,
@@ -225,75 +225,102 @@ export class FormatController {
     }
   }
   @Put('check-update-format/:itemId')
-    async checkAndUpdateFormat(
-        @Body('itemId') itemId: number,
-        @Body('userId') userId: number,
-    ): Promise<ApiResponse<any>> {
-        try {
-            const updatedFormat = await this.formatService.checkAndUpdateFormat(itemId, userId);
+  async checkAndUpdateFormat(
+    @Body('itemId') itemId: number,
+    @Body('userId') userId: number,
+  ): Promise<ApiResponse<any>> {
+    try {
+      const updatedFormat = await this.formatService.checkAndUpdateFormat(itemId, userId);
 
-            const responseData: any = {
-                Format: {
-                    Format: updatedFormat.Format,
-                    Object: updatedFormat.Object?.toString(),
-                    ObjectType: updatedFormat.ObjectType?.toString(),
-                    User: updatedFormat.User?.toString(),
-                    Deleted: updatedFormat.Deleted?.toString(),
-                    DeletedBy: updatedFormat.DeletedBy?.toString(),
-                    DeletedAt: updatedFormat.DeletedAt?.toISOString(),
-                    
-                },
-            };
-            return new ApiResponse(true, responseData, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      const responseData: any = {
+        Format: {
+          Format: updatedFormat.Format,
+          Object: updatedFormat.Object?.toString(),
+          ObjectType: updatedFormat.ObjectType?.toString(),
+          User: updatedFormat.User?.toString(),
+          Deleted: updatedFormat.Deleted?.toString(),
+          DeletedBy: updatedFormat.DeletedBy?.toString(),
+          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+        },
+      };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    @Put('edit-column/:colid')
-    async editColumnFormat(
-        @Param('colid') colid: number,
-        @Body() updateData: Partial<any>,
-    ): Promise<ApiResponse<any>> {
-        try {
-            const updatedFormat = await this.formatService.editColumnFormat(colid, updateData);
-            
-            if (!updatedFormat) {
-                return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
-            }
-    
-            // Construct the response data with the desired nested structure
-            const data = {
-                Updated_Format: {
-                    Format: updateData.Format,
-                    Object: updateData.Object,
-                    ObjectType: updateData.ObjectType, // Nested ObjectType
-                    Container: updateData.Container,
-                    PgSort: updateData.PgSort,
-                    PgFilter: updateData.PgFilter,
-                    ColOrder: updateData.ColOrder,
-                    ColMinWidth: updateData.ColMinWidth,
-                    ItemOrder: updateData.ItemOrder,
-                    Status: updateData.Status,
-                    FontStyle: updateData.FontStyle,
-                    Formula: updateData.Formula,
-                    Comment: updateData.Comment,
-                    DeletedAt: updateData.DeletedAt,
-                    User: updateData.User, // Nested User
-                    PgNestedCol: updateData.PgNestedCol, // Nested PgNestedCol
-                    PgLevelSet: updateData.PgLevelSet, // Nested PgLevelSet
-                    PgSearchSet: updateData.PgSearchSet, // Nested PgSearchSet
-                    RowSetTick: updateData.RowSetTick, // Nested RowSetTick
-                    Owner: updateData.Owner, // Nested Owner
-                    Default: updateData.Default, // Nested Default
-                    Deleted: updateData.Deleted, // Nested Deleted
-                    DeletedBy: updateData.DeletedBy, // Nested DeletedBy
-                },
-            };
-    
-            return new ApiResponse(true, data, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+  }
+  @Put('edit-column/:colid')
+  async editColumnFormat(@Param('colid') colid: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+    try {
+      const updatedFormat = await this.formatService.editColumnFormat(colid, updateData);
+
+      if (!updatedFormat) {
+        return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Construct the response data with the desired nested structure
+      const data = {
+        Updated_Format: {
+          Format: updateData.Format,
+          Object: updateData.Object,
+          ObjectType: updateData.ObjectType, // Nested ObjectType
+          Container: updateData.Container,
+          PgSort: updateData.PgSort,
+          PgFilter: updateData.PgFilter,
+          PgCols: updateData.PgCols,
+          CellItems: updateData.CellItems,
+          ColMinWidth: updateData.ColMinWidth,
+          Status: updateData.Status,
+          FontStyle: updateData.FontStyle,
+          Formula: updateData.Formula,
+          Comment: updateData.Comment,
+          DeletedAt: updateData.DeletedAt,
+          User: updateData.User, // Nested User
+          PgNestedCol: updateData.PgNestedCol, // Nested PgNestedCol
+          PgLevelSet: updateData.PgLevelSet, // Nested PgLevelSet
+          PgSearchSet: updateData.PgSearchSet, // Nested PgSearchSet
+          RowSetTick: updateData.RowSetTick, // Nested RowSetTick
+          Owner: updateData.Owner, // Nested Owner
+          Default: updateData.Default, // Nested Default
+          Deleted: updateData.Deleted, // Nested Deleted
+          DeletedBy: updateData.DeletedBy, // Nested DeletedBy
+        },
+      };
+
+      return new ApiResponse(true, data, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    
+  }
+  @Put('update-PgFormat/:Pg')
+  async updatePageFormat(
+    @Param('Pg') Pg: number,
+    @Body('userId') userId: number,
+    @Body() updateFormat: Partial<any>,
+  ): Promise<ApiResponse<any>> {
+    try {
+      const updatedFormat = await this.formatService.updatePageFormat(Pg, userId, updateFormat);
+
+      // Build the response data with updated attributes
+      const responseData: any = {
+        Updated_Page_Format: {
+          Format: updatedFormat.Format?.toString(),
+          Object: updatedFormat.Object?.toString(),
+          User: updatedFormat.User?.toString(),
+          PgNestedCol: updatedFormat.PgNestedCol,
+          PgFreezeCol: updatedFormat.PgFreezeCol,
+          PgExpand: updatedFormat.PgExpand,
+          PgSort: updatedFormat.PgSort,
+          PgFilter: updatedFormat.PgFilter,
+          PgLevelSet: updatedFormat.PgLevelSet,
+          PgSearchSet: updatedFormat.PgSearchSet,
+          FontStyle: updatedFormat.FontStyle,
+          Comment: updatedFormat.Comment,
+          TxList: updatedFormat.TxList,
+        },
+      };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import { Row } from 'modules/row/row.entity';
 import { Format } from 'modules/format/format.entity';
-import { Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 /**
  * Represents a page entity in the system.
@@ -17,9 +17,12 @@ export class Page {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Pg: number;
 
+  @Column('bigint', { array: true })
+  Cols: number[];
+
   @OneToMany(() => Row, (row) => row.Pg)
   rows: Row[];
-  PageName: string;
+  //   PageName: string;
 
   @OneToMany(() => Format, (format) => format.formatObject)
   formats: Format[];
