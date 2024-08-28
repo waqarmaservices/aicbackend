@@ -433,4 +433,60 @@ export class FormatController {
             return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    @Put('local-row/:rowid')
+    async updatelocalrow(@Param('rowId') rowId: number, @Body('userId') userId: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.updatelocalrow(rowId, userId, updateData);
+
+            if (!updatedFormat) {
+                return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                updated_local_item: {
+                    Format: updateData.Format || updatedFormat.Format,
+                    User: updateData.User || updatedFormat.User,
+                    local_row_ID: updateData.Object || updatedFormat.Object,
+                    row_Status: updateData.Status || updatedFormat.Status,
+                    row_type: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+                    row_FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+                    row_Comment: updateData.Comment || updatedFormat.Comment,
+                    Row_Transactions: updateData.TxList || updatedFormat.TxList,
+                },
+            };
+
+            return new ApiResponse(true, data, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @Put('shared-row/:rowId')
+    async updatesharedrow(@Param('rowId') rowId: number, @Body('userId') userId: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.updatesharedrow(rowId, userId, updateData);
+
+            if (!updatedFormat) {
+                return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Construct the response data with the desired nested structure
+            const data = {
+                updated_shared_item: {
+                    Format: updateData.Format || updatedFormat.Format,
+                    User: updateData.User || updatedFormat.User,
+                    shared_row_ID: updateData.Object || updatedFormat.Object,
+                    row_Status: updateData.Status || updatedFormat.Status,
+                    row_type: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+                    row_FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+                    row_Comment: updateData.Comment || updatedFormat.Comment,
+                    Row_Transactions: updateData.TxList || updatedFormat.TxList,
+                },
+            };
+
+            return new ApiResponse(true, data, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
