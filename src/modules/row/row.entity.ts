@@ -16,7 +16,7 @@ export class Row {
    *
    * This is an auto-incrementing bigint value.
    */
-  @PrimaryColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   Row: number;
 
   @ManyToOne(() => Page, { eager: true })
