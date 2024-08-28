@@ -464,7 +464,7 @@ export class FormatController {
 
       // Construct the response data with the desired nested structure
       const data = {
-        updated_local_item: {
+        updated_local_row: {
           Format: updateData.Format || updatedFormat.Format,
           User: updateData.User || updatedFormat.User,
           local_row_ID: updateData.Object || updatedFormat.Object,
@@ -496,7 +496,7 @@ export class FormatController {
 
       // Construct the response data with the desired nested structure
       const data = {
-        updated_shared_item: {
+        updated_shared_row: {
           Format: updateData.Format || updatedFormat.Format,
           User: updateData.User || updatedFormat.User,
           shared_row_ID: updateData.Object || updatedFormat.Object,
