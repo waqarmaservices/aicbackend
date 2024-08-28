@@ -207,4 +207,43 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  /**
+   * Handles updating the order of columns for a given page.
+   *
+   * @param {number} Pg - The page identifier.
+   * @param {Object} body - The request body containing the updated column order.
+   * @param {number[]} body.PgCols - An array of column identifiers in the new order.
+   *
+   * @description
+   * This method updates the order of columns for the specified page (`Pg`). It first validates the input to ensure
+   * `PgCols` is an array of numbers. If the input is valid, the method calls the `pageService.updatePageColsOrder`
+   * method to perform the update. The response data includes the updated format information for the page.
+   * If an error occurs, a relevant error message is returned.
+   *
+   * @returns {Promise<ApiResponse>} The reponse of Pg Cols.
+   */
+  @Put(':Pg/updatePageColsOrder')
+  async updatePageColsOrder(@Param('Pg') Pg: number, @Body() body: { PgCols: number[] }) {
+    try {
+      const { PgCols } = body;
+      if (!Array.isArray(PgCols) || !PgCols.length || !PgCols.every((col) => typeof col === 'number')) {
+        return new ApiResponse(false, null, 'Invalid input: cols must be an array of number', HttpStatus.BAD_REQUEST);
+      }
+      // Call the service to update the Pg cols in tFormat
+      const pgFormatRecord = await this.pageService.updatePageColsOrder(Pg, PgCols);
+
+      // Structure the response data
+      const responseData = {
+        Pg: {
+          Pg: pgFormatRecord.Object,
+        },
+        Format: pgFormatRecord,
+      };
+
+      return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
