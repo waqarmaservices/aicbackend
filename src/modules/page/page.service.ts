@@ -534,21 +534,20 @@ export class PageService {
   private async getOrderedPageColumns(Pg: number, pageColumns: any[]): Promise<any[]> {
     // Retrieve the page format by column name
     const pageFormat = await this.formatService.findOneByColumnName('Object', Pg.toString());
-    
+
     // Extract and clean the ordered column IDs from the format
-    const orderedColumnIds = pageFormat.PgCols
-      .toString()
+    const orderedColumnIds = pageFormat.PgCols.toString()
       .replace(/[{}]/g, '')
       .split(',')
-      .map(id => id.trim());
+      .map((id) => id.trim());
 
     // Map through the orderedColumnIds to find and order the corresponding columns from pageColumns
-    const orderedColumns = orderedColumnIds.map(orderedColId =>
-      pageColumns.find((col: any) => col.col === orderedColId)
-    ).filter(Boolean); // Filter out any undefined values
+    const orderedColumns = orderedColumnIds
+      .map((orderedColId) => pageColumns.find((col: any) => col.col === orderedColId))
+      .filter(Boolean); // Filter out any undefined values
 
     // Filter and collect columns that are hidden
-    const hiddenColumns = pageColumns.filter(col => col.status.includes('Hidden'));
+    const hiddenColumns = pageColumns.filter((col) => col.status.includes('Hidden'));
 
     // Combine ordered columns with hidden columns
     return [...orderedColumns, ...hiddenColumns];
@@ -610,21 +609,20 @@ export class PageService {
 
   private async parseItemIds(items: string, cell: Cell): Promise<number[]> {
     if (items) {
-        let cellItems = items
+      let cellItems = items
         .replace(/[{}]/g, '')
         .split(',')
         .map((id) => parseInt(id.trim(), 10))
         .filter((id) => !isNaN(id));
-  
+
       // Cell have more than one items, means it has an item order
       if (cellItems.length > 1) {
         const cellFormat = await this.formatService.findOneByColumnName('Object', cell.Cell.toString());
-        cellItems = cellFormat.CellItems
-        .toString()
-        .replace(/[{}]/g, '')
-        .split(',')
-        .map((id) => parseInt(id.trim(), 10))
-        .filter((id) => !isNaN(id));
+        cellItems = cellFormat.CellItems.toString()
+          .replace(/[{}]/g, '')
+          .split(',')
+          .map((id) => parseInt(id.trim(), 10))
+          .filter((id) => !isNaN(id));
       }
       return cellItems;
     }
