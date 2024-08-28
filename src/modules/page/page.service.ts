@@ -609,24 +609,26 @@ export class PageService {
   }
 
   private async parseItemIds(items: string, cell: Cell): Promise<number[]> {
-    let cellItems = items
-      .replace(/[{}]/g, '')
-      .split(',')
-      .map((id) => parseInt(id.trim(), 10))
-      .filter((id) => !isNaN(id));
-
-    // Cell have more than one items, means it has an item order
-    if (cellItems.length > 1) {
-      const cellFormat = await this.formatService.findOneByColumnName('Object', cell.Cell.toString());
-      cellItems = cellFormat.CellItems
-      .toString()
-      .replace(/[{}]/g, '')
-      .split(',')
-      .map((id) => parseInt(id.trim(), 10))
-      .filter((id) => !isNaN(id));
+    if (items) {
+        let cellItems = items
+        .replace(/[{}]/g, '')
+        .split(',')
+        .map((id) => parseInt(id.trim(), 10))
+        .filter((id) => !isNaN(id));
+  
+      // Cell have more than one items, means it has an item order
+      if (cellItems.length > 1) {
+        const cellFormat = await this.formatService.findOneByColumnName('Object', cell.Cell.toString());
+        cellItems = cellFormat.CellItems
+        .toString()
+        .replace(/[{}]/g, '')
+        .split(',')
+        .map((id) => parseInt(id.trim(), 10))
+        .filter((id) => !isNaN(id));
+      }
+      return cellItems;
     }
-
-    return cellItems;
+    return [];
   }
 
   private async enrichData(data: any[]): Promise<any[]> {
