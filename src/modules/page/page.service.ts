@@ -992,4 +992,11 @@ export class PageService {
     // Return both created entities
     return { createdPage, createdFormat };
   }
+
+  async updatePageColsOrder(Pg: number, PgCols: number[]) {
+    const pgFormatRecord = await this.formatService.findOneByColumnName('Object', Pg);
+
+    const updatedPgFormatRecord = await this.formatService.updateFormat(pgFormatRecord.Format, { PgCols });
+    return updatedPgFormatRecord;
+  }
 }

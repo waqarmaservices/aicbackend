@@ -101,7 +101,7 @@ export class FormatService {
     });
   }
 
-  async findOneByColumnName(colName: string, colValue: string): Promise<Format> {
+  async findOneByColumnName<T extends string | number>(colName: string, colValue: T): Promise<Format> {
     return this.formatRepository.findOne({
       where: { [colName]: colValue },
     });
