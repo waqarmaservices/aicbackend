@@ -67,21 +67,6 @@ export class FormatService {
   async deleteFormat(id: number): Promise<Format | null> {
     const format = await this.formatRepository.findOne({
       where: { Format: id },
-      relations: [
-        'User',
-        'ObjectType',
-        'PgNestedCol',
-        'PgLevelSet',
-        'PgSearchSet',
-        'RowSetTick',
-        'PgCols',
-        'CellItems',
-        'Owner',
-        'Default',
-        'Unit',
-        'Deleted',
-        'DeletedBy',
-      ], // Include all necessary relations
     });
 
     if (!format) {
@@ -101,7 +86,7 @@ export class FormatService {
     });
   }
 
-  async findOneByColumnName(colName: string, colValue: string): Promise<Format> {
+  async findOneByColumnName<T extends string | number>(colName: string, colValue: T): Promise<Format> {
     return this.formatRepository.findOne({
       where: { [colName]: colValue },
     });
@@ -232,76 +217,112 @@ export class FormatService {
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }
-    // update the local Coll
-    async updatelocalcolls(colid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-        // Find the format entry by the colid (stored in the Object field)
-        const format = await this.formatRepository.findOne({ where: { Object: colid } });
+  // update the local Coll
+  async updatelocalcolls(colid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the colid (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: colid } });
 
-        if (!format) {
-            throw new Error('Format not found');
-        }
-
-        // Update the format entry with the provided data
-        Object.assign(format, updateData);
-
-        // Set the User entity reference
-        format.User = userId as any;
-
-        // Save the updated format entry
-        return await this.formatRepository.save(format);
+    if (!format) {
+      throw new Error('Format not found');
     }
-    // update the shared Coll
-    async updatesharedcolls(colid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-        // Find the format entry by the colid (stored in the Object field)
-        const format = await this.formatRepository.findOne({ where: { Object: colid } });
 
-        if (!format) {
-            throw new Error('Format not found');
-        }
+    // Update the format entry with the provided data
+    Object.assign(format, updateData);
 
-        // Update the format entry with the provided data
-        Object.assign(format, updateData);
+    // Set the User entity reference
+    format.User = userId as any;
 
-        // Set the User entity reference
-        format.User = userId as any;
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
+  // update the shared Coll
+  async updatesharedcolls(colid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the colid (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: colid } });
 
-        // Save the updated format entry
-        return await this.formatRepository.save(format);
+    if (!format) {
+      throw new Error('Format not found');
     }
-    // update the local item
-    async updatelocalitem(itemId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-        // Find the format entry by the itemId (stored in the Object field)
-        const format = await this.formatRepository.findOne({ where: { Object: itemId } });
 
-        if (!format) {
-            throw new Error('Format not found');
-        }
+    // Update the format entry with the provided data
+    Object.assign(format, updateData);
 
-        // Update the format entry with the provided data
-        Object.assign(format, updateData);
+    // Set the User entity reference
+    format.User = userId as any;
 
-        // Set the User entity reference
-        format.User = userId as any;
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
+  // update the local item
+  async updatelocalitem(itemId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the itemId (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: itemId } });
 
-        // Save the updated format entry
-        return await this.formatRepository.save(format);
+    if (!format) {
+      throw new Error('Format not found');
     }
-    // update the shared item
-    async updateshareditem(itemId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-        // Find the format entry by the itemId (stored in the Object field)
-        const format = await this.formatRepository.findOne({ where: { Object: itemId } });
 
-        if (!format) {
-            throw new Error('Format not found');
-        }
+    // Update the format entry with the provided data
+    Object.assign(format, updateData);
 
-        // Update the format entry with the provided data
-        Object.assign(format, updateData);
+    // Set the User entity reference
+    format.User = userId as any;
 
-        // Set the User entity reference
-        format.User = userId as any;
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
+  // update the shared item
+  async updateshareditem(itemId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the itemId (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: itemId } });
 
-        // Save the updated format entry
-        return await this.formatRepository.save(format);
+    if (!format) {
+      throw new Error('Format not found');
     }
+
+    // Update the format entry with the provided data
+    Object.assign(format, updateData);
+
+    // Set the User entity reference
+    format.User = userId as any;
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
+  // update the local row
+  async updatelocalrow(rowid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the rowid (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: rowid } });
+
+    if (!format) {
+      throw new Error('Format not found');
+    }
+
+    // Update the format entry with the provided data
+    Object.assign(format, updateData);
+
+    // Set the User entity reference
+    format.User = userId as any;
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
+  // update the shared row
+  async updatesharedrow(rowId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the itemId (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: rowId } });
+
+    if (!format) {
+      throw new Error('Format not found');
+    }
+
+    // Update the format entry with the provided data
+    Object.assign(format, updateData);
+
+    // Set the User entity reference
+    format.User = userId as any;
+
+    // Save the updated format entry
+    return await this.formatRepository.save(format);
+  }
 }

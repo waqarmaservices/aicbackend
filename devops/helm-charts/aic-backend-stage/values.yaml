@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: us.gcr.io/aicproject-424013/aic-backend-dev
+  repository: us.gcr.io/aicproject-424013/aic-backend-stage
   pullPolicy: Always
   tag: 4853ce43cc6598901cf3ed1f42276f807e99ea43
 
@@ -44,12 +44,12 @@ ingress:
   className: "gce"
   annotations:
     kubernetes.io/ingress.class: "gce"
-    #kubernetes.io/ingress.global-static-ip-name: aic-backend-dev
-    # networking.gke.io/managed-certificates: aic-backend-dev
+    #kubernetes.io/ingress.global-static-ip-name: aic-backend-stage
+    # networking.gke.io/managed-certificates: aic-backend-stage
     #networking.gke.io/v1beta1.FrontendConfig: "https-redirect"
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: "aicbackdev.microagility.com"
+    - host: "aicbackstage.microagility.com"
       paths:
         - path: /*
           pathType: ImplementationSpecific
