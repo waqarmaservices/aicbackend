@@ -653,6 +653,7 @@ export class PageService {
       let status = null;
       let rowType = null;
       let colFormula = null;
+      let pageColOwner = null;
       if (format?.Comment) {
         for (const key in format?.Comment) {
           if (format?.Comment.hasOwnProperty(key)) {
@@ -660,6 +661,10 @@ export class PageService {
             break; // want the first key-value pair
           }
         }
+      }
+
+      if (objectKey == 'page' || objectKey == 'col') {
+        pageColOwner = 'Admin';
       }
 
       if (format?.Formula && objectKey == 'col') {
@@ -700,6 +705,7 @@ export class PageService {
         ...record,
         [`${objectKey}_comment`]: comment ?? null,
         [`${objectKey}_status`]: status ?? null,
+        [`${objectKey}_owner`]: pageColOwner ?? null,
         [`row_type`]: rowType ?? null,
         ...(colFormula ? { [`col_formula`]: colFormula } : {}),
       };
