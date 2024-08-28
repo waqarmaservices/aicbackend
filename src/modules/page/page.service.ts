@@ -592,7 +592,7 @@ export class PageService {
       for (const cellEl of rowEl.cells) {
         const Cell = cellEl.Cell;
         const Col = cellEl.Col;
-        const itemIds = this.parseItemIds(cellEl.Items);
+        const itemIds = await this.parseItemIds(cellEl.Items, cellEl);
         const Items = await this.getItemValues(itemIds);
         const field = this.getFieldByCol(Col, pageColumns);
         rowsWithItems[Row].push({
@@ -608,12 +608,25 @@ export class PageService {
     return rowsWithItems;
   }
 
-  private parseItemIds(items: string): number[] {
-    return items
+  private async parseItemIds(items: string, cell: Cell): Promise<number[]> {
+    let cellItems = items
       .replace(/[{}]/g, '')
       .split(',')
       .map((id) => parseInt(id.trim(), 10))
       .filter((id) => !isNaN(id));
+
+    // Cell have more than one items, means it has an item order
+    if (cellItems.length > 1) {
+      const cellFormat = await this.formatService.findOneByColumnName('Object', cell.Cell.toString());
+      cellItems = cellFormat.CellItems
+      .toString()
+      .replace(/[{}]/g, '')
+      .split(',')
+      .map((id) => parseInt(id.trim(), 10))
+      .filter((id) => !isNaN(id));
+    }
+
+    return cellItems;
   }
 
   private async enrichData(data: any[]): Promise<any[]> {
