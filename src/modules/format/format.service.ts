@@ -304,4 +304,40 @@ export class FormatService {
         // Save the updated format entry
         return await this.formatRepository.save(format);
     }
+    // update the local row
+    async updatelocalrow(rowid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+        // Find the format entry by the rowid (stored in the Object field)
+        const format = await this.formatRepository.findOne({ where: { Object: rowid } });
+
+        if (!format) {
+            throw new Error('Format not found');
+        }
+
+        // Update the format entry with the provided data
+        Object.assign(format, updateData);
+
+        // Set the User entity reference
+        format.User = userId as any;
+
+        // Save the updated format entry
+        return await this.formatRepository.save(format);
+    }
+    // update the shared row
+    async updatesharedrow(rowId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+        // Find the format entry by the itemId (stored in the Object field)
+        const format = await this.formatRepository.findOne({ where: { Object: rowId } });
+
+        if (!format) {
+            throw new Error('Format not found');
+        }
+
+        // Update the format entry with the provided data
+        Object.assign(format, updateData);
+
+        // Set the User entity reference
+        format.User = userId as any;
+
+        // Save the updated format entry
+        return await this.formatRepository.save(format);
+    }
 }
