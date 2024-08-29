@@ -2,7 +2,7 @@
 
 ## Description
 
-AIC Backend Description.
+AIC Backend Description
 
 ## Installation
 
