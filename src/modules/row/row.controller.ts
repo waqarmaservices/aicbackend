@@ -120,12 +120,13 @@ export class RowController {
   @Post('PgRow')
   async createPgRow(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
-      const { createdPage, createdRow, createdFormat, createdCells } = await this.rowService.createPgRow(payload);
-  
+      // Call the updated service function
+      const { createdPage, createdRow, createdFormats,createdCells } = await this.rowService.createPgRow(payload);
+
       if (!createdRow) {
         return new ApiResponse(false, null, 'Row not created', HttpStatus.NOT_FOUND);
       }
-  
+
       // Construct the response structure
       const responseData = {
         'Add-Row': {
@@ -135,20 +136,20 @@ export class RowController {
           },
           createdRow: {
             Row: createdRow.Row,
-            Pg: createdRow.Pg, // This includes the Page details
-            Share: createdRow.Share, // This includes the Share Row details
+            Pg: createdRow.Pg,  // This includes the original Page details from the payload
+            Share: createdRow.Share,  // This includes the Share Row details
             Inherit: createdRow.Inherit,
             RowType: createdRow.RowType,
             RowLevel: createdRow.RowLevel,
-            ParentRow: createdRow.ParentRow, // This includes the Parent Row details
-            SiblingRow: createdRow.SiblingRow, // This includes the Sibling Row details
+            ParentRow: createdRow.ParentRow,  // This includes the Parent Row details
+            SiblingRow: createdRow.SiblingRow,  // This includes the Sibling Row details
           },
-          createdFormat: {
-            Format: createdFormat.Format,
-            Object: createdFormat.Object,
-            User: createdFormat.User,
-            ObjectType: createdFormat.ObjectType,
-          },
+          createdFormats: createdFormats.map((format) => ({
+            Format: format.Format,
+            Object: format.Object,
+            User: format.User,
+            ObjectType: format.ObjectType,
+          })),
           createdCells: createdCells.map((cell) => ({
             Col: cell.Col,
             Row: cell.Row,
@@ -156,8 +157,8 @@ export class RowController {
           })),
         },
       };
-  
-      return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
+
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
