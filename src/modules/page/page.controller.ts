@@ -241,9 +241,6 @@ export class PageController {
         Format: pgFormatRecord,
       };
 
-      // Clear page cache on page columns order updation
-      await this.pageService.clearPageCache(Pg.toString());
-
       return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);

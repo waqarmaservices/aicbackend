@@ -568,7 +568,7 @@ export class PageService {
     }
   }
 
-  public async getPageFromCache(cacheKey: string) {
+  private async getPageFromCache(cacheKey: string) {
     const cache: string = await this.cacheManager.get(cacheKey);
 
     return cache ? cache : false;
