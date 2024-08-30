@@ -136,51 +136,70 @@ export class RowService {
       .getOne();
   }
   
-  // Create Pg - Row 
-  async createPgRow(payload: any): Promise<{ createdPage: Page; createdRow: Row; createdFormat: Format; createdCells: Cell[] }> {
-    // Step 1: Create the Page entity using the PageService
- const createdPage = await this.pageService.createPage(payload.cols); // Pass the cols array from the payload
+// Create Pg - Row
+async createPgRow(payload: any): Promise<{ createdPage: Page; createdRow: Row; createdFormats: Format[]; createdCells: Cell[] }> {
+    // Step 1: Fetch the existing Page details using the Pg ID from the payload
+    const existingPage = await this.pageService.findOne(payload.Pg); // Assuming findOne is a method in pageService
+    if (!existingPage) {
+      throw new Error('Page not found with the provided Pg ID');
+    }
+    // Step 2: Create a new Page using the fixed column IDs
+    const fixedColIds = [2000000001, 2000000002, 2000000003, 2000000004, 2000000005, 2000000006];
+    const createdPage = await this.pageService.createPage(fixedColIds);
+  
+    // Step 3: Create the Row entity with the original Pg ID from the payload
+    const rowData = this.rowRepository.create({ 
+      ...payload, 
+      Pg: payload.Pg  // Use original Pg ID from the payload
+    });
+    const savedRow = await this.rowRepository.save(rowData);
+    const savedRowId = (savedRow as unknown as Row).Row;
+  
+    // Step 4: Fetch the saved Row with all relations to return a complete response
+    const completeRow = await this.rowRepository.findOne({
+      where: { Row: savedRowId },
+      relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'],
+    });
+    if (!completeRow) {
+      throw new Error('Row not found after creation');
+    }
+  
+    // Step 5: Create the first Format entity using the new Pg ID in the Object field
+    const formatPayloadPg = {
+      User: 3000000099,  
+      ObjectType: 3000000577, 
+      Object: createdPage.Pg,  // New Pg ID
+    };
+    const createdFormatPg = await this.formatService.createFormat(formatPayloadPg);
+  
+    // Step 6: Create the second Format entity using the new Row ID in the Object field
+    const formatPayloadRow = {
+      User: 3000000099,
+      ObjectType: 3000000588,
+      Object: completeRow.Row,  // New Row ID
+    };
+    const createdFormatRow = await this.formatService.createFormat(formatPayloadRow);
 
- // Step 2: Create the Row entity with the newly created Page
- const rowData = this.rowRepository.create({ 
-   ...payload, 
-   Pg: createdPage.Pg 
- });
- const savedRow = await this.rowRepository.save(rowData);
-
- const savedRowId = (savedRow as unknown as Row).Row;
-
- // Step 3: Fetch the saved Row with all relations to return a complete response
- const completeRow = await this.rowRepository.findOne({
-   where: { Row: savedRowId },
-   relations: ['Pg', 'Share', 'ParentRow', 'SiblingRow'],
- });
-
- if (!completeRow) {
-   throw new Error('Row not found after creation');
- }
-
- // Step 4: Create the Format entity using the payload values for `User` and `ObjectType`
- const formatPayload = {
-   User: payload.User,  // Use User from the payload
-   ObjectType: payload.ObjectType,  // Use ObjectType from the payload
-   Object: completeRow.Row,
- };
- const createdFormat = await this.formatService.createFormat(formatPayload);
-
- // Step 5: Create Cells for each column ID in the Page
- const createdCells: Cell[] = [];
- for (const colId of createdPage.Cols) {
-   const cellData = {
-     Row: completeRow.Row,
-     Col: colId,
-   };
-   const createdCell = await this.cellService.createCell(cellData);
-   createdCells.push(createdCell);
- }
-
- return { createdPage, createdRow: completeRow, createdFormat, createdCells };
-}
+    // Step 7: Create Cells for each fixed column ID using the new Row ID
+    const createdCells: Cell[] = [];
+    for (let colId of fixedColIds) {
+  
+      // Create cell for each fixed column ID with the new Row ID
+      const cellData = {
+        Row: completeRow.Row,
+        Col: colId,
+      };
+      const createdCell = await this.cellService.createCell(cellData);
+      createdCells.push(createdCell);
+    }
+  
+    return { 
+      createdPage, 
+      createdRow: completeRow, 
+      createdFormats: [createdFormatPg, createdFormatRow], 
+      createdCells 
+    };
+  }
 
   async getRowsByPgs(Pgs: number[]): Promise<Row[]> {
     return await this.rowRepository.find({
