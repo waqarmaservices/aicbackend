@@ -509,7 +509,7 @@ export class PageService {
 
     const rowsWithItems = await this.extractRowsWithItems(page.rows, pageColumns);
 
-    const transformedData = this.transformData(rowsWithItems);
+    const transformedData = this.transformData(Pg, rowsWithItems);
 
     const enrichData = await this.enrichData(transformedData);
 
@@ -815,7 +815,7 @@ export class PageService {
     return columnFieldMap[col];
   }
 
-  transformData(data) {
+  transformData(pageId: number, data: any) {
     const transformedData = [];
 
     Object.keys(data).forEach((key) => {
@@ -843,6 +843,7 @@ export class PageService {
       finalPageObject['row'] = key;
       finalPageObject['RowLevel'] = rowLevel;
       finalPageObject['ParentRow'] = parentRow;
+      finalPageObject['page_id'] = pageId;
       transformedData.push(finalPageObject);
     });
 
