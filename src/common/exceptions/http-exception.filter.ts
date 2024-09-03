@@ -25,7 +25,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      message: exception.message,
+      message: exception.message || 'Something went wrong. Please try again',
       ...(isDevelopment && {
         stack: exception.stack,
       }),
