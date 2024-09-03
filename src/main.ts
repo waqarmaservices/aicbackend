@@ -7,8 +7,8 @@ import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 
 const excludedPaths = [
   { path: '/', method: RequestMethod.GET },
-  { path: 'error', method: RequestMethod.GET },
-  { path: 'app/logs', method: RequestMethod.GET },
+  { path: '/error', method: RequestMethod.GET },
+  { path: '/logs', method: RequestMethod.GET },
 ];
 
 async function bootstrap() {
