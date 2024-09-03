@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, Res } from '@nestjs/common';
 import { CellService } from './cell.service';
 import { ApiResponse } from '../../common/dtos/api-response.dto';
 import { Cell } from './cell.entity';
+import { Response } from 'express';
 
 @Controller('cell')
 export class CellController {
@@ -148,6 +149,32 @@ export class CellController {
       return new ApiResponse(true, data, '', HttpStatus.OK);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles updating the order of items for a given cell.
+   *
+   * @param {number} Cell - The Cell identifier.
+   * @param {Object} body - The request body containing the updated items order.
+   * @param {number[]} body.CellItems - An array of items identifiers in the new order.
+   *
+   * @returns {Promise<Response>} The response of Cell Items.
+   */
+  @Put(':Cell/updateCellItemsOrder')
+  async updatePageColsOrder(
+    @Param('Cell') Cell: number,
+    @Body() body: { CellItems: number[] },
+    @Res() res: Response,
+  ): Promise<Response> {
+    try {
+      const { CellItems } = body;
+      await this.cellService.updateCellItemsOrder(Cell, CellItems);
+      return res
+        .status(HttpStatus.OK)
+        .json(new ApiResponse(true, 'Cell items order updated successfully!', '', HttpStatus.OK));
+    } catch (error) {
+      throw error;
     }
   }
 }

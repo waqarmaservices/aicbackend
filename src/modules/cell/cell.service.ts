@@ -1,13 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cell } from './cell.entity';
+import { FormatService } from 'modules/format/format.service';
+import { ItemService } from 'modules/item/item.service';
+import { SYSTEM_INITIAL } from '../../constants';
 
 @Injectable()
 export class CellService {
   constructor(
     @InjectRepository(Cell)
     private readonly cellRepository: Repository<Cell>,
+    @Inject(forwardRef(() => ItemService))
+    private readonly itemService: ItemService,
+    @Inject(forwardRef(() => FormatService))
+    private readonly formatService: FormatService,
   ) {}
 
   async createCell(payload: any): Promise<Cell | null> {
@@ -74,5 +81,42 @@ export class CellService {
     return await this.cellRepository.find({
       where: { [columnName]: [value] },
     });
+  }
+
+  /**
+   * Updates the items order for a given cell.
+   *
+   * This method first retrieves the format record associated with the specified cell.
+   * If the format record is found, it updates the `CellItems` property with the provided list of item IDs.
+   *
+   * @param {number} Cell - The ID of the cell for which the items order needs to be updated.
+   * @param {number[]} CellItems - An array of item IDs representing the new order of items for the cell.
+   *
+   */
+  async updateCellItemsOrder(Cell: number, CellItems: number[]) {
+    const cell = await this.findOne(Cell);
+    if (!cell) {
+      throw new NotFoundException('Cell not found');
+    }
+    if (!Array.isArray(CellItems) || CellItems.length < 2 || !CellItems.every((col) => typeof col === 'number')) {
+      throw new BadRequestException('Invalid input: Items must be an array of at least two numbers');
+    }
+
+    const items = await this.itemService.getItemsByIds(CellItems);
+    if (!items || items.length === 0) {
+      throw new NotFoundException('No items found for the provided CellItems');
+    }
+    const cellFormatRecord = await this.formatService.findOneByColumnName('Object', cell.Cell);
+    if (!cellFormatRecord) {
+      // Call the service to create the tFormat record
+      await this.formatService.createFormat({
+        ObjectType: SYSTEM_INITIAL.CELL,
+        Object: cell.Cell,
+        CellItems: CellItems,
+      });
+    } else {
+      // Call the service to update the CellItems in tFormat
+      await this.formatService.updateFormatByObject(cell.Cell, { CellItems });
+    }
   }
 }
