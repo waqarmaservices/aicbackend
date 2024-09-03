@@ -119,48 +119,34 @@ export class RowController {
   }
   @Post('PgRow')
   async createPgRow(@Body() payload: any): Promise<ApiResponse<any>> {
-    try {
-      // Call the updated service function
-      const { createdPage, createdRow, createdFormats,createdCells } = await this.rowService.createPgRow(payload);
-
-      if (!createdRow) {
-        return new ApiResponse(false, null, 'Row not created', HttpStatus.NOT_FOUND);
+      try {
+          // Call the updated service function
+          const { createdPage, createdRow, } = await this.rowService.createPgRow(payload);
+          if (!createdRow) {
+              return new ApiResponse(false, null, 'Row not created', HttpStatus.NOT_FOUND);
+          }
+          // Construct the response structure
+          const responseData = {
+              'Add-Row': {
+                  createdPage: {
+                      Pg: createdPage.Pg,
+                      Cols: createdPage.Cols,
+                  },
+                  createdRow: {
+                      Row: createdRow.Row,
+                      Pg: createdRow.Pg, 
+                      Share: createdRow.Share, 
+                      Inherit: createdRow.Inherit,
+                      RowType: createdRow.RowType,
+                      RowLevel: createdRow.RowLevel,
+                      ParentRow: createdRow.ParentRow, 
+                      SiblingRow: createdRow.SiblingRow,
+                  },
+              },
+          };
+          return new ApiResponse(true, responseData, '', HttpStatus.OK);
+      } catch (error) {
+          return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-
-      // Construct the response structure
-      const responseData = {
-        'Add-Row': {
-          createdPage: {
-            Pg: createdPage.Pg,
-            Cols: createdPage.Cols,
-          },
-          createdRow: {
-            Row: createdRow.Row,
-            Pg: createdRow.Pg,  // This includes the original Page details from the payload
-            Share: createdRow.Share,  // This includes the Share Row details
-            Inherit: createdRow.Inherit,
-            RowType: createdRow.RowType,
-            RowLevel: createdRow.RowLevel,
-            ParentRow: createdRow.ParentRow,  // This includes the Parent Row details
-            SiblingRow: createdRow.SiblingRow,  // This includes the Sibling Row details
-          },
-          createdFormats: createdFormats.map((format) => ({
-            Format: format.Format,
-            Object: format.Object,
-            User: format.User,
-            ObjectType: format.ObjectType,
-          })),
-          createdCells: createdCells.map((cell) => ({
-            Col: cell.Col,
-            Row: cell.Row,
-            Cell: cell.Cell,
-          })),
-        },
-      };
-
-      return new ApiResponse(true, responseData, '', HttpStatus.OK);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
   }
 }
