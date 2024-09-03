@@ -1,29 +1,37 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { Logger } from '@nestjs/common';
+import { FileLogger } from '../logger/file-logger';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  logger = new Logger();
+  private readonly logger = new FileLogger(HttpExceptionFilter.name);
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = exception.getStatus();
-    this.logger.error(`Method: ${request.method} | originalUrl: ${request.originalUrl} | error: ${exception}`);
-    response.status(status).json({
-      error: true,
+    const status = exception.getStatus() || HttpStatus.INTERNAL_SERVER_ERROR;
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
+    // Log the error details
+    this.logger.error(
+      `HTTP ${status} Error: ${exception.message}`,
+      exception.stack,
+      `${request.method} ${request.originalUrl}`,
+    );
+
+    // Create the response body
+    const errorResponse = {
+      success: false,
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      exception:
-        process.env.NODE_ENV === 'development'
-          ? {
-              message: exception.message,
-              name: exception.name,
-              stack: exception.stack,
-            }
-          : exception.message,
-    });
+      message: exception.message,
+      ...(isDevelopment && {
+        stack: exception.stack,
+      }),
+    };
+
+    // Send the response
+    response.status(status).json(errorResponse);
   }
 }
