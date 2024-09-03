@@ -119,4 +119,49 @@ export class CellService {
       await this.formatService.updateFormatByObject(cell.Cell, { CellItems });
     }
   }
+    // Find Cell By Row and Coll ids
+    async findCellByColAndRow(colId: number, rowId: number): Promise<Cell> {
+        const cell = await this.cellRepository.findOne({
+            where: { Col: colId, Row: rowId },
+            relations: ['CellCol', 'CellRow', 'DataType'], // Include other relations as needed
+        });
+        if (!cell) {
+            throw new Error('Cell not found');
+        }
+        return cell;
+    }
+    // Update item Cell
+    async updateCellitem(id: number, updateData: Partial<any>): Promise<Cell> {
+        // Step 1: Find the existing Cell
+        const cell = await this.findOne(id);
+        if (!cell) {
+            throw new Error('Cell not found');
+        }
+        // Step 2: Merge existing Items with new Items if provided in updateData
+        if (updateData.Items) {
+            let existingItems: number[] = [];
+            // Assert that cell.Items is of type string or number[]
+            const items = cell.Items as string | number[];
+            // Check the type of existing cell.Items and parse it to an array
+            if (typeof items === 'string') {
+                existingItems = items
+                    .replace(/[{}]/g, '') // Remove curly braces
+                    .split(',')
+                    .filter(Boolean) // Remove empty strings
+                    .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+            } else if (Array.isArray(items)) {
+                existingItems = items;
+            }
+            // Ensure the new Items from updateData is an array
+            const newItems = Array.isArray(updateData.Items) ? updateData.Items : [updateData.Items];
+            // Merge new items with existing items, ensuring no duplicates
+            const mergedItems = [...new Set([...existingItems, ...newItems])];
+            // Convert the merged array back to the format needed by your database
+            updateData.Items = `{${mergedItems.join(',')}}`;
+        }
+        // Step 3: Update the cell with the merged Items
+        await this.cellRepository.update(id, updateData);
+        // Step 4: Return the updated Cell
+        return this.findOne(id);
+    }
 }
