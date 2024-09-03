@@ -4,7 +4,7 @@ import { Response } from 'express';
 import * as path from 'path';
 import * as fs from 'fs';
 
-@Controller()
+@Controller('app')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
@@ -17,7 +17,7 @@ export class AppController {
     throw new HttpException('This is a test error', 400);
   }
 
-  @Get('app/logs')
+  @Get('logs')
   getAppLog(@Res() res: Response) {
     const logFileName = `app-${new Date().toISOString().slice(0, 10)}.log`;
     const logFilePath = path.join(__dirname, '..', 'logs', logFileName);
