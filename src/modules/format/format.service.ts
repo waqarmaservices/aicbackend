@@ -185,20 +185,29 @@ export class FormatService {
     return await this.formatRepository.save(format);
   }
   // check the column id exist in format and update the format table
-  async editColumnFormat(colid: number, updateData: Partial<Format>): Promise<Format> {
-    // Find the format entry by the colid (stored in the Object field)
-    const format = await this.formatRepository.findOne({ where: { Object: colid } });
-
-    if (!format) {
-      throw new Error('Format not found');
-    }
-
-    // Update the format entry with the provided data
-    Object.assign(format, updateData);
-
-    // Save the updated format entry
-    return await this.formatRepository.save(format);
-  }
+  async editColumnFormat(colid: number,  userId: number, updateData: Partial<any>): Promise<any> {
+     // Find the format entry by the colid (stored in the Object field)
+     let format = await this.formatRepository.findOne({ where: { Object: colid } });
+  
+     if (format) {
+       // If format entry is found, update it with the provided data
+       Object.assign(format, updateData);
+     } else {
+       // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
+       format = this.formatRepository.create({
+         Object: colid,
+         ObjectType: 3000000584 as any, // Fixed ObjectType value
+         ...updateData,
+         User: userId as any,
+       });
+     }
+   
+     // Set the User entity reference
+     format.User = userId as any;
+   
+     // Save the updated or new format entry
+     return await this.formatRepository.save(format);
+   }
   // Update Page Format
   async updatePageFormat(Pg: number, userId: number, updateFormat: Partial<Format>): Promise<Format> {
     // Find the format entry by the page Id (stored in the Object field)
@@ -218,77 +227,102 @@ export class FormatService {
     return await this.formatRepository.save(format);
   }
   // update the local Coll
-  async updatelocalcolls(colid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+  async updatelocalcolls(colid: number, userId: number, updateData: Partial<any>): Promise<any> {
     // Find the format entry by the colid (stored in the Object field)
-    const format = await this.formatRepository.findOne({ where: { Object: colid } });
-
-    if (!format) {
-      throw new Error('Format not found');
+    let format = await this.formatRepository.findOne({ where: { Object: colid } });
+  
+    if (format) {
+      // If format entry is found, update it with the provided data
+      Object.assign(format, updateData);
+    } else {
+      // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
+      format = this.formatRepository.create({
+        Object: colid,
+        ObjectType: 3000000584 as any, // Fixed ObjectType value
+        ...updateData,
+        User: userId as any,
+      });
     }
-
-    // Update the format entry with the provided data
-    Object.assign(format, updateData);
-
+  
     // Set the User entity reference
     format.User = userId as any;
-
-    // Save the updated format entry
+  
+    // Save the updated or new format entry
     return await this.formatRepository.save(format);
   }
+  
   // update the shared Coll
   async updatesharedcolls(colid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-    // Find the format entry by the colid (stored in the Object field)
-    const format = await this.formatRepository.findOne({ where: { Object: colid } });
-
-    if (!format) {
-      throw new Error('Format not found');
+      // Find the format entry by the colid (stored in the Object field)
+      let format = await this.formatRepository.findOne({ where: { Object: colid } });
+  
+      if (format) {
+        // If format entry is found, update it with the provided data
+        Object.assign(format, updateData);
+      } else {
+        // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
+        format = this.formatRepository.create({
+          Object: colid,
+          ObjectType: 3000000584 as any, // Fixed ObjectType value
+          ...updateData,
+          User: userId as any,
+        });
+      }
+    
+      // Set the User entity reference
+      format.User = userId as any;
+    
+      // Save the updated or new format entry
+      return await this.formatRepository.save(format);
     }
-
-    // Update the format entry with the provided data
-    Object.assign(format, updateData);
-
-    // Set the User entity reference
-    format.User = userId as any;
-
-    // Save the updated format entry
-    return await this.formatRepository.save(format);
-  }
   // update the local item
   async updatelocalitem(itemId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-    // Find the format entry by the itemId (stored in the Object field)
-    const format = await this.formatRepository.findOne({ where: { Object: itemId } });
-
-    if (!format) {
-      throw new Error('Format not found');
+    // Find the format entry by the ItemId (stored in the Object field)
+    let format = await this.formatRepository.findOne({ where: { Object: itemId } });
+  
+    if (format) {
+      // If format entry is found, update it with the provided data
+      Object.assign(format, updateData);
+    } else {
+      // If no format entry is found, create a new one with the ItemId, userId, and fixed ObjectType
+      format = this.formatRepository.create({
+        Object: itemId,
+        ObjectType: 3000000588 as any, // Fixed ObjectType value
+        ...updateData,
+        User: userId as any,
+      });
     }
-
-    // Update the format entry with the provided data
-    Object.assign(format, updateData);
-
+  
     // Set the User entity reference
     format.User = userId as any;
-
-    // Save the updated format entry
+  
+    // Save the updated or new format entry
     return await this.formatRepository.save(format);
   }
   // update the shared item
   async updateshareditem(itemId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-    // Find the format entry by the itemId (stored in the Object field)
-    const format = await this.formatRepository.findOne({ where: { Object: itemId } });
-
-    if (!format) {
-      throw new Error('Format not found');
-    }
-
-    // Update the format entry with the provided data
-    Object.assign(format, updateData);
-
-    // Set the User entity reference
-    format.User = userId as any;
-
-    // Save the updated format entry
-    return await this.formatRepository.save(format);
-  }
+     // Find the format entry by the ItemId (stored in the Object field)
+     let format = await this.formatRepository.findOne({ where: { Object: itemId } });
+  
+     if (format) {
+       // If format entry is found, update it with the provided data
+       Object.assign(format, updateData);
+     } else {
+       // If no format entry is found, create a new one with the ItemId, userId, and fixed ObjectType
+       format = this.formatRepository.create({
+         Object: itemId,
+         ObjectType: 3000000588 as any, // Fixed ObjectType value
+         ...updateData,
+         User: userId as any,
+       });
+     }
+   
+     // Set the User entity reference
+     format.User = userId as any;
+   
+     // Save the updated or new format entry
+     return await this.formatRepository.save(format);
+   }
   // update the local row
   async updatelocalrow(rowid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
     // Find the format entry by the rowid (stored in the Object field)
@@ -325,4 +359,28 @@ export class FormatService {
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }
+  async updateCellFormat(cellId: number, userId: number, updateData: Partial<any>): Promise<any> {
+    // Find the format entry by the cellId (assuming 'Object' refers to cellId here)
+    let format = await this.formatRepository.findOne({ where: { Object: cellId } });
+  
+    if (format) {
+      // If format entry is found, update it with the provided data
+      Object.assign(format, updateData);
+    } else {
+      // If no format entry is found, create a new one with the cellId, userId, and fixed ObjectType
+      format = this.formatRepository.create({
+        Object: cellId,
+        ObjectType: 3000000592 as any, // Fixed ObjectType value
+        ...updateData,
+        User: userId as any,
+      });
+    }
+  
+    // Set the User entity reference
+    format.User = userId as any;
+  
+    // Save the updated or new format entry
+    return await this.formatRepository.save(format);
+  }
+  
 }
