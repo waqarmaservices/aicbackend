@@ -120,4 +120,40 @@ export class ColController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  @Post('createColAndRow')
+  async createColAndRow(@Body() payload: any): Promise<ApiResponse<any>> {
+    try {
+      // Call the service function that handles both column and row creation
+      const { createdCol, createdRow } = await this.colService.createColAndRow(payload);
+
+      if (!createdRow) {
+        return new ApiResponse(false, null, 'Row not created', HttpStatus.NOT_FOUND);
+      }
+
+      // Construct the response structure
+      const responseData = {
+        'Col-Row': {
+          createdCol: {
+            Col: createdCol.Col,
+            
+          },
+          createdRow: {
+            Row: createdRow.Row,
+            Pg: createdRow.Pg,
+            Share: createdRow.Share,
+            Inherit: createdRow.Inherit,
+            RowType: createdRow.RowType,
+            RowLevel: createdRow.RowLevel,
+            ParentRow: createdRow.ParentRow,
+            SiblingRow: createdRow.SiblingRow,
+          },
+        },
+      };
+
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      console.error('Error occurred:', error);
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

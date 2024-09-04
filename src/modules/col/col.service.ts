@@ -1,10 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Col } from './col.entity';
 import { Format } from 'modules/format/format.entity';
 import { FormatService } from 'modules/format/format.service';
 import { SYSTEM_INITIAL } from '../../constants';
+import { Row } from 'modules/row/row.entity';
+import { CellService } from 'modules/cell/cell.service';
+import { ItemService } from 'modules/item/item.service';
+import { PageService } from 'modules/page/page.service';
+import { RowService } from 'modules/row/row.service';
 
 @Injectable()
 export class ColService {
@@ -12,6 +17,11 @@ export class ColService {
     @InjectRepository(Col)
     private readonly colRepository: Repository<Col>,
     private readonly formatService: FormatService,
+    private readonly rowService: RowService,
+    private readonly cellService: CellService,
+    private readonly itemService: ItemService,
+    @Inject(forwardRef(() => PageService))
+    private readonly pageService: PageService,
   ) {}
   /**
    * Creates a new Col.
@@ -89,4 +99,44 @@ export class ColService {
     // Return both created entities
     return { createdcol, createdFormat };
   }
+  // Createing Col and Row 
+    async createColAndRow(payload: any): Promise<{ createdCol: Col; createdRow: Row }> {
+        const { Pg, RowLevel, Share, Inherit, RowType, ParentRow, SiblingRow } = payload;
+
+        // Step 1: Create a new column
+        const newCol = this.colRepository.create(); // Adjust this if you need to include specific column data from the payload
+        const createdCol = await this.colRepository.save(newCol);
+        if (!createdCol) {
+            throw new Error('Failed to create column');
+        }
+
+        // Step 2: Find the page by Pg ID
+        const page = await this.pageService.findOne(Pg); // Correctly find the page using the Pg ID
+        if (!page) {
+            throw new Error('Page not found');
+        }
+
+        // Log or handle the existing columns if needed
+        const existingCols = page.Cols; // Access columns from the page object
+        console.log('Existing columns:', existingCols);
+
+        // Step 3: Create the row using the createRow function from RowService
+        const rowPayload = {
+            Pg, // Foreign key reference to the page
+            RowLevel,
+            Share,
+            Inherit,
+            RowType,
+            ParentRow,
+            SiblingRow,
+        };
+
+        const createdRow = await this.rowService.createRow(rowPayload);
+        if (!createdRow) {
+            throw new Error('Failed to create row');
+        }
+
+        // Return the created column and row
+        return { createdCol, createdRow };
+    }
 }
