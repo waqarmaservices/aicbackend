@@ -636,15 +636,17 @@ export class PageService {
         .filter((id) => !isNaN(id));
 
       // Cell have more than one items, means it has an item order
-      if (cellItems.length > 1) {
+      if (cellItems && cellItems.length > 1) {
         const cellFormat = await this.formatService.findOneByColumnName('Object', cell.Cell.toString());
-        cellItems = cellFormat.CellItems.toString()
-          .replace(/[{}]/g, '')
-          .split(',')
-          .map((id) => parseInt(id.trim(), 10))
-          .filter((id) => !isNaN(id));
+        if (cellFormat) {
+          cellItems = cellFormat?.CellItems?.toString()
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map((id) => parseInt(id.trim(), 10))
+            .filter((id) => !isNaN(id));
+        }
       }
-      return cellItems;
+      return cellItems ?? [];
     }
     return [];
   }

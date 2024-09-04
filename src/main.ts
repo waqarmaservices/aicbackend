@@ -5,7 +5,11 @@ import appConfig from './config/app.config';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 
-const excludedPaths = [{ path: '/', method: RequestMethod.GET }];
+const excludedPaths = [
+  { path: '/', method: RequestMethod.GET },
+  { path: '/error', method: RequestMethod.GET },
+  { path: '/logs', method: RequestMethod.GET },
+];
 
 async function bootstrap() {
   const logger = new Logger();
