@@ -249,9 +249,12 @@ export class FormatController {
     }
   }
   @Put('edit-column/:colid')
-  async editColumnFormat(@Param('colid') colid: number, @Body() updateData: Partial<any>): Promise<ApiResponse<any>> {
+  async editColumnFormat(@Param('colid') colid: number,
+  @Body('userId') userId: number, 
+  @Body() updateData: Partial<any>
+): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.editColumnFormat(colid, updateData);
+      const updatedFormat = await this.formatService.editColumnFormat(colid, userId, updateData);
 
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
@@ -260,29 +263,29 @@ export class FormatController {
       // Construct the response data with the desired nested structure
       const data = {
         Updated_Format: {
-          Format: updateData.Format,
-          Object: updateData.Object,
-          ObjectType: updateData.ObjectType, // Nested ObjectType
-          Container: updateData.Container,
-          PgSort: updateData.PgSort,
-          PgFilter: updateData.PgFilter,
-          PgCols: updateData.PgCols,
-          CellItems: updateData.CellItems,
-          ColMinWidth: updateData.ColMinWidth,
-          Status: updateData.Status,
-          FontStyle: updateData.FontStyle,
-          Formula: updateData.Formula,
-          Comment: updateData.Comment,
-          DeletedAt: updateData.DeletedAt,
-          User: updateData.User, // Nested User
-          PgNestedCol: updateData.PgNestedCol, // Nested PgNestedCol
-          PgLevelSet: updateData.PgLevelSet, // Nested PgLevelSet
-          PgSearchSet: updateData.PgSearchSet, // Nested PgSearchSet
-          RowSetTick: updateData.RowSetTick, // Nested RowSetTick
-          Owner: updateData.Owner, // Nested Owner
-          Default: updateData.Default, // Nested Default
-          Deleted: updateData.Deleted, // Nested Deleted
-          DeletedBy: updateData.DeletedBy, // Nested DeletedBy
+            Format: updateData.Format || updatedFormat.Format,
+            Object: updateData.Object || updatedFormat.Object,
+            ObjectType: updateData.ObjectType || updatedFormat.ObjectType, // Nested ObjectType
+            Container: updateData.Container || updatedFormat.Container,
+            PgSort: updateData.PgSort || updatedFormat.PgSort,
+            PgFilter: updateData.PgFilter || updatedFormat.PgFilter,
+            PgCols: updateData.PgCols || updatedFormat.PgCols,
+            CellItems: updateData.CellItems || updatedFormat.CellItems,
+            ColMinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+            Status: updateData.Status || updatedFormat.Status,
+            FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+            Formula: updateData.Formula || updatedFormat.Formula,
+            Comment: updateData.Comment || updatedFormat.Comment,
+            DeletedAt: updateData.DeletedAt || updatedFormat.DeletedAt,
+            User: updateData.User || updatedFormat.User, // Nested User
+            PgNestedCol: updateData.PgNestedCol || updatedFormat.PgNestedCol, // Nested PgNestedCol
+            PgLevelSet: updateData.PgLevelSet || updatedFormat.PgLevelSet, // Nested PgLevelSet
+            PgSearchSet: updateData.PgSearchSet || updatedFormat.PgSearchSet, // Nested PgSearchSet
+            RowSetTick: updateData.RowSetTick || updatedFormat.RowSetTick, // Nested RowSetTick
+            Owner: updateData.Owner || updatedFormat.Owner, // Nested Owner
+            Default: updateData.Default || updatedFormat.Default, // Nested Default
+            Deleted: updateData.Deleted || updatedFormat.Deleted, // Nested Deleted
+            DeletedBy: updateData.DeletedBy || updatedFormat.DeletedBy, // Nested DeletedBy
         },
       };
 
@@ -513,4 +516,37 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  @Put('local-cell/:cellId')
+async updateCellFormat(
+  @Param('cellId') cellId: number,
+  @Body('userId') userId: number,
+  @Body() updateData: Partial<any>,
+): Promise<ApiResponse<any>> {
+  try {
+    const updatedFormat = await this.formatService.updateCellFormat(cellId, userId, updateData);
+    if (!updatedFormat) {
+      return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Construct the response data with the desired nested structure
+    const data = {
+      updated_local_cell: {
+        Format: updateData.Format || updatedFormat.Format,
+        User: updateData.User || updatedFormat.User,
+        Cell_ID: updateData.Object || updatedFormat.Object,
+        Status: updateData.Status || updatedFormat.Status,
+        MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+        FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+        Comment: updateData.Comment || updatedFormat.Comment,
+        Transactions: updateData.TxList || updatedFormat.TxList,
+      },
+    };
+
+    return new ApiResponse(true, data, '', HttpStatus.OK);
+  } catch (error) {
+    console.error(error); // Log the error for debugging purposes
+    return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
 }
