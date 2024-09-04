@@ -126,6 +126,7 @@ export class PageService {
         col: col.column_id,
         title: col.column_name.trim(),
         field: this.transformColName(col.column_name),
+        datatype: col.column_datatype.trim(),
         status: colStatuses,
       });
     }
@@ -221,6 +222,7 @@ export class PageService {
     try {
       const colNameColId = COLUMN_IDS.ALL_COLS.COL_NAME; // Col-ID of Column 'Col Name'
       const colIdColId = COLUMN_IDS.ALL_COLS.Col_ID; // Col-ID of Column 'Col ID'
+      const colDataTypeColId = COLUMN_IDS.ALL_COLS.COL_DATATYPE; // Col-ID of Column 'Col ID'
       const eachPageTypeRowId = TOKEN_IDS.PAGE_TYPE.EACH_PAGE; // Row-ID of Pg type 'Each Page'
       const pageType = await this.findPageType(pageId);
       const pageTypeId = pageType ? (pageType.token === TOKEN_NAMES.PageType.PageList ? null : pageType.row_id) : null;
@@ -263,13 +265,31 @@ export class PageService {
         order: { Row: 'ASC' },
       });
 
+      // Cells of column 'Col DataType'
+      const colDataTypeCells = await this.entityManager.find(Cell, {
+        where: {
+          Row: In(rowIds),
+          Col: colDataTypeColId,
+        },
+        order: { Row: 'ASC' },
+      });
+
       const colNameCellItems = await this.getItemsByJson(colNameCells);
       const colIdCellItems = await this.getItemsByObject(colIdCells);
+      // Col DataType object IDS
+      const colDataTypeCellObjects = await this.getItemsByObject(colDataTypeCells);
+      // Col DataType JSON value
+      const colDataTypeCellitems = await Promise.all(
+        colDataTypeCellObjects.map(async (rowId:number) => {
+          return await this.getItemsFromRowIds(rowId.toString());
+        })
+      );
 
       const columns = colIdCellItems.map((colId, index) => {
         return {
           column_id: colId,
           column_name: colNameCellItems[index],
+          column_datatype: colDataTypeCellitems[index],
         };
       });
 
@@ -509,7 +529,7 @@ export class PageService {
 
     const rowsWithItems = await this.extractRowsWithItems(page.rows, pageColumns);
 
-    const transformedData = this.transformData(rowsWithItems);
+    const transformedData = this.transformData(Pg, rowsWithItems);
 
     const enrichData = await this.enrichData(transformedData);
 
@@ -817,7 +837,7 @@ export class PageService {
     return columnFieldMap[col];
   }
 
-  transformData(data) {
+  transformData(pageId: number, data: any) {
     const transformedData = [];
 
     Object.keys(data).forEach((key) => {
@@ -845,6 +865,7 @@ export class PageService {
       finalPageObject['row'] = key;
       finalPageObject['RowLevel'] = rowLevel;
       finalPageObject['ParentRow'] = parentRow;
+      finalPageObject['page_id'] = pageId;
       transformedData.push(finalPageObject);
     });
 
