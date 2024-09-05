@@ -324,25 +324,30 @@ export class FormatService {
      return await this.formatRepository.save(format);
    }
   // update the local row
-  async updatelocalrow(rowid: number, userId: number, updateData: Partial<Format>): Promise<Format> {
-    // Find the format entry by the rowid (stored in the Object field)
-    const format = await this.formatRepository.findOne({ where: { Object: rowid } });
-
+ // Update the local row in the Format table
+async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format> {
+    // Find the format entry by the rowId (stored in the Object field)
+    const format = await this.formatRepository.findOne({ where: { Object: rowId } });
+  
     if (!format) {
       throw new Error('Format not found');
     }
-
-    // Update the format entry with the provided data
-    Object.assign(format, updateData);
-
-    // Set the User entity reference
-    format.User = userId as any;
+  
+    // Manually update each property to avoid using Object.assign
+    if (updateData.Format !== undefined) format.Format = updateData.Format;
+    if (updateData.ObjectType !== undefined) format.ObjectType = updateData.ObjectType;
+    if (updateData.Status !== undefined) format.Status = updateData.Status;
+ /*    if (updateData.ColMinWidth !== undefined) format.ColMinWidth = updateData.ColMinWidth; */
+    if (updateData.FontStyle !== undefined) format.FontStyle = updateData.FontStyle;
+    if (updateData.Comment !== undefined) format.Comment = updateData.Comment;
+    if (updateData.TxList !== undefined) format.TxList = updateData.TxList;
 
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }
+  
   // update the shared row
-  async updatesharedrow(rowId: number, userId: number, updateData: Partial<Format>): Promise<Format> {
+  async updatesharedrow(rowId: number, updateData: Partial<Format>): Promise<Format> {
     // Find the format entry by the itemId (stored in the Object field)
     const format = await this.formatRepository.findOne({ where: { Object: rowId } });
 
@@ -350,12 +355,14 @@ export class FormatService {
       throw new Error('Format not found');
     }
 
-    // Update the format entry with the provided data
-    Object.assign(format, updateData);
-
-    // Set the User entity reference
-    format.User = userId as any;
-
+    // Manually update each property to avoid using Object.assign
+    if (updateData.Format !== undefined) format.Format = updateData.Format;
+    if (updateData.ObjectType !== undefined) format.ObjectType = updateData.ObjectType;
+    if (updateData.Status !== undefined) format.Status = updateData.Status;
+ /*    if (updateData.ColMinWidth !== undefined) format.ColMinWidth = updateData.ColMinWidth; */
+    if (updateData.FontStyle !== undefined) format.FontStyle = updateData.FontStyle;
+    if (updateData.Comment !== undefined) format.Comment = updateData.Comment;
+    if (updateData.TxList !== undefined) format.TxList = updateData.TxList;
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }

@@ -453,63 +453,67 @@ export class FormatController {
     }
   }
   @Put('local-row/:rowid')
-  async updatelocalrow(
-    @Param('rowId') rowId: number,
-    @Body('userId') userId: number,
-    @Body() updateData: Partial<any>,
-  ): Promise<ApiResponse<any>> {
-    try {
-      const updatedFormat = await this.formatService.updatelocalrow(rowId, userId, updateData);
+async updatelocalrow(
+  @Param('rowid') rowId: number,
+  @Body() updateData: Partial<any>,
+): Promise<ApiResponse<any>> {
+  try {
+    // Call the service method to validate and update the format entry
+    const updatedFormat = await this.formatService.updatelocalrow(rowId, updateData);
 
-      if (!updatedFormat) {
-        return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
-      }
-
-      // Construct the response data with the desired nested structure
-      const data = {
-        updated_local_row: {
-          Format: updateData.Format || updatedFormat.Format,
-          User: updateData.User || updatedFormat.User,
-          local_row_ID: updateData.Object || updatedFormat.Object,
-          row_Status: updateData.Status || updatedFormat.Status,
-          row_type: updateData.ColMinWidth || updatedFormat.ColMinWidth,
-          row_FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
-          row_Comment: updateData.Comment || updatedFormat.Comment,
-          Row_Transactions: updateData.TxList || updatedFormat.TxList,
-        },
-      };
-
-      return new ApiResponse(true, data, '', HttpStatus.OK);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    if (!updatedFormat) {
+      return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
     }
+
+    // Retrieve the User details from the updated Format entry
+    const user = updatedFormat.User; // Assuming Format has a ManyToOne relationship with User
+
+    // Construct the response data with the desired nested structure
+    const data = {
+      updated_local_row: {
+        Format: updatedFormat.Format,
+        User: updateData.userId,
+        local_row_ID: updatedFormat.Object,
+        row_Status: updatedFormat.Status,
+        /* row_type: updatedFormat.ColMinWidth, */
+        row_FontStyle: updatedFormat.FontStyle,
+        row_Comment: updatedFormat.Comment,
+        Row_Transactions: updatedFormat.TxList,
+      },
+    };
+
+    return new ApiResponse(true, data, '', HttpStatus.OK);
+  } catch (error) {
+    return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
   }
+}
   @Put('shared-row/:rowId')
   async updatesharedrow(
     @Param('rowId') rowId: number,
-    @Body('userId') userId: number,
     @Body() updateData: Partial<any>,
   ): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.updatesharedrow(rowId, userId, updateData);
+      const updatedFormat = await this.formatService.updatesharedrow(rowId,  updateData);
 
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
       }
+    // Retrieve the User details from the updated Format entry
+    const user = updatedFormat.User; // Assuming Format has a ManyToOne relationship with User
 
-      // Construct the response data with the desired nested structure
-      const data = {
-        updated_shared_row: {
-          Format: updateData.Format || updatedFormat.Format,
-          User: updateData.User || updatedFormat.User,
-          shared_row_ID: updateData.Object || updatedFormat.Object,
-          row_Status: updateData.Status || updatedFormat.Status,
-          row_type: updateData.ColMinWidth || updatedFormat.ColMinWidth,
-          row_FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
-          row_Comment: updateData.Comment || updatedFormat.Comment,
-          Row_Transactions: updateData.TxList || updatedFormat.TxList,
-        },
-      };
+    // Construct the response data with the desired nested structure
+    const data = {
+      updated_local_row: {
+        Format: updatedFormat.Format,
+        User: updateData.userId,
+        local_row_ID: updatedFormat.Object,
+        row_Status: updatedFormat.Status,
+        /* row_type: updatedFormat.ColMinWidth, */
+        row_FontStyle: updatedFormat.FontStyle,
+        row_Comment: updatedFormat.Comment,
+        Row_Transactions: updatedFormat.TxList,
+      },
+    };
 
       return new ApiResponse(true, data, '', HttpStatus.OK);
     } catch (error) {
