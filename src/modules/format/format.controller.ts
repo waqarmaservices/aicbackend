@@ -475,7 +475,6 @@ async updatelocalrow(
         User: updateData.userId,
         local_row_ID: updatedFormat.Object,
         row_Status: updatedFormat.Status,
-        /* row_type: updatedFormat.ColMinWidth, */
         row_FontStyle: updatedFormat.FontStyle,
         row_Comment: updatedFormat.Comment,
         Row_Transactions: updatedFormat.TxList,
@@ -508,7 +507,6 @@ async updatelocalrow(
         User: updateData.userId,
         local_row_ID: updatedFormat.Object,
         row_Status: updatedFormat.Status,
-        /* row_type: updatedFormat.ColMinWidth, */
         row_FontStyle: updatedFormat.FontStyle,
         row_Comment: updatedFormat.Comment,
         Row_Transactions: updatedFormat.TxList,
