@@ -337,7 +337,6 @@ async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format
     if (updateData.Format !== undefined) format.Format = updateData.Format;
     if (updateData.ObjectType !== undefined) format.ObjectType = updateData.ObjectType;
     if (updateData.Status !== undefined) format.Status = updateData.Status;
- /*    if (updateData.ColMinWidth !== undefined) format.ColMinWidth = updateData.ColMinWidth; */
     if (updateData.FontStyle !== undefined) format.FontStyle = updateData.FontStyle;
     if (updateData.Comment !== undefined) format.Comment = updateData.Comment;
     if (updateData.TxList !== undefined) format.TxList = updateData.TxList;
@@ -359,7 +358,6 @@ async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format
     if (updateData.Format !== undefined) format.Format = updateData.Format;
     if (updateData.ObjectType !== undefined) format.ObjectType = updateData.ObjectType;
     if (updateData.Status !== undefined) format.Status = updateData.Status;
- /*    if (updateData.ColMinWidth !== undefined) format.ColMinWidth = updateData.ColMinWidth; */
     if (updateData.FontStyle !== undefined) format.FontStyle = updateData.FontStyle;
     if (updateData.Comment !== undefined) format.Comment = updateData.Comment;
     if (updateData.TxList !== undefined) format.TxList = updateData.TxList;
