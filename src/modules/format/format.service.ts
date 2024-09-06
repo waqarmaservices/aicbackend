@@ -1,8 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Format } from './format.entity';
-import { COLUMN_IDS, GENERAL, PAGE_CACHE, SYSTEM_INITIAL, TOKEN_IDS, TOKEN_NAMES } from '../../constants';
+import { Cell } from 'modules/cell/cell.entity';
+import { CellService } from 'modules/cell/cell.service';
+import { RowService } from 'modules/row/row.service';
+import { ColService } from 'modules/col/col.service';
+import { ItemService } from 'modules/item/item.service';
+import { PageService } from 'modules/page/page.service';
+import { Row } from 'modules/row/row.entity';
 
 @Injectable()
 export class FormatService {
@@ -170,7 +176,7 @@ export class FormatService {
       format = new Format();
       format.Object = itemId;
       format.User = userId as any;
-      format.ObjectType = SYSTEM_INITIAL.ROW as any; // Reference to the Row entity
+      format.ObjectType = 3000000596  as any; // Reference to the Row entity
       format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
       format.DeletedBy = userId as any; // Reference to the User entity
       format.DeletedAt = new Date();
@@ -238,7 +244,7 @@ export class FormatService {
       // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
       format = this.formatRepository.create({
         Object: colid,
-        ObjectType: 3000000584 as any, // Fixed ObjectType value
+        ObjectType: 3000000585 as any, // Fixed ObjectType value
         ...updateData,
         User: userId as any,
       });
@@ -263,7 +269,7 @@ export class FormatService {
         // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
         format = this.formatRepository.create({
           Object: colid,
-          ObjectType: 3000000584 as any, // Fixed ObjectType value
+          ObjectType: 3000000586 as any, // Fixed ObjectType value
           ...updateData,
           User: userId as any,
         });
@@ -287,7 +293,7 @@ export class FormatService {
       // If no format entry is found, create a new one with the ItemId, userId, and fixed ObjectType
       format = this.formatRepository.create({
         Object: itemId,
-        ObjectType: 3000000588 as any, // Fixed ObjectType value
+        ObjectType: 3000000597 as any, // Fixed ObjectType value
         ...updateData,
         User: userId as any,
       });
@@ -311,7 +317,7 @@ export class FormatService {
        // If no format entry is found, create a new one with the ItemId, userId, and fixed ObjectType
        format = this.formatRepository.create({
          Object: itemId,
-         ObjectType: 3000000588 as any, // Fixed ObjectType value
+         ObjectType: 3000000598 as any, // Fixed ObjectType value
          ...updateData,
          User: userId as any,
        });
@@ -364,7 +370,7 @@ async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }
-  async updateCellFormat(cellId: number, userId: number, updateData: Partial<any>): Promise<any> {
+  async updatelocalCell(cellId: number, userId: number, updateData: Partial<any>): Promise<any> {
     // Find the format entry by the cellId (assuming 'Object' refers to cellId here)
     let format = await this.formatRepository.findOne({ where: { Object: cellId } });
   
@@ -375,7 +381,30 @@ async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format
       // If no format entry is found, create a new one with the cellId, userId, and fixed ObjectType
       format = this.formatRepository.create({
         Object: cellId,
-        ObjectType: 3000000592 as any, // Fixed ObjectType value
+        ObjectType: 3000000593 as any, // Fixed ObjectType value
+        ...updateData,
+        User: userId as any,
+      });
+    }
+  
+    // Set the User entity reference
+    format.User = userId as any;
+  
+    // Save the updated or new format entry
+    return await this.formatRepository.save(format);
+  }
+  async updatesharedCell(cellId: number, userId: number, updateData: Partial<any>): Promise<any> {
+    // Find the format entry by the cellId (assuming 'Object' refers to cellId here)
+    let format = await this.formatRepository.findOne({ where: { Object: cellId } });
+  
+    if (format) {
+      // If format entry is found, update it with the provided data
+      Object.assign(format, updateData);
+    } else {
+      // If no format entry is found, create a new one with the cellId, userId, and fixed ObjectType
+      format = this.formatRepository.create({
+        Object: cellId,
+        ObjectType: 3000000594 as any, // Fixed ObjectType value
         ...updateData,
         User: userId as any,
       });

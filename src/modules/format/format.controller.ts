@@ -519,13 +519,45 @@ async updatelocalrow(
     }
   }
   @Put('local-cell/:cellId')
-async updateCellFormat(
+async updatelocalCell(
   @Param('cellId') cellId: number,
   @Body('userId') userId: number,
   @Body() updateData: Partial<any>,
 ): Promise<ApiResponse<any>> {
   try {
-    const updatedFormat = await this.formatService.updateCellFormat(cellId, userId, updateData);
+    const updatedFormat = await this.formatService.updatelocalCell(cellId, userId, updateData);
+    if (!updatedFormat) {
+      return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Construct the response data with the desired nested structure
+    const data = {
+      updated_local_cell: {
+        Format: updateData.Format || updatedFormat.Format,
+        User: updateData.User || updatedFormat.User,
+        Cell_ID: updateData.Object || updatedFormat.Object,
+        Status: updateData.Status || updatedFormat.Status,
+        MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
+        FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+        Comment: updateData.Comment || updatedFormat.Comment,
+        Transactions: updateData.TxList || updatedFormat.TxList,
+      },
+    };
+
+    return new ApiResponse(true, data, '', HttpStatus.OK);
+  } catch (error) {
+    console.error(error); // Log the error for debugging purposes
+    return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+@Put('shared-cell/:cellId')
+async updatesharedCell(
+  @Param('cellId') cellId: number,
+  @Body('userId') userId: number,
+  @Body() updateData: Partial<any>,
+): Promise<ApiResponse<any>> {
+  try {
+    const updatedFormat = await this.formatService.updatesharedCell(cellId, userId, updateData);
     if (!updatedFormat) {
       return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
     }
