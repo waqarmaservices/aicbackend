@@ -23,8 +23,8 @@ export class User {
   @OneToMany(() => Format, (format) => format.Owner)
   OwnedFormats: Format[];
 
-  @OneToMany(() => Format, (format) => format.DeletedBy)
-  DeletedFormats: Format[];
+  @OneToMany(() => Format, (format) => format.RecycledBy)
+  RecycledFormats: Format[];
 
   @OneToMany(() => Tx, (tx) => tx.TxUser)
   Transactions: Tx[];

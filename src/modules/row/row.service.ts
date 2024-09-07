@@ -173,14 +173,14 @@ export class RowService {
         // Step 5: Create the first Format entity using the new Pg ID in the Object field
         const formatPayloadPg = {
             User: payload.userid,
-            ObjectType: 3000000577,
+            ObjectType: 3000000582,
             Object: createdPage.Pg, // New Pg ID
         };
         const createdFormatPg = await this.formatService.createFormat(formatPayloadPg);
         // Step 6: Create the second Format entity using the new Row ID in the Object field
         const formatPayloadRow = {
             User: payload.userid,
-            ObjectType: 3000000588,
+            ObjectType: 3000000593,
             Object: completeRow.Row, // New Row ID
         };
         const createdFormatRow = await this.formatService.createFormat(formatPayloadRow);
@@ -201,7 +201,7 @@ export class RowService {
         // Step 8: Create Item using the new generated Pg ID stored against tItem.Object and DataType: 3000001016
         const itemPayload = {
             Object: createdPage.Pg, // New Pg ID
-            DataType: 3000001016,
+            DataType: 3000000582,
             // Additional item properties can be added here
         };
         const createdItem = await this.itemService.createItem(itemPayload);

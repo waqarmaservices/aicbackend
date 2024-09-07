@@ -22,7 +22,6 @@ export class TxController {
       };
       return new ApiResponse(true, { Transaction: data }, '', HttpStatus.CREATED);
     } catch (error) {
-      console.error('Error in createTx:', error);
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

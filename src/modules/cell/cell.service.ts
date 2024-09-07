@@ -29,7 +29,7 @@ export class CellService {
   }
 
   async findAll(): Promise<Cell[]> {
-    return await this.cellRepository.find({ relations: ['Col', 'Row'] });
+    return await this.cellRepository.find({ relations: ['CellCol', 'CellRow', 'DataType'] });
   }
 
   async findOne(id: number): Promise<Cell> {
