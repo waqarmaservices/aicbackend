@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, Res, HttpException } from '@nestjs/common';
 import { PageService } from './page.service';
 import { ApiResponse } from '../../common/dtos/api-response.dto';
 import { Page } from './page.entity';
+import { Response } from 'express';
 
 @Controller('page')
 export class PageController {
@@ -244,6 +245,16 @@ export class PageController {
       return new ApiResponse(true, responseData, '', HttpStatus.CREATED);
     } catch (error) {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get('dds/regions')
+  async getRegions(@Res() res: Response) {
+    try {
+      const data = await this.pageService.getRegions();
+      return res.status(HttpStatus.OK).json(new ApiResponse(true, data, '', HttpStatus.OK));
+    } catch (error) {
+      throw error;
     }
   }
 }
