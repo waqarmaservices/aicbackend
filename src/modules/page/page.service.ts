@@ -1027,4 +1027,14 @@ export class PageService {
     const updatedPgFormatRecord = await this.formatService.updateFormat(pgFormatRecord.Format, { PgCols });
     return updatedPgFormatRecord;
   }
+
+  async getRegions() {
+    const data = await this.getonePageData(1000000013);
+    const filteredregions = data?.pageData?.filter((el) => el.RowLevel === 1);
+    const regions = filteredregions.map((el) => ({
+      [el.row]: el.region,
+    }));
+    await this.cacheManager.set('regions', JSON.stringify(regions), PAGE_CACHE.NEVER_EXPIRE);
+    return { regions };
+  }
 }
