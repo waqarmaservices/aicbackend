@@ -1011,8 +1011,8 @@ export class PageService {
 
     // Step 2: Create the Format entity associated with the created Page
     const createdFormat = await this.formatService.createFormat({
-      User: SYSTEM_INITIAL.USER_ID as any, // Assuming SYSTEM_INITIAL is defined somewhere in your code
-      ObjectType: SYSTEM_INITIAL.ROW as any, // Assuming SYSTEM_INITIAL.ROW is the object type for a row
+      User: 3000000099 as any, // Assuming SYSTEM_INITIAL is defined somewhere in your code
+      ObjectType: 3000000582 as any, // Assuming SYSTEM_INITIAL.ROW is the object type for a row
       Object: createdPage.Pg,
       PgCols: createdPage.Cols, // Save the cols into the PgCols[] field
     });

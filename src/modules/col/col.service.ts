@@ -91,8 +91,8 @@ export class ColService {
 
     // Step 2 :Create the corresponding format
     const createdFormat = await this.formatService.createFormat({
-      User: SYSTEM_INITIAL.USER_ID as any, // Assuming SYSTEM_INITIAL is defined somewhere in your code
-      ObjectType: SYSTEM_INITIAL.ROW as any, // Assuming SYSTEM_INITIAL.COLUMN is the object type for a Column
+      User: 3000000099 as any, 
+      ObjectType: 3000000590 as any, 
       Object: createdcol.Col,
     });
 
@@ -118,7 +118,6 @@ export class ColService {
 
         // Log or handle the existing columns if needed
         const existingCols = page.Cols; // Access columns from the page object
-        console.log('Existing columns:', existingCols);
 
         // Step 3: Create the row using the createRow function from RowService
         const rowPayload = {

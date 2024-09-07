@@ -17,14 +17,14 @@ export class UserService {
 
   async findAll(): Promise<User[]> {
     return this.userRepository.find({
-      relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'],
+      relations: ['UserType', 'Formats', 'OwnedFormats', 'RecycledFormats', 'Transactions'],
     });
   }
 
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({
       where: { User: id },
-      relations: ['UserType', 'Formats', 'OwnedFormats', 'DeletedFormats', 'Transactions'],
+      relations: ['UserType', 'Formats', 'OwnedFormats', 'RecycledFormats', 'Transactions'],
     });
   }
 

@@ -27,17 +27,30 @@ export class FormatService {
       relations: [
         'User',
         'ObjectType',
-        'PgNestedCol',
-        'PgLevelSet',
+        'Object',
+        'Container',
         'PgCols',
-        'CellItems',
+        'PgNestedCol',
+        'PgFreezeCol',
+        'PgExpand',
+        'PgLevelSet',
         'PgSearchSet',
+        'PgSort',
+        'PgFilter',
+        'CellItems',
+        'ColMinWidth',
         'RowSetTick',
         'Owner',
+        'Status',
         'Default',
+        'FontStyle',
+        'Formula',
+        'Comment',
+        'TxList',
         'Unit',
-        'Deleted',
-        'DeletedBy',
+        'Recycled',
+        'RecycledBy',
+        'RecycledAt'
       ],
     });
   }
@@ -48,15 +61,30 @@ export class FormatService {
       relations: [
         'User',
         'ObjectType',
+        'Object',
+        'Container',
+        'PgCols',
         'PgNestedCol',
+        'PgFreezeCol',
+        'PgExpand',
         'PgLevelSet',
         'PgSearchSet',
+        'PgSort',
+        'PgFilter',
+        'CellItems',
+        'ColMinWidth',
         'RowSetTick',
         'Owner',
+        'Status',
         'Default',
+        'FontStyle',
+        'Formula',
+        'Comment',
+        'TxList',
         'Unit',
-        'Deleted',
-        'DeletedBy',
+        'Recycled',
+        'RecycledBy',
+        'RecycledAt'
       ],
     });
   }
@@ -82,7 +110,7 @@ export class FormatService {
     // Delete the format
     await this.formatRepository.delete(id);
 
-    // Return the deleted format details
+    // Return the Recycled format details
     return format;
   }
 
@@ -107,17 +135,17 @@ export class FormatService {
       throw new Error('Format not found');
     }
 
-    // Set the Deleted field to the Row entity reference
-    format.Deleted = 3000000320 as any; // Reference to the Row entity
+      // Set the Recycled field to the Row entity reference
+      format.Recycled = 3000000248 as any; // Reference to the Row entity
 
-    // Set the DeletedBy field to the User entity reference
-    format.DeletedBy = userId as any; // Reference to the User entity
+      // Set the RecycledBy field to the User entity reference
+      format.RecycledBy = userId as any; // Reference to the User entity
 
-    // Set the current timestamp to DeletedAt
-    format.DeletedAt = new Date();
+      // Set the current timestamp to RecycledAt
+      format.RecycledAt = new Date();
 
-    // Save the updated format entry
-    return await this.formatRepository.save(format);
+      // Save the updated format entry
+      return await this.formatRepository.save(format);
   }
 
   // Delete Page Record
@@ -129,14 +157,14 @@ export class FormatService {
       throw new Error('Format not found');
     }
 
-    // Set the Deleted field to the Row entity reference
-    format.Deleted = 3000000320 as any; // Reference to the Row entity
+    // Set the Recycled field to the Row entity reference
+    format.Recycled = 3000000248 as any; // Reference to the Row entity
 
-    // Set the DeletedBy field to the User entity reference
-    format.DeletedBy = userId as any; // Reference to the User entity
+    // Set the RecycledBy field to the User entity reference
+    format.RecycledBy = userId as any; // Reference to the User entity
 
-    // Set the current timestamp to DeletedAt
-    format.DeletedAt = new Date();
+    // Set the current timestamp to RecycledAt
+    format.RecycledAt = new Date();
 
     // Save the updated format entry
     return await this.formatRepository.save(format);
@@ -151,22 +179,22 @@ export class FormatService {
       throw new Error('Format not found');
     }
 
-    // Set the Deleted field to the Row entity reference
-    format.Deleted = 3000000320 as any; // Reference to the Row entity
+    // Set the Recycled field to the Row entity reference
+    format.Recycled = 3000000248 as any; // Reference to the Row entity
 
-    // Set the DeletedBy field to the User entity reference
-    format.DeletedBy = userId as any; // Reference to the User entity
+    // Set the RecycledBy field to the User entity reference
+    format.RecycledBy = userId as any; // Reference to the User entity
 
-    // Set the current timestamp to DeletedAt
-    format.DeletedAt = new Date();
+    // Set the current timestamp to RecycledAt
+    format.RecycledAt = new Date();
 
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }
   async checkAndUpdateFormat(itemId: number, userId: number): Promise<Format> {
-    // Get the deleted row ID using the getRowId function for the ALL_TOKENS page
-    // const deletedRow = await this.getRowId(COLUMN_NAMES.TOKEN_NAMES, 'True', [PAGE_IDS.ALL_TOKENS]);
-    const deletedRowId = /* deletedRow?.RowId || */ 3000000320; // Fallback to the known True ID if row retrieval fails
+    // Get the Recycled row ID using the getRowId function for the ALL_TOKENS page
+    // const RecycledRow = await this.getRowId(COLUMN_NAMES.TOKEN_NAMES, 'True', [PAGE_IDS.ALL_TOKENS]);
+    const RecycledRowId = /* RecycledRow?.RowId || */ 3000000248; // Fallback to the known True ID if row retrieval fails
 
     // Check if a format entry exists with the given itemId in the Object field
     let format = await this.formatRepository.findOne({ where: { Object: itemId } });
@@ -176,15 +204,15 @@ export class FormatService {
       format = new Format();
       format.Object = itemId;
       format.User = userId as any;
-      format.ObjectType = 3000000596  as any; // Reference to the Row entity
-      format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
-      format.DeletedBy = userId as any; // Reference to the User entity
-      format.DeletedAt = new Date();
+      format.ObjectType = 3000000601 as any; // Reference to the Row entity
+      format.Recycled = RecycledRowId as any; // Use the retrieved or fallback True ID
+      format.RecycledBy = userId as any; // Reference to the User entity
+      format.RecycledAt = new Date();
     } else {
       // Optionally, update existing format details if necessary
-      format.DeletedBy = userId as any; // Reference to the User entity
-      format.Deleted = deletedRowId as any; // Use the retrieved or fallback True ID
-      format.DeletedAt = new Date();
+      format.RecycledBy = userId as any; // Reference to the User entity
+      format.Recycled = RecycledRowId as any; // Use the retrieved or fallback True ID
+      format.RecycledAt = new Date();
     }
 
     // Save the format entry
@@ -202,7 +230,7 @@ export class FormatService {
        // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
        format = this.formatRepository.create({
          Object: colid,
-         ObjectType: 3000000584 as any, // Fixed ObjectType value
+         ObjectType: 3000000589 as any, // Fixed ObjectType value
          ...updateData,
          User: userId as any,
        });
@@ -244,7 +272,7 @@ export class FormatService {
       // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
       format = this.formatRepository.create({
         Object: colid,
-        ObjectType: 3000000585 as any, // Fixed ObjectType value
+        ObjectType: 3000000590 as any, // Fixed ObjectType value
         ...updateData,
         User: userId as any,
       });
@@ -269,7 +297,7 @@ export class FormatService {
         // If no format entry is found, create a new one with the colid, userId, and fixed ObjectType
         format = this.formatRepository.create({
           Object: colid,
-          ObjectType: 3000000586 as any, // Fixed ObjectType value
+          ObjectType: 3000000591 as any, // Fixed ObjectType value
           ...updateData,
           User: userId as any,
         });
@@ -293,7 +321,7 @@ export class FormatService {
       // If no format entry is found, create a new one with the ItemId, userId, and fixed ObjectType
       format = this.formatRepository.create({
         Object: itemId,
-        ObjectType: 3000000597 as any, // Fixed ObjectType value
+        ObjectType: 3000000602 as any, // Fixed ObjectType value
         ...updateData,
         User: userId as any,
       });
@@ -317,7 +345,7 @@ export class FormatService {
        // If no format entry is found, create a new one with the ItemId, userId, and fixed ObjectType
        format = this.formatRepository.create({
          Object: itemId,
-         ObjectType: 3000000598 as any, // Fixed ObjectType value
+         ObjectType: 3000000603 as any, // Fixed ObjectType value
          ...updateData,
          User: userId as any,
        });
@@ -329,7 +357,6 @@ export class FormatService {
      // Save the updated or new format entry
      return await this.formatRepository.save(format);
    }
-  // update the local row
  // Update the local row in the Format table
 async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format> {
     // Find the format entry by the rowId (stored in the Object field)
@@ -381,7 +408,7 @@ async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format
       // If no format entry is found, create a new one with the cellId, userId, and fixed ObjectType
       format = this.formatRepository.create({
         Object: cellId,
-        ObjectType: 3000000593 as any, // Fixed ObjectType value
+        ObjectType: 3000000598 as any, // Fixed ObjectType value
         ...updateData,
         User: userId as any,
       });
@@ -404,7 +431,7 @@ async updatelocalrow(rowId: number, updateData: Partial<Format>): Promise<Format
       // If no format entry is found, create a new one with the cellId, userId, and fixed ObjectType
       format = this.formatRepository.create({
         Object: cellId,
-        ObjectType: 3000000594 as any, // Fixed ObjectType value
+        ObjectType: 3000000599 as any, // Fixed ObjectType value
         ...updateData,
         User: userId as any,
       });

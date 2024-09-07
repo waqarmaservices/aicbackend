@@ -151,7 +151,6 @@ export class ItemService {
     } else if (Array.isArray(cell.Items)) {
       itemsArray = cell.Items as number[];
     }
-    console.log(itemsArray);
     // Step 3: Validate the itemId from the payload against the Items array
     const Id = payload.itemId;
     if (!itemsArray.includes(Id)) {

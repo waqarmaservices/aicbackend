@@ -28,7 +28,7 @@ export class FormatController {
           FontStyle: format.FontStyle,
           Formula: format.Formula,
           Comment: format.Comment,
-          DeletedAt: format.DeletedAt,
+          RecycledAt: format.RecycledAt,
           User: format.User, // Nested User
           PgNestedCol: format.PgNestedCol, // Nested PgNestedCol
           PgLevelSet: format.PgLevelSet, // Nested PgLevelSet
@@ -36,8 +36,8 @@ export class FormatController {
           RowSetTick: format.RowSetTick, // Nested RowSetTick
           Owner: format.Owner, // Nested Owner
           Default: format.Default, // Nested Default
-          Deleted: format.Deleted, // Nested Deleted
-          DeletedBy: format.DeletedBy, // Nested DeletedBy
+          Recycled: format.Recycled, 
+          RecycledBy: format.RecycledBy, 
         },
       };
 
@@ -66,29 +66,29 @@ export class FormatController {
       // Construct the response data with the desired nested structure
       const data = {
         Format_Data: {
-          Format: format.Format,
-          Object: format.Object,
-          ObjectType: format.ObjectType, // Nested ObjectType
-          Container: format.Container,
-          PgSort: format.PgSort,
-          PgFilter: format.PgFilter,
-          PgCols: format.PgCols,
-          CellItems: format.CellItems,
-          ColMinWidth: format.ColMinWidth,
-          Status: format.Status,
-          FontStyle: format.FontStyle,
-          Formula: format.Formula,
-          Comment: format.Comment,
-          DeletedAt: format.DeletedAt,
-          User: format.User, // Nested User
-          PgNestedCol: format.PgNestedCol, // Nested PgNestedCol
-          PgLevelSet: format.PgLevelSet, // Nested PgLevelSet
-          PgSearchSet: format.PgSearchSet, // Nested PgSearchSet
-          RowSetTick: format.RowSetTick, // Nested RowSetTick
-          Owner: format.Owner, // Nested Owner
-          Default: format.Default, // Nested Default
-          Deleted: format.Deleted, // Nested Deleted
-          DeletedBy: format.DeletedBy, // Nested DeletedBy
+            Format: format.Format,
+            Object: format.Object,
+            ObjectType: format.ObjectType, // Nested ObjectType
+            Container: format.Container,
+            PgSort: format.PgSort,
+            PgFilter: format.PgFilter,
+            PgCols: format.PgCols,
+            CellItems: format.CellItems,
+            ColMinWidth: format.ColMinWidth,
+            Status: format.Status,
+            FontStyle: format.FontStyle,
+            Formula: format.Formula,
+            Comment: format.Comment,
+            RecycledAt: format.RecycledAt,
+            User: format.User, // Nested User
+            PgNestedCol: format.PgNestedCol, // Nested PgNestedCol
+            PgLevelSet: format.PgLevelSet, // Nested PgLevelSet
+            PgSearchSet: format.PgSearchSet, // Nested PgSearchSet
+            RowSetTick: format.RowSetTick, // Nested RowSetTick
+            Owner: format.Owner, // Nested Owner
+            Default: format.Default, // Nested Default
+            Recycled: format.Recycled, 
+            RecycledBy: format.RecycledBy, 
         },
       };
       return new ApiResponse(true, data, '', HttpStatus.OK);
@@ -119,7 +119,7 @@ export class FormatController {
           FontStyle: updateData.FontStyle,
           Formula: updateData.Formula,
           Comment: updateData.Comment,
-          DeletedAt: updateData.DeletedAt,
+          RecycledAt: updateData.RecycledAt,
           User: updateData.User, // Nested User
           PgNestedCol: updateData.PgNestedCol, // Nested PgNestedCol
           PgLevelSet: updateData.PgLevelSet, // Nested PgLevelSet
@@ -127,8 +127,8 @@ export class FormatController {
           RowSetTick: updateData.RowSetTick, // Nested RowSetTick
           Owner: updateData.Owner, // Nested Owner
           Default: updateData.Default, // Nested Default
-          Deleted: updateData.Deleted, // Nested Deleted
-          DeletedBy: updateData.DeletedBy, // Nested DeletedBy
+          Recycled: updateData.Recycled, 
+          RecycledBy: updateData.RecycledBy, 
         },
       };
       return new ApiResponse(true, data, '', HttpStatus.OK);
@@ -169,9 +169,9 @@ export class FormatController {
         Delete_Row: {
           Format: updatedFormat.Format?.toString(),
           Object: updatedFormat.Object?.toString(),
-          Deleted: updatedFormat.Deleted?.toString(),
-          DeletedBy: updatedFormat.DeletedBy?.toString(),
-          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+          Recycled: updatedFormat.Recycled?.toString(),
+          RecycledBy: updatedFormat.RecycledBy?.toString(),
+          RecycledAt: updatedFormat.RecycledAt?.toISOString(),
         },
       };
       return new ApiResponse(true, responseData, '', HttpStatus.OK);
@@ -190,9 +190,9 @@ export class FormatController {
         Delete_Page: {
           Format: updatedFormat.Format?.toString(),
           Object: updatedFormat.Object?.toString(),
-          Deleted: updatedFormat.Deleted?.toString(),
-          DeletedBy: updatedFormat.DeletedBy?.toString(),
-          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+          Recycled: updatedFormat.Recycled?.toString(),
+          RecycledBy: updatedFormat.RecycledBy?.toString(),
+          RecycledAt: updatedFormat.RecycledAt?.toISOString(),
         },
       };
       return new ApiResponse(true, responseData, '', HttpStatus.OK);
@@ -214,9 +214,9 @@ export class FormatController {
         Delete_Column: {
           Format: updatedFormat.Format?.toString(),
           Object: updatedFormat.Object?.toString(),
-          Deleted: updatedFormat.Deleted?.toString(),
-          DeletedBy: updatedFormat.DeletedBy?.toString(),
-          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+          Recycled: updatedFormat.Recycled?.toString(),
+          RecycledBy: updatedFormat.RecycledBy?.toString(),
+          RecycledAt: updatedFormat.RecycledAt?.toISOString(),
         },
       };
       return new ApiResponse(true, responseData, '', HttpStatus.OK);
@@ -238,9 +238,9 @@ export class FormatController {
           Object: updatedFormat.Object?.toString(),
           ObjectType: updatedFormat.ObjectType?.toString(),
           User: updatedFormat.User?.toString(),
-          Deleted: updatedFormat.Deleted?.toString(),
-          DeletedBy: updatedFormat.DeletedBy?.toString(),
-          DeletedAt: updatedFormat.DeletedAt?.toISOString(),
+          Recycled: updatedFormat.Recycled?.toString(),
+          RecycledBy: updatedFormat.RecycledBy?.toString(),
+          RecycledAt: updatedFormat.RecycledAt?.toISOString(),
         },
       };
       return new ApiResponse(true, responseData, '', HttpStatus.OK);
@@ -276,7 +276,7 @@ export class FormatController {
             FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
             Formula: updateData.Formula || updatedFormat.Formula,
             Comment: updateData.Comment || updatedFormat.Comment,
-            DeletedAt: updateData.DeletedAt || updatedFormat.DeletedAt,
+            RecycledAt: updateData.RecycledAt || updatedFormat.RecycledAt,
             User: updateData.User || updatedFormat.User, // Nested User
             PgNestedCol: updateData.PgNestedCol || updatedFormat.PgNestedCol, // Nested PgNestedCol
             PgLevelSet: updateData.PgLevelSet || updatedFormat.PgLevelSet, // Nested PgLevelSet
@@ -284,8 +284,8 @@ export class FormatController {
             RowSetTick: updateData.RowSetTick || updatedFormat.RowSetTick, // Nested RowSetTick
             Owner: updateData.Owner || updatedFormat.Owner, // Nested Owner
             Default: updateData.Default || updatedFormat.Default, // Nested Default
-            Deleted: updateData.Deleted || updatedFormat.Deleted, // Nested Deleted
-            DeletedBy: updateData.DeletedBy || updatedFormat.DeletedBy, // Nested DeletedBy
+            Recycled: updateData.Recycled || updatedFormat.Recycled, 
+            RecycledBy: updateData.RecycledBy || updatedFormat.RecycledBy, 
         },
       };
 
@@ -294,6 +294,7 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
   @Put('update-PgFormat/:Pg')
   async updatePageFormat(
     @Param('Pg') Pg: number,

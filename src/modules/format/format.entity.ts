@@ -94,15 +94,15 @@ export class Format {
   TxList: number[];
 
   @ManyToOne(() => Row, { nullable: true })
-  @JoinColumn({ name: 'Deleted' })
-  Deleted: Row;
+  @JoinColumn({ name: 'Recycled' })
+  Recycled: Row;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'DeletedBy' })
-  DeletedBy: User;
+  @JoinColumn({ name: 'RecycledBy' })
+  RecycledBy: User;
 
   @Column({ type: 'timestamp', nullable: true })
-  DeletedAt: Date;
+  RecycledAt: Date;
 
   @ManyToOne(() => Page, (page) => page.formats)
   @JoinColumn({ name: 'Object' })
