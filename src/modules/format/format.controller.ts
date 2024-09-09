@@ -224,30 +224,32 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('check-update-format/:itemId')
-  async checkAndUpdateFormat(
-    @Body('itemId') itemId: number,
-    @Body('userId') userId: number,
-  ): Promise<ApiResponse<any>> {
-    try {
-      const updatedFormat = await this.formatService.checkAndUpdateFormat(itemId, userId);
+    @Post('delete-item')
+    async deleteitem(
+        @Body('colId') colId: number,
+        @Body('rowId') rowId: number,
+        @Body('userId') userId: number,
+    ): Promise<ApiResponse<any>> {
+        try {
+            const updatedFormat = await this.formatService.deleteitem(colId, rowId, userId);
 
-      const responseData: any = {
-        Format: {
-          Format: updatedFormat.Format,
-          Object: updatedFormat.Object?.toString(),
-          ObjectType: updatedFormat.ObjectType?.toString(),
-          User: updatedFormat.User?.toString(),
-          Recycled: updatedFormat.Recycled?.toString(),
-          RecycledBy: updatedFormat.RecycledBy?.toString(),
-          RecycledAt: updatedFormat.RecycledAt?.toISOString(),
-        },
-      };
-      return new ApiResponse(true, responseData, '', HttpStatus.OK);
-    } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+            const responseData: any = {
+                'Deleted Item': {
+                    Format: updatedFormat.Format,
+                    Object: updatedFormat.Object,
+                    ObjectType: updatedFormat.ObjectType,
+                    User: updatedFormat.User,
+                    Recycled: updatedFormat.Recycled,
+                    RecycledBy: updatedFormat.RecycledBy,
+                    RecycledAt: updatedFormat.RecycledAt,
+                },
+            };
+            return new ApiResponse(true, responseData, '', HttpStatus.OK);
+        } catch (error) {
+            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-  }
+
   @Put('edit-column/:colid')
   async editColumnFormat(@Param('colid') colid: number,
   @Body('userId') userId: number, 

@@ -194,14 +194,35 @@ export class FormatService {
     // Save the updated format entry
     return await this.formatRepository.save(format);
   }
-  async checkAndUpdateFormat(itemId: number, userId: number): Promise<Format> {
-    // Get the Recycled row ID using the getRowId function for the ALL_TOKENS page
-    // const RecycledRow = await this.getRowId(COLUMN_NAMES.TOKEN_NAMES, 'True', [PAGE_IDS.ALL_TOKENS]);
-    const RecycledRowId = /* RecycledRow?.RowId || */ 3000000248; // Fallback to the known True ID if row retrieval fails
-
-    // Check if a format entry exists with the given itemId in the Object field
+  async deleteitem(colId: number, rowId: number, userId: number): Promise<Format> {
+    // Step 1: Find the Cell entity using colId and rowId
+    const cell = await this.cellService.findCellByColAndRow(colId, rowId);
+    if (!cell) {
+      throw new Error('Cell not found');
+    }
+    // Step 2: Extract the Items array from the Cell entity
+    let itemsArray: number[] = [];
+    if (typeof cell.Items === 'string') {
+      itemsArray = (cell.Items as string)
+        .replace(/[{}]/g, '') // Remove braces
+        .split(',')
+        .map((item) => parseInt(item.trim(), 10)); // Convert to array of numbers
+    } else if (Array.isArray(cell.Items)) {
+      itemsArray = cell.Items as number[];
+    }
+  
+    // Step 3: Check that exactly one item exists in the Items array
+    if (itemsArray.length !== 1) {
+      throw new Error('Expected exactly one Item ID in the Items array, found: ' + itemsArray.length);
+    }
+  
+    // Step 4: Use the single itemId from the Items array
+    const itemId = itemsArray[0];
+    // Step 5: Check if a format entry exists with the given itemId in the Object field
     let format = await this.formatRepository.findOne({ where: { Object: itemId } });
-
+  
+    const RecycledRowId = 3000000248; // Fallback to the known True ID if row retrieval fails
+  
     if (!format) {
       // If no match is found, create a new format entry
       format = new Format();
@@ -212,15 +233,16 @@ export class FormatService {
       format.RecycledBy = userId as any; // Reference to the User entity
       format.RecycledAt = new Date();
     } else {
-      // Optionally, update existing format details if necessary
+      // Update existing format details if necessary
       format.RecycledBy = userId as any; // Reference to the User entity
       format.Recycled = RecycledRowId as any; // Use the retrieved or fallback True ID
       format.RecycledAt = new Date();
     }
-
+  
     // Save the format entry
     return await this.formatRepository.save(format);
   }
+  
   // check the column id exist in format and update the format table
   async editColumnFormat(colid: number,  userId: number, updateData: Partial<any>): Promise<any> {
      // Find the format entry by the colid (stored in the Object field)
