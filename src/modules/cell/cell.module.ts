@@ -7,11 +7,17 @@ import { Format } from 'modules/format/format.entity';
 import { FormatService } from 'modules/format/format.service';
 import { Item } from 'modules/item/item.entity';
 import { ItemService } from 'modules/item/item.service';
+import { PageService } from 'modules/page/page.service';
+import { Page } from 'modules/page/page.entity';
+import { RowService } from 'modules/row/row.service';
+import { Row } from 'modules/row/row.entity';
+import { ColService } from 'modules/col/col.service';
+import { Col } from 'modules/col/col.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Cell, Format, Item])],
+  imports: [TypeOrmModule.forFeature([Cell, Format, Item, Page, Row, Col])],
   controllers: [CellController],
-  providers: [CellService, FormatService, ItemService],
+  providers: [CellService, FormatService, ItemService, PageService, RowService, ColService],
   exports: [CellService],
 })
 export class CellModule {}

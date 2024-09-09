@@ -17,7 +17,9 @@ export class RowService {
   constructor(
     @InjectRepository(Row)
     private readonly rowRepository: Repository<Row>,
+    @Inject(forwardRef(() => FormatService))
     private readonly formatService: FormatService,
+    @Inject(forwardRef(() => CellService))
     private readonly cellService: CellService,
     private readonly itemService: ItemService,
     @Inject(forwardRef(() => PageService))

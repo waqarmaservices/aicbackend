@@ -1,20 +1,23 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Format } from './format.entity';
-import { Cell } from 'modules/cell/cell.entity';
 import { CellService } from 'modules/cell/cell.service';
 import { RowService } from 'modules/row/row.service';
 import { ColService } from 'modules/col/col.service';
-import { ItemService } from 'modules/item/item.service';
 import { PageService } from 'modules/page/page.service';
-import { Row } from 'modules/row/row.entity';
 
 @Injectable()
 export class FormatService {
   constructor(
     @InjectRepository(Format)
     private readonly formatRepository: Repository<Format>,
+    @Inject(forwardRef(() => PageService))
+    private readonly pageService: PageService,
+    private readonly colService: ColService,
+    private readonly rowService: RowService,
+    @Inject(forwardRef(() => CellService))
+    private readonly cellService: CellService,
   ) {}
 
   async createFormat(payload: any): Promise<Format> {
