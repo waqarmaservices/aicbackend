@@ -61,34 +61,7 @@ export class FormatService {
   async findOne(id: number): Promise<Format> {
     return this.formatRepository.findOne({
       where: { Format: id },
-      relations: [
-        'User',
-        'ObjectType',
-        'Object',
-        'Container',
-        'PgCols',
-        'PgNestedCol',
-        'PgFreezeCol',
-        'PgExpand',
-        'PgLevelSet',
-        'PgSearchSet',
-        'PgSort',
-        'PgFilter',
-        'CellItems',
-        'ColMinWidth',
-        'RowSetTick',
-        'Owner',
-        'Status',
-        'Default',
-        'FontStyle',
-        'Formula',
-        'Comment',
-        'TxList',
-        'Unit',
-        'Recycled',
-        'RecycledBy',
-        'RecycledAt'
-      ],
+      relations: ['User', 'ObjectType'],
     });
   }
 

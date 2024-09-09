@@ -297,7 +297,7 @@ export class PageService {
     }
   }
   async findPageType(pageId: number): Promise<any> {
-    const pageTypeColId = COLUMN_IDS.ALL_PAGES.PAGE_TYPE; // Col-ID of Column 'Page Type'
+    const pageTypeColId = COLUMN_IDS.SHARED.PAGE_TYPE; // Col-ID of Column 'Page Type'
     const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
 
     if (pgRow) {
