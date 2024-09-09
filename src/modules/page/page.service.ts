@@ -34,13 +34,10 @@ export class PageService {
     private cacheManager: Cache,
     @InjectRepository(Page)
     private readonly pageRepository: Repository<Page>,
-    @InjectRepository(Cell)
-    private readonly cellRepository: Repository<Cell>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
     private readonly cellService: CellService,
     private readonly rowService: RowService,
-    private readonly colService: ColService,
     private readonly itemService: ItemService,
     private readonly formatService: FormatService,
   ) {
