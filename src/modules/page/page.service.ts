@@ -121,9 +121,9 @@ export class PageService {
 
       pgColResponse.push({
         col: col.column_id,
-        title: col.column_name.trim(),
-        field: this.transformColName(col.column_name),
-        datatype: col.column_datatype.trim(),
+        title: col.column_name?.trim(),
+        field: this.transformColName(col?.column_name),
+        datatype: col.column_datatype?.trim(),
         status: colStatuses,
       });
     }
@@ -301,7 +301,7 @@ export class PageService {
     const pgRow = await this.rowService.findOneByColumnName('Pg', pageId);
 
     if (pgRow) {
-      const itemId = await this.entityManager
+      const itemIds = await this.entityManager
         .findOne(Cell, {
           where: {
             Row: pgRow.Row,
@@ -310,9 +310,9 @@ export class PageService {
         })
         .then((cell) => (cell ? cell.Items.toString().replace(/[{}]/g, '') : null));
 
-      if (itemId) {
+      if (itemIds) {
         const cellItem = await this.entityManager.findOne(Item, {
-          where: { Item: Number(itemId) },
+          where: { Item: In(itemIds.split(',')) },
         });
 
         if (cellItem != null) {
