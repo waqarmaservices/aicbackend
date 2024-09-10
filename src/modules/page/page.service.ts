@@ -1022,6 +1022,10 @@ export class PageService {
     const pgFormatRecord = await this.formatService.findOneByColumnName('Object', Pg);
 
     const updatedPgFormatRecord = await this.formatService.updateFormat(pgFormatRecord.Format, { PgCols });
+
+    // Clear page cache after updating page column order
+    await this.clearPageCache(Pg.toString());
+
     return updatedPgFormatRecord;
   }
 
