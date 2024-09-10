@@ -298,7 +298,7 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('update-PgFormat/:Pg/:Pg')
+  @Put('update-PgFormat/:Pg')
   async updatePageFormat(
     @Param('Pg') Pg: number,
     @Body('userId') userId: number,
