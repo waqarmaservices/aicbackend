@@ -39,7 +39,7 @@ export class ImportService {
    */
   async importSheet(filePath: string): Promise<string> {
     // Read sheet data for all pages
-    const { sheetData: allPagesSheetData, sheetColumns: allPagesSheetColumns } = this.readSheetData(
+    const { sheetData: allPagesSheetData } = this.readSheetData(
       filePath,
       SHEET_NAMES.ALL_PAGES,
       SHEET_READ_OPTIONS.ALL_PAGES,
@@ -112,14 +112,14 @@ export class ImportService {
     // Insert all units sheet data into the database
     await this.insertTokenUnitsSheetData(allTokensSheetData, allUnitsSheetData);
 
-    // Insert all tokens sheet data into the database
+    // // Insert all tokens sheet data into the database
     await this.insertAllTokensData(allTokensSheetData);
 
     // Insert all units sheet data into the database
     await this.insertAllUnitsSheetData(allUnitsSheetData);
 
     // Insert all pages sheet data into the database
-    await this.insertAllPagesSheetData(allPagesSheetData, allPagesSheetColumns);
+    await this.insertAllPagesSheetData(allPagesSheetData);
 
     // Insert all cols sheet data into the database
     await this.insertAllColsSheetData(allColsSheetData, allColsSheetColumns);
@@ -291,10 +291,27 @@ export class ImportService {
    * @param {string[]} sheetColumns - The column names of the sheet data.
    * @returns {Promise<void>} - A promise that resolves when the insertion is complete.
    */
-  private async insertAllPagesSheetData(sheetData: any[], sheetColumns: string[]): Promise<void> {
+  private async insertAllPagesSheetData(sheetData: any[]): Promise<void> {
     // Process and normalize the sheet data
-    const pagesData = await this.processSheetData(sheetData, sheetColumns);
-
+    const pagesData = [];
+    for (const [rowIndex, row] of sheetData.entries()) {
+        pagesData[rowIndex] = {
+          Row: row[0],
+          Page_ID: row[1],
+          Page_Name: row.slice(2, 4).find((value) => value != null),
+          Page_Type: row[4] ?? row[4],
+          Page_Edition: row[5] ?? row[5],
+          Page_Owner: row[6] ?? row[6],
+          Page_URL: row[7] ?? row[7],
+          Page_SEO: row[8] ?? row[8],
+          Page_Status: row[9] ?? row[9],
+          Page_Comment: row[10] ?? row[10],
+          Row_Type: row[11] ?? row[11],
+          Row_Status: row[12] ?? row[12],
+          Row_Comment: row[13] ?? row[13],
+          Row_Level: this.calculateRowLevel(row.slice(2)),
+        };
+      }
     // Iterate through each processed page element
     for (const pageEl of pagesData) {
       // Find the page by its ID
@@ -312,7 +329,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: pageEl.Row,
         Pg: PAGE_IDS.ALL_PAGES,
-        RowLevel: 1,
+        RowLevel: pageEl.Row_Level,
         RowType: pageEl.Row_Type ? [pgRowId.Row] : [],
       });
 
@@ -347,7 +364,7 @@ export class ImportService {
           Object: page.Pg,
         });
         await this.cellService.createCell({
-          Col: COLUMN_IDS.ALL_PAGES.PAGE_ID,
+          Col: COLUMN_IDS.SHARED.PAGE_ID,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -360,7 +377,7 @@ export class ImportService {
           JSON: { [SYSTEM_INITIAL.ENGLISH]: pageEl.Page_Name },
         });
         await this.cellService.createCell({
-          Col: COLUMN_IDS.ALL_PAGES.PAGE_NAME,
+          Col: COLUMN_IDS.SHARED.PAGE_NAME,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
@@ -375,7 +392,7 @@ export class ImportService {
             Object: objectRowId.Row,
           });
           await this.cellService.createCell({
-            Col: COLUMN_IDS.ALL_PAGES.PAGE_TYPE,
+            Col: COLUMN_IDS.SHARED.PAGE_TYPE,
             Row: createdRow.Row,
             Items: [createdItem.Item],
           });
@@ -390,7 +407,7 @@ export class ImportService {
           Object: objectRowId.Row,
         });
         await this.cellService.createCell({
-          Col: COLUMN_IDS.ALL_PAGES.PAGE_EDITION,
+          Col: COLUMN_IDS.SHARED.PAGE_EDITION,
           Row: createdRow.Row,
           Items: [createdItem.Item],
         });
