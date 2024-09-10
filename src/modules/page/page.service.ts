@@ -695,7 +695,7 @@ export class PageService {
         }
       }
 
-      if (format.Status) {
+      if (format && format?.Status) {
         const statuses = await Promise.all(
           format.Status.toString()
             .replace(/[{}]/g, '')
