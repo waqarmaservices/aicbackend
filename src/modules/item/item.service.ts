@@ -83,10 +83,16 @@ export class ItemService {
   }
 
   async getItemsByIds(itemIds: number[]): Promise<Item[]> {
-    return await this.itemRepository.find({
+    // Perform the asynchronous database query
+    const items = await this.itemRepository.find({
       where: { Item: In(itemIds) },
       relations: ['ItemObject.cells', 'DataType'],
     });
+
+    // Sort the data to match the order of itemIds
+    const sortedData = itemIds.map(id => items.find(item => item.Item == id));
+
+    return sortedData;
   }
 
     // Create Item table with Updation of Cell
