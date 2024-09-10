@@ -152,7 +152,6 @@ export class ColController {
 
       return new ApiResponse(true, responseData, '', HttpStatus.OK);
     } catch (error) {
-      console.error('Error occurred:', error);
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

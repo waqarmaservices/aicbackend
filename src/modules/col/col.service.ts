@@ -63,7 +63,6 @@ export class ColService {
     const updateCol = await this.colRepository.findOne({ where: { Col: updateData.Col } });
     return updateCol;
   }
-
   /**
    * Deletes one Col based on provided col ID
    *
@@ -99,42 +98,45 @@ export class ColService {
     return { createdcol, createdFormat };
   }
   // Createing Col and Row 
-    async createColAndRow(payload: any): Promise<{ createdCol: Col; createdRow: Row }> {
-        const { Pg, RowLevel, Share, Inherit, RowType, ParentRow, SiblingRow } = payload;
+  async createColAndRow(payload: any): Promise<{ createdCol: Col; createdRow: Row }> {
+    const { Pg, RowLevel, Share, Inherit, RowType, ParentRow, SiblingRow } = payload;
 
-        // Step 1: Create a new column
-        const newCol = this.colRepository.create(); // Adjust this if you need to include specific column data from the payload
-        const createdCol = await this.colRepository.save(newCol);
-        if (!createdCol) {
-            throw new Error('Failed to create column');
-        }
-
-        // Step 2: Find the page by Pg ID
-        const page = await this.pageService.findOne(Pg); // Correctly find the page using the Pg ID
-        if (!page) {
-            throw new Error('Page not found');
-        }
-
-        // Log or handle the existing columns if needed
-        const existingCols = page.Cols; // Access columns from the page object
-
-        // Step 3: Create the row using the createRow function from RowService
-        const rowPayload = {
-            Pg, // Foreign key reference to the page
-            RowLevel,
-            Share,
-            Inherit,
-            RowType,
-            ParentRow,
-            SiblingRow,
-        };
-
-        const createdRow = await this.rowService.createRow(rowPayload);
-        if (!createdRow) {
-            throw new Error('Failed to create row');
-        }
-
-        // Return the created column and row
-        return { createdCol, createdRow };
+    // Step 1: Create a new column
+    const newCol = this.colRepository.create(); // Adjust this if you need to include specific column data from the payload
+    const createdCol = await this.colRepository.save(newCol);
+    if (!createdCol) {
+      throw new Error('Failed to create column');
     }
+
+    // Step 2: Find the page by Pg ID
+    const page = await this.pageService.findOne(Pg); // Correctly find the page using the Pg ID
+    if (!page) {
+      throw new Error('Page not found');
+    }
+
+    // Log or handle the existing columns if needed
+    const existingCols = page.Cols; // Access columns from the page object
+
+    // Step 3: Create the row using the createRow function from RowService
+    const rowPayload = {
+      Pg, // Foreign key reference to the page
+      RowLevel,
+      Share,
+      Inherit,
+      RowType,
+      ParentRow,
+      SiblingRow,
+    };
+
+    const createdRow = await this.rowService.createRow(rowPayload);
+    if (!createdRow) {
+      throw new Error('Failed to create row');
+    }
+
+    // Step 4: Clear cache for the page
+    const Clean = await this.pageService.clearPageCache(createdRow.Pg.Pg.toString()); // Clear cache for this page
+    console.log(Clean);
+    // Return the created column and row
+    return { createdCol, createdRow };
+  }
 }
