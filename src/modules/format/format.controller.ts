@@ -179,7 +179,7 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('delete-Pg/:Pg/:Pg')
+  @Put('delete-Pg/:Pg')
   async updateFormatOnpageDelete(@Param('Pg') Pg: number, @Body('userId') userId: number): Promise<ApiResponse<any>> {
     // Use `any` for the response type to match your custom structure
     try {
