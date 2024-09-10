@@ -142,16 +142,18 @@ export class ItemService {
   }
   //  Get cell Data Match Item Id Update Item Table
   async getCellAndUpdateItem(payload: any): Promise<{ updatedItem: Item; cell: Cell }> {
-    // Step 1: Find the Cell entity using colId and rowId from the payload
+    // Extract data from payload
     const colId = payload.colId;
     const rowId = payload.rowId;
-
+    const pageId = payload.PageId; // PageId from payload
+  
+    // Step 1: Find the Cell entity using colId and rowId from the payload
     const cell = await this.cellService.findCellByColAndRow(colId, rowId);
     if (!cell) {
       throw new Error('Cell not found');
     }
-    const row = await this.rowService.findOne(rowId);
-    // Step 2: Extract the Items array from the Cell entity (assuming it contains a single item)
+  
+    // Step 2: Extract the Items array from the Cell entity
     let itemsArray: number[] = [];
     if (typeof cell.Items === 'string') {
       itemsArray = (cell.Items as string)
@@ -161,32 +163,31 @@ export class ItemService {
     } else if (Array.isArray(cell.Items)) {
       itemsArray = cell.Items as number[];
     }
-
+  
     // Step 3: Check that exactly one item exists in the Items array
     if (itemsArray.length !== 1) {
       throw new Error('Expected exactly one Item ID in the Items array, found: ' + itemsArray.length);
     }
-
+  
     // Step 4: Use the single itemId from the Items array
     const itemId = itemsArray[0];
+  
     // Step 5: Find the corresponding Item in the database
     const item = await this.itemRepository.findOne({ where: { Item: itemId } });
     if (!item) {
       throw new Error('Item not found');
     }
-
+  
     // Step 6: Update the Item entity with new data from the payload
     if (item.JSON && typeof item.JSON === 'object') {
-      // Merge existing JSON with new key-value pairs from the payload
       item.JSON = {
         ...item.JSON,
         ...payload.JSON, // Add new key-value pairs from the payload
       };
     } else {
-      // If item.JSON is not an object, initialize it with the payload JSON
-      item.JSON = payload.JSON;
+      item.JSON = payload.JSON; // Initialize JSON with the payload JSON
     }
-
+  
     // Update the Item in the database
     await this.itemRepository.update(
       { Item: itemId }, // Criteria to find the item to update
@@ -206,20 +207,26 @@ export class ItemService {
         Foreign: payload.Foreign,
       },
     );
-
-    // Step 7: Retrieve the fully updated Item, including all necessary relations
+  
+    // Step 7: Retrieve the fully updated Item
     const updatedItem = await this.itemRepository.findOne({
       where: { Item: itemId },
-      relations: ['DataType', 'Unit', 'StdUnit'], // Include related entities
+      // Uncomment if you need to include related entities
+       relations: ['DataType', 'Unit', 'StdUnit'],
     });
-
+  
     if (!updatedItem) {
       throw new Error('Updated Item not found');
     }
-
-    // Step: 8 Clear cache for the page
-    const clean = await this.pageService.clearPageCache(row.Pg.Pg.toString()); // Clear cache for this page
-    console.log(clean);
+  
+    // Step 8: Clear cache for the page using PageId from payload
+    if (pageId) {
+      const clean = await this.pageService.clearPageCache(pageId.toString());
+      console.log(`Cache cleared for page ${pageId}`);
+    } else {
+      console.warn('PageId not found in the payload. Skipping cache clear.');
+    }
+  
     // Step 9: Return the updated Item and the Cell
     return {
       updatedItem,

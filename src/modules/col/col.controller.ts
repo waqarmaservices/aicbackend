@@ -132,7 +132,7 @@ export class ColController {
 
       // Construct the response structure
       const responseData = {
-        'Col-Row': {
+        'Add-Row': {
           createdCol: {
             Col: createdCol.Col,
             
