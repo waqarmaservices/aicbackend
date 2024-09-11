@@ -755,53 +755,56 @@ export class PageService {
     // Use Promise.all to handle async operations in map
     const results = await Promise.all(
       items.map(async (item) => {
-        if (item && item.JSON) {
-          // If JSON is not null, return the JSON object
-          let jsonValue = null;
-          for (const key in item.JSON) {
-            if (item.JSON.hasOwnProperty(key)) {
-              jsonValue = item.JSON[key];
-              break; // Assuming you want the first key-value pair
-            }
-          }
-          if (item.DataType.Row == ALL_DATATYPES.DropDownSource && jsonValue) {
-            jsonValue = await this.getItemsFromRowIds(jsonValue);
-          }
-          return jsonValue;
-        } else if (item.DateTime) {
-          return item.DateTime.toLocaleDateString();
-        } else if (item.Num) {
-          return item.Num;
-        } else {
-          const itemObject = item.ItemObject;
-          //   const PageItemObject = item.PageObjectItem;
-          if (itemObject) {
-            const cell = itemObject.cells[0];
-            if (cell && cell.Items) {
-              const objectItemIds = cell.Items.toString()
-                .replace(/[{}]/g, '')
-                .split(',')
-                .map((id) => parseInt(id.trim(), 10))
-                .filter((id) => !isNaN(id));
-
-              const objectItems = await this.itemService.getItemsByIds(objectItemIds);
-              return objectItems.map((objectItem) => {
-                if (objectItem.JSON) {
-                  // If JSON is not null, return the JSON object
-                  let ObjectJsonValue = null;
-                  for (const key in objectItem.JSON) {
-                    if (objectItem.JSON.hasOwnProperty(key)) {
-                      ObjectJsonValue = objectItem.JSON[key];
-                      break; // Assuming you want the first key-value pair
-                    }
+        if (item) {
+            if (item && item.JSON) {
+                // If JSON is not null, return the JSON object
+                let jsonValue = null;
+                for (const key in item.JSON) {
+                  if (item.JSON.hasOwnProperty(key)) {
+                    jsonValue = item.JSON[key];
+                    break; // Assuming you want the first key-value pair
                   }
-                  return ObjectJsonValue;
                 }
-              });
-            }
-          }
-          return item.Object;
+                if (item.DataType.Row == ALL_DATATYPES.DropDownSource && jsonValue) {
+                  jsonValue = await this.getItemsFromRowIds(jsonValue);
+                }
+                return jsonValue;
+              } else if (item.DateTime) {
+                return item.DateTime.toLocaleDateString();
+              } else if (item.Num) {
+                return item.Num;
+              } else {
+                const itemObject = item.ItemObject;
+                //   const PageItemObject = item.PageObjectItem;
+                if (itemObject) {
+                  const cell = itemObject.cells[0];
+                  if (cell && cell.Items) {
+                    const objectItemIds = cell.Items.toString()
+                      .replace(/[{}]/g, '')
+                      .split(',')
+                      .map((id) => parseInt(id.trim(), 10))
+                      .filter((id) => !isNaN(id));
+      
+                    const objectItems = await this.itemService.getItemsByIds(objectItemIds);
+                    return objectItems.map((objectItem) => {
+                      if (objectItem.JSON) {
+                        // If JSON is not null, return the JSON object
+                        let ObjectJsonValue = null;
+                        for (const key in objectItem.JSON) {
+                          if (objectItem.JSON.hasOwnProperty(key)) {
+                            ObjectJsonValue = objectItem.JSON[key];
+                            break; // Assuming you want the first key-value pair
+                          }
+                        }
+                        return ObjectJsonValue;
+                      }
+                    });
+                  }
+                }
+                return item.Object;
+              }
         }
+        return null;
       }),
     );
 
