@@ -257,4 +257,16 @@ export class PageController {
       throw error;
     }
   }
+  
+  @Get('items/:pageId')
+  async getOnePagedata(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+    try {
+      const data = await this.pageService.getOnePagedata(pageId);
+      return new ApiResponse(true, data, '', 200);
+    } catch (error) {
+      console.error('Error in getOnePage controller:', error); // Logging the error
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
+    }
+  }
+
 }
