@@ -1044,7 +1044,7 @@ export class PageService {
     return { regions };
   }
   // Get All the languages data from the specified Languages page
-  async getOnePagedata(pageId: number): Promise<any> {
+  async getlanguages(pageId: number): Promise<any> {
     // Step 1: Fetch the page data along with its associated rows and cells based on the given pageId
     const page = await this.entityManager.findOne(Page, {
       where: { Pg: pageId },
