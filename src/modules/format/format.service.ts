@@ -141,13 +141,13 @@ export class FormatService {
         // Set the current timestamp to RecycledAt
         format.RecycledAt = new Date(); 
         
-        // Clear cache for the page
+   /*      // Clear cache for the page
         if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
 
         // Save the updated format entry
         return await this.formatRepository.save(format);
@@ -171,12 +171,12 @@ export class FormatService {
         format.RecycledAt = new Date();
 
         // Clear cache for the page
-        if (Pg) {
+       /*  if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
 
         // Save the updated format entry
         return await this.formatRepository.save(format);
@@ -199,12 +199,12 @@ export class FormatService {
         // Set the current timestamp to RecycledAt
         format.RecycledAt = new Date();
         // Clear cache for the page
-        if (Pg) {
+     /*    if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated format entry
         return await this.formatRepository.save(format);
     }
@@ -257,12 +257,12 @@ export class FormatService {
         // Save the format entry
      const format_Updated = await this.formatRepository.save(format);
         // Clear cache for the page
-        if (Pg) {
+      /*   if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
 
       return format_Updated
       
@@ -288,12 +288,12 @@ export class FormatService {
         // Set the User entity reference
         format.User = userId as any;
         // Clear cache for the page
-        if (Pg) {
+        /* if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated or new format entry
         return await this.formatRepository.save(format);
     }
@@ -313,12 +313,12 @@ export class FormatService {
         format.User = userId as any;
 
         //  Clear cache for the page
-        if (Pg) {
+      /*   if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
 
         // Save the updated format entry
         return await this.formatRepository.save(format);
@@ -344,12 +344,12 @@ export class FormatService {
         // Set the User entity reference
         format.User = userId as any;
         // Clear cache for the page
-        if (Pg) {
+      /*   if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated or new format entry
         return await this.formatRepository.save(format);
     }
@@ -374,12 +374,12 @@ export class FormatService {
         // Set the User entity reference
         format.User = userId as any;
         // Clear cache for the page
-        if (Pg) {
+    /*     if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated or new format entry
         return await this.formatRepository.save(format);
     }
@@ -404,12 +404,12 @@ export class FormatService {
         // Set the User entity reference
         format.User = userId as any;
         // Clear cache for the page
-        if (Pg) {
+        /* if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated or new format entry
         return await this.formatRepository.save(format);
     }
@@ -434,12 +434,12 @@ export class FormatService {
         // Set the User entity reference
         format.User = userId as any;
         // Clear cache for the page
-        if (Pg) {
+        /* if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated or new format entry
         return await this.formatRepository.save(format);
     }
@@ -461,12 +461,12 @@ export class FormatService {
         if (updateData.TxList !== undefined) format.TxList = updateData.TxList;
         
         // Clear cache for the page
-        if (Pg) {
+       /*  if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated format entry
         return await this.formatRepository.save(format);
     }
@@ -488,12 +488,12 @@ export class FormatService {
         if (updateData.TxList !== undefined) format.TxList = updateData.TxList;
 
         // Clear cache for the page
-        if (Pg) {
+       /*  if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Save the updated format entry
         return await this.formatRepository.save(format);
     }
@@ -528,12 +528,12 @@ export class FormatService {
         // Step 4: Save the updated or new format entry
         const savedFormat = await this.formatRepository.save(format);
         // Step 5: Clear cache for the page
-        if (Pg) {
+      /*   if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Include the cell data in the response
         return { ...savedFormat, cell };
     }
@@ -567,13 +567,13 @@ export class FormatService {
 
         // Step 4: Save the updated or new format entry
         const savedFormat = await this.formatRepository.save(format);
-       // Step 5: Clear cache for the page
+       /* // Step 5: Clear cache for the page
         if (Pg) {
             const clean = await this.pageService.clearPageCache(Pg.toString());
             console.log(clean);
         } else {
             console.warn('Pg is undefined or null, skipping cache clear.');
-        }
+        } */
         // Include the cell data in the response
         return { ...savedFormat, cell };
     }

@@ -236,8 +236,8 @@ export class RowService {
       throw new Error('Failed to update the Cell with the new Item ID');
     } 
     // Step 12: Clear cache for the page
-    const clean = await this.pageService.clearPageCache(payload.Pg.toString()); // Clear cache for this page
-    console.log(clean);
+    /* const clean = await this.pageService.clearPageCache(payload.Pg.toString()); // Clear cache for this page
+    console.log(clean); */
     // Return all created entities and the additional column details, including the Page ID
     return {
       createdPage,

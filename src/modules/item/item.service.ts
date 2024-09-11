@@ -140,9 +140,9 @@ export class ItemService {
     const updatedCell = await this.cellService.updateCell(cell.Cell, { Items: updatedItemsString });
 
     //  step: 7 Clear cache for the page
-    const clean = await this.pageService.clearPageCache(row.Pg.Pg.toString()); // Clear cache for this page
+/*     const clean = await this.pageService.clearPageCache(row.Pg.Pg.toString()); // Clear cache for this page
     console.log(clean);
-
+ */
     //step: 8 Return the created item and the updated cell
     return { createdItem, updatedCell };
   }
@@ -226,13 +226,13 @@ export class ItemService {
     }
   
     // Step 8: Clear cache for the page using PageId from payload
-    if (pageId) {
+ /*    if (pageId) {
       const clean = await this.pageService.clearPageCache(pageId.toString());
       console.log(`Cache cleared for page ${pageId}`);
     } else {
       console.warn('PageId not found in the payload. Skipping cache clear.');
     }
-  
+   */
     // Step 9: Return the updated Item and the Cell
     return {
       updatedItem,
