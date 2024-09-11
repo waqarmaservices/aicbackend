@@ -755,7 +755,7 @@ export class PageService {
     // Use Promise.all to handle async operations in map
     const results = await Promise.all(
       items.map(async (item) => {
-        if (item.JSON) {
+        if (item && item.JSON) {
           // If JSON is not null, return the JSON object
           let jsonValue = null;
           for (const key in item.JSON) {
