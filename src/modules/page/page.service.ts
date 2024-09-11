@@ -1017,8 +1017,8 @@ export class PageService {
     });
 
     // Step 3: Clear cache for the page
-    const clean = await this.clearPageCache(createdPage.Pg.toString()); // Clear cache for this page
-    console.log(clean);
+/*     const clean = await this.clearPageCache(createdPage.Pg.toString()); // Clear cache for this page
+    console.log(clean); */
     // Return both created entities
     return { createdPage, createdFormat };
   }

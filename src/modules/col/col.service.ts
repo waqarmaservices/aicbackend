@@ -134,8 +134,8 @@ export class ColService {
     }
 
     // Step 4: Clear cache for the page
-    const Clean = await this.pageService.clearPageCache(createdRow.Pg.Pg.toString()); // Clear cache for this page
-    console.log(Clean);
+    /* const Clean = await this.pageService.clearPageCache(createdRow.Pg.Pg.toString()); // Clear cache for this page
+    console.log(Clean); */
     // Return the created column and row
     return { createdCol, createdRow };
   }
