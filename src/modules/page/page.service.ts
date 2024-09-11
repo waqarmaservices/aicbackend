@@ -1028,6 +1028,8 @@ export class PageService {
     await this.clearPageCache(Pg.toString());
 
     return updatedPgFormatRecord;
+
+    // Get All Regions From DataBase
   }
   async getRegions() {
     const data = await this.getonePageData(1000000013);
@@ -1037,5 +1039,61 @@ export class PageService {
     }));
     await this.cacheManager.set('regions', JSON.stringify(regions), PAGE_CACHE.NEVER_EXPIRE);
     return { regions };
+  }
+  // Get All the languages Data From Languages page
+  async getOnePagedata(pageId: number): Promise<any> {
+    try {
+      // Fetch page data with related items
+      const page = await this.entityManager.findOne(Page, {
+        where: { Pg: pageId },
+        relations: ['rows', 'rows.cells'],
+      });
+
+      if (!page) {
+        throw new Error('Page not found');
+      }
+
+      // Prepare a set to collect item IDs
+      const itemIdsSet = new Set<number>();
+
+      // Extract item IDs from cells
+      for (const row of page.rows) {
+        for (const cell of row.cells) {
+          if (cell.Items) {
+            let itemsArray: number[] = [];
+
+            if (typeof cell.Items === 'string') {
+              itemsArray = (cell.Items as string)
+                .replace(/[{}]/g, '')
+                .split(',')
+                .map((item) => parseInt(item.trim(), 10));
+            } else if (Array.isArray(cell.Items)) {
+              itemsArray = cell.Items;
+            }
+
+            itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+          }
+        }
+      }
+
+      // Retrieve the complete records of each item ID
+      const itemIds = Array.from(itemIdsSet);
+      const items = await this.entityManager.findByIds(Item, itemIds);
+
+      // Prepare the response structure
+      const response: Record<string, string[]> = {
+        "ALL Languages": []
+      };
+
+      items.forEach((item) => {
+        const languageName = item.JSON;
+        response["ALL Languages"].push(languageName); // Add the language name to the array
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Error in getOnePage service:', error);
+      throw new Error('Failed to get page data');
+    }
   }
 }

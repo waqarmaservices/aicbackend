@@ -182,7 +182,7 @@ export class RowService {
     // Step 6: Create the second Format entity using the new Row ID in the Object field
     const formatPayloadRow = {
       User: payload.userid,
-      ObjectType: 3000000593,
+      ObjectType: 3000000594,
       Object: completeRow.Row, // New Row ID
     };
     const createdFormatRow = await this.formatService.createFormat(formatPayloadRow);
