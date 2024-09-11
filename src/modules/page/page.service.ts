@@ -1043,60 +1043,69 @@ export class PageService {
     await this.cacheManager.set('regions', JSON.stringify(regions), PAGE_CACHE.NEVER_EXPIRE);
     return { regions };
   }
-  // Get All the languages Data From Languages page
-  async getOnePagedata(pageId: number): Promise<any> {
-    try {
-      // Fetch page data with related items
-      const page = await this.entityManager.findOne(Page, {
-        where: { Pg: pageId },
-        relations: ['rows', 'rows.cells'],
-      });
+  // Get All the languages data from the specified Languages page
+  async getlanguages(pageId: number): Promise<any> {
+    // Step 1: Fetch the page data along with its associated rows and cells based on the given pageId
+    const page = await this.entityManager.findOne(Page, {
+      where: { Pg: pageId },
+      relations: ['rows', 'rows.cells'], // Fetch rows and their associated cells
+    });
 
-      if (!page) {
-        throw new Error('Page not found');
-      }
+    // Step 2: If no page is found, throw an error
+    if (!page) {
+      throw new Error('Page not found');
+    }
 
-      // Prepare a set to collect item IDs
-      const itemIdsSet = new Set<number>();
+    // Step 3: Initialize the response structure for storing languages data
+    const response: { "ALL Languages": { [key: string]: string }[] } = {
+      "ALL Languages": []
+    };
 
-      // Extract item IDs from cells
-      for (const row of page.rows) {
-        for (const cell of row.cells) {
-          if (cell.Items) {
-            let itemsArray: number[] = [];
+    // Step 4: Loop through each row in the fetched page
+    for (const row of page.rows) {
 
-            if (typeof cell.Items === 'string') {
-              itemsArray = (cell.Items as string)
-                .replace(/[{}]/g, '')
-                .split(',')
-                .map((item) => parseInt(item.trim(), 10));
-            } else if (Array.isArray(cell.Items)) {
-              itemsArray = cell.Items;
-            }
+      // Step 5: Loop through each cell in the current row
+      for (const cell of row.cells) {
 
-            itemsArray.forEach((itemId) => itemIdsSet.add(itemId));
+        // Step 6: Check if the cell contains items (which are IDs)
+        if (cell.Items) {
+          let itemsArray: number[] = [];
+
+          // Step 7: Parse the Items if they are in string format or assign them directly if they are already an array
+          if (typeof cell.Items === 'string') {
+            // Convert the string of item IDs into an array of numbers
+            itemsArray = (cell.Items as string)
+              .replace(/[{}]/g, '') // Remove curly braces
+              .split(',')            // Split the string by commas
+              .map((item) => parseInt(item.trim(), 10)); // Convert each item to a number
+          } else if (Array.isArray(cell.Items)) {
+            itemsArray = cell.Items; // Use the array as is
           }
+
+          // Step 8: Fetch the item records from the database by their IDs
+          const items = await this.entityManager.findByIds(Item, itemsArray);
+
+          // Step 9: Loop through the retrieved items and extract their JSON language data
+          items.forEach((item) => {
+            if (item.JSON) {
+              // Step 10: Loop through each key-value pair in the item's JSON object
+              for (const [jsonKey, languageName] of Object.entries(item.JSON)) {
+                // Step 11: Add the Row ID (from row.Row) and language name to the response
+                response["ALL Languages"].push({
+                  [row.Row.toString()]: languageName as string // Row ID as key, language name as value
+                });
+              }
+            }
+          });
         }
       }
-
-      // Retrieve the complete records of each item ID
-      const itemIds = Array.from(itemIdsSet);
-      const items = await this.entityManager.findByIds(Item, itemIds);
-
-      // Prepare the response structure
-      const response: Record<string, string[]> = {
-        "ALL Languages": []
-      };
-
-      items.forEach((item) => {
-        const languageName = item.JSON;
-        response["ALL Languages"].push(languageName); // Add the language name to the array
-      });
-
-      return response;
-    } catch (error) {
-      console.error('Error in getOnePage service:', error);
-      throw new Error('Failed to get page data');
     }
+
+    // Step 12: Remove the first entry from the "ALL Languages" array as per requirement
+    response["ALL Languages"].shift();
+
+    // Step 13: Return the final response structure
+    return  response;
   }
+
 }

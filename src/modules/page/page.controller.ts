@@ -258,10 +258,10 @@ export class PageController {
     }
   }
   
-  @Get('items/:pageId')
-  async getOnePagedata(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
+  @Get('languages/:pageId')
+  async getlanguages(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
-      const data = await this.pageService.getOnePagedata(pageId);
+      const data = await this.pageService.getlanguages(pageId);
       return new ApiResponse(true, data, '', 200);
     } catch (error) {
       console.error('Error in getOnePage controller:', error); // Logging the error
