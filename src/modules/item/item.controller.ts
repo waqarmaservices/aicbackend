@@ -179,7 +179,7 @@ export class ItemController {
   async getCellAndUpdateItem(@Body() payload: any): Promise<ApiResponse<any>> {
     try {
       const { updatedItem, cell } = await this.itemService.getCellAndUpdateItem(payload);
-
+  
       // Construct the response structure
       const responseData = {
         'Cell-Data': {
@@ -193,29 +193,31 @@ export class ItemController {
             Item: updatedItem.Item.toString(),
             DataType: updatedItem.DataType
               ? {
-                  Row: updatedItem.DataType.Row.toString(),
-                  RowLevel: updatedItem.DataType.RowLevel.toString(),
+                  Row: updatedItem.DataType.Row ? updatedItem.DataType.Row.toString() : null,
+                  RowLevel: updatedItem.DataType.RowLevel ? updatedItem.DataType.RowLevel.toString() : null,
                 }
               : null,
             Object: updatedItem.Object ? updatedItem.Object.toString() : null,
             SmallInt: updatedItem.SmallInt,
-            BigInt: updatedItem.BigInt.toString(),
-            Num: updatedItem.Num.toString(),
+            BigInt: updatedItem.BigInt ? updatedItem.BigInt.toString() : null,
+            Num: updatedItem.Num ? updatedItem.Num.toString() : null,
             Color: updatedItem.Color ? updatedItem.Color.toString() : null,
-            DateTime: updatedItem.DateTime.toISOString(),
+            DateTime: updatedItem.DateTime ? updatedItem.DateTime.toISOString() : null,
             JSON: updatedItem.JSON,
-            Qty: updatedItem.Qty.toString(),
+            Qty: updatedItem.Qty ? updatedItem.Qty.toString() : null,
             Unit: updatedItem.Unit ? updatedItem.Unit.Row.toString() : null,
-            StdQty: updatedItem.StdQty.toString(),
+            StdQty: updatedItem.StdQty ? updatedItem.StdQty.toString() : null,
             StdUnit: updatedItem.StdUnit ? updatedItem.StdUnit.Row.toString() : null,
             Foreign: updatedItem.Foreign,
           },
         },
       };
-
+  
       return new ApiResponse(true, responseData, '', HttpStatus.OK);
     } catch (error) {
-      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ApiResponse(false, null, `Something went wrong`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  
+
 }

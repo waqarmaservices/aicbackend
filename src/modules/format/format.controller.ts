@@ -46,7 +46,6 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   @Get()
   async findAll(): Promise<ApiResponse<Format[]>> {
     try {
@@ -156,14 +155,15 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('delete-row/:rowId')
+  @Put('delete-row/:Pg/:rowId')
   async deleteRowAndUpdateFormat(
     @Param('rowId') rowId: number,
     @Body('userId') userId: number,
+    @Param('Pg') Pg: number,
   ): Promise<ApiResponse<any>> {
     // Use `any` for the response type to match your custom structure
     try {
-      const updatedFormat = await this.formatService.updateFormatOnRowDelete(rowId, userId);
+      const updatedFormat = await this.formatService.updateFormatOnRowDelete(Pg, rowId, userId);
       // Build the response data with only available attributes
       const responseData: any = {
         Delete_Row: {
@@ -200,14 +200,15 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('delete-Col/:Col')
+  @Put('delete-Col/:Pg/:Col')
   async updateFormatOnColumnsDelete(
     @Param('Col') Col: number,
     @Body('userId') userId: number,
+    @Param('Pg') Pg: number,
   ): Promise<ApiResponse<any>> {
     // Use `any` for the response type to match your custom structure
     try {
-      const updatedFormat = await this.formatService.updateFormatOnColumnsDelete(Col, userId);
+      const updatedFormat = await this.formatService.updateFormatOnColumnsDelete(Pg,Col, userId);
 
       // Build the response data with only available attributes
       const responseData: any = {
@@ -224,39 +225,40 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-    @Post('delete-item')
-    async deleteitem(
-        @Body('colId') colId: number,
-        @Body('rowId') rowId: number,
-        @Body('userId') userId: number,
-    ): Promise<ApiResponse<any>> {
-        try {
-            const updatedFormat = await this.formatService.deleteitem(colId, rowId, userId);
+  @Post('delete-item/:Pg/')
+  async deleteitem(
+    @Body('colId') colId: number,
+    @Body('rowId') rowId: number,
+    @Body('userId') userId: number,
+    @Param('Pg') Pg: number, 
+  ): Promise<ApiResponse<any>> {
+    try {
+      const updatedFormat = await this.formatService.deleteitem(Pg, colId, rowId, userId);
 
-            const responseData: any = {
-                'Deleted Item': {
-                    Format: updatedFormat.Format,
-                    Object: updatedFormat.Object,
-                    ObjectType: updatedFormat.ObjectType,
-                    User: updatedFormat.User,
-                    Recycled: updatedFormat.Recycled,
-                    RecycledBy: updatedFormat.RecycledBy,
-                    RecycledAt: updatedFormat.RecycledAt,
-                },
-            };
-            return new ApiResponse(true, responseData, '', HttpStatus.OK);
-        } catch (error) {
-            return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+      const responseData: any = {
+        'Deleted Item': {
+          Format: updatedFormat.Format,
+          Object: updatedFormat.Object,
+          ObjectType: updatedFormat.ObjectType,
+          User: updatedFormat.User,
+          Recycled: updatedFormat.Recycled,
+          RecycledBy: updatedFormat.RecycledBy,
+          RecycledAt: updatedFormat.RecycledAt,
+        },
+      };
+      return new ApiResponse(true, responseData, '', HttpStatus.OK);
+    } catch (error) {
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-  @Put('edit-column/:colid')
+  }
+  @Put('edit-column/:Pg/:colid')
   async editColumnFormat(@Param('colid') colid: number,
   @Body('userId') userId: number, 
+  @Param('Pg') Pg: number,
   @Body() updateData: Partial<any>
 ): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.editColumnFormat(colid, userId, updateData);
+      const updatedFormat = await this.formatService.editColumnFormat(Pg, colid, userId, updateData);
 
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
@@ -264,7 +266,7 @@ export class FormatController {
 
       // Construct the response data with the desired nested structure
       const data = {
-        Updated_Format: {
+        "Edit Column": {
             Format: updateData.Format || updatedFormat.Format,
             Object: updateData.Object || updatedFormat.Object,
             ObjectType: updateData.ObjectType || updatedFormat.ObjectType, // Nested ObjectType
@@ -296,7 +298,6 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   @Put('update-PgFormat/:Pg')
   async updatePageFormat(
     @Param('Pg') Pg: number,
@@ -308,7 +309,7 @@ export class FormatController {
 
       // Build the response data with updated attributes
       const responseData: any = {
-        Updated_Page_Format: {
+        "Update Page": {
           Format: updatedFormat.Format,
           Object: updatedFormat.Object,
           User: updatedFormat.User,
@@ -329,20 +330,21 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('local-col/:colid')
+  @Put('local-col/:Pg/:colid')
   async updatelocalcolls(
     @Param('colid') colid: number,
     @Body('userId') userId: number,
+    @Param('Pg') Pg: number,
     @Body() updateData: Partial<any>,
   ): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.updatelocalcolls(colid, userId, updateData);
+      const updatedFormat = await this.formatService.updatelocalcolls(Pg, colid, userId, updateData);
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
       }
       // Construct the response data with the desired nested structure
       const data = {
-        updated_local_col: {
+        "Local Col": {
           Format: updateData.Format || updatedFormat.Format,
           User: updateData.User || updatedFormat.User,
           Column_ID: updateData.Object || updatedFormat.Object,
@@ -359,14 +361,15 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('shared-col/:colid')
+  @Put('shared-col/:Pg/:colid')
   async updatesharedcolls(
     @Param('colid') colid: number,
     @Body('userId') userId: number,
+    @Param('Pg') Pg: number,
     @Body() updateData: Partial<any>,
   ): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.updatesharedcolls(colid, userId, updateData);
+      const updatedFormat = await this.formatService.updatesharedcolls(Pg, colid, userId, updateData);
 
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
@@ -374,7 +377,7 @@ export class FormatController {
 
       // Construct the response data with the desired nested structure
       const data = {
-        updated_shared_col: {
+        "Shared Col": {
           Format: updateData.Format || updatedFormat.Format,
           User: updateData.User || updatedFormat.User,
           Column_ID: updateData.Object || updatedFormat.Object,
@@ -391,14 +394,15 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('local-item/:itemId')
+  @Put('local-item/:Pg/:itemId')
   async updatelocalitem(
     @Param('itemId') itemId: number,
     @Body('userId') userId: number,
+    @Param('Pg') Pg: number,
     @Body() updateData: Partial<any>,
   ): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.updatelocalitem(itemId, userId, updateData);
+      const updatedFormat = await this.formatService.updatelocalitem(Pg, itemId, userId, updateData);
 
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
@@ -406,7 +410,7 @@ export class FormatController {
 
       // Construct the response data with the desired nested structure
       const data = {
-        updated_local_item: {
+        "Local Item": {
           Format: updateData.Format || updatedFormat.Format,
           User: updateData.User || updatedFormat.User,
           Column_ID: updateData.Object || updatedFormat.Object,
@@ -423,14 +427,15 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('shared-item/:itemId')
+  @Put('shared-item/:Pg/:itemId')
   async updateshareditem(
     @Param('itemId') itemId: number,
     @Body('userId') userId: number,
+    @Param('Pg') Pg: number,
     @Body() updateData: Partial<any>,
   ): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.updateshareditem(itemId, userId, updateData);
+      const updatedFormat = await this.formatService.updateshareditem(Pg, itemId, userId, updateData);
 
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
@@ -438,7 +443,7 @@ export class FormatController {
 
       // Construct the response data with the desired nested structure
       const data = {
-        updated_shared_item: {
+        "Shared Item": {
           Format: updateData.Format || updatedFormat.Format,
           User: updateData.User || updatedFormat.User,
           Column_ID: updateData.Object || updatedFormat.Object,
@@ -455,14 +460,15 @@ export class FormatController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('local-row/:rowid')
+  @Put('local-row/:Pg/:rowid')
 async updatelocalrow(
   @Param('rowid') rowId: number,
+  @Param('Pg') Pg: number,
   @Body() updateData: Partial<any>,
 ): Promise<ApiResponse<any>> {
   try {
     // Call the service method to validate and update the format entry
-    const updatedFormat = await this.formatService.updatelocalrow(rowId, updateData);
+    const updatedFormat = await this.formatService.updatelocalrow(Pg, rowId, updateData);
 
     if (!updatedFormat) {
       return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
@@ -473,7 +479,7 @@ async updatelocalrow(
 
     // Construct the response data with the desired nested structure
     const data = {
-      updated_local_row: {
+     "Local Row": {
         Format: updatedFormat.Format,
         User: updateData.userId,
         local_row_ID: updatedFormat.Object,
@@ -489,13 +495,14 @@ async updatelocalrow(
     return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
-  @Put('shared-row/:rowId')
+  @Put('shared-row/:Pg/:rowId')
   async updatesharedrow(
     @Param('rowId') rowId: number,
+    @Param('Pg') Pg: number,
     @Body() updateData: Partial<any>,
   ): Promise<ApiResponse<any>> {
     try {
-      const updatedFormat = await this.formatService.updatesharedrow(rowId,  updateData);
+      const updatedFormat = await this.formatService.updatesharedrow(Pg, rowId,  updateData);
 
       if (!updatedFormat) {
         return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
@@ -505,7 +512,7 @@ async updatelocalrow(
 
     // Construct the response data with the desired nested structure
     const data = {
-      updated_local_row: {
+      "Shared Row": {
         Format: updatedFormat.Format,
         User: updateData.userId,
         local_row_ID: updatedFormat.Object,
@@ -521,69 +528,79 @@ async updatelocalrow(
       return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Put('local-cell/:cellId')
-async updatelocalCell(
-  @Param('cellId') cellId: number,
-  @Body('userId') userId: number,
-  @Body() updateData: Partial<any>,
-): Promise<ApiResponse<any>> {
-  try {
-    const updatedFormat = await this.formatService.updatelocalCell(cellId, userId, updateData);
-    if (!updatedFormat) {
-      return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+  @Put('local-cell/:Pg/:colId/:rowId')
+  async updatelocalCell(
+    @Param('colId') colId: number,
+    @Param('rowId') rowId: number,
+    @Param('Pg') Pg: number,
+    @Body('userId') userId: number,
+    @Body() updateData: Partial<any>
+  ): Promise<ApiResponse<any>> {
+    try {
+      const updatedFormat = await this.formatService.updatelocalCell(Pg, colId, rowId, userId, updateData);
+      if (!updatedFormat) {
+        return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Construct the response data with the desired nested structure
+      const data = {
+        "Local Cell": {
+          Format: updateData.Format || updatedFormat.Format,
+          User: updateData.User || updatedFormat.User,
+          Cell_ID: updatedFormat.Object || updatedFormat.Object,
+          Datatype: updatedFormat.cell.DataType,
+          DropDownSource: updatedFormat.cell.DropDownSource,
+          DefaultData: updateData.Default || updatedFormat.Default,
+          Status: updateData.Status || updatedFormat.Status,
+          Formula: updateData.Formula || updatedFormat.Formula,
+          FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+          Comment: updateData.Comment || updatedFormat.Comment,
+          Transactions: updateData.TxList || updatedFormat.TxList,
+        },
+      };
+
+      return new ApiResponse(true, data, '', HttpStatus.OK);
+    } catch (error) {
+      console.error(error); // Log the error for debugging purposes
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    // Construct the response data with the desired nested structure
-    const data = {
-      updated_local_cell: {
-        Format: updateData.Format || updatedFormat.Format,
-        User: updateData.User || updatedFormat.User,
-        Cell_ID: updateData.Object || updatedFormat.Object,
-        Status: updateData.Status || updatedFormat.Status,
-        MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
-        FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
-        Comment: updateData.Comment || updatedFormat.Comment,
-        Transactions: updateData.TxList || updatedFormat.TxList,
-      },
-    };
-
-    return new ApiResponse(true, data, '', HttpStatus.OK);
-  } catch (error) {
-    console.error(error); // Log the error for debugging purposes
-    return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
   }
-}
-@Put('shared-cell/:cellId')
-async updatesharedCell(
-  @Param('cellId') cellId: number,
-  @Body('userId') userId: number,
-  @Body() updateData: Partial<any>,
-): Promise<ApiResponse<any>> {
-  try {
-    const updatedFormat = await this.formatService.updatesharedCell(cellId, userId, updateData);
-    if (!updatedFormat) {
-      return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+  @Put('shared-cell/:Pg/:colId/:rowId')
+  async updatesharedCell(
+    @Param('Pg') Pg: number,
+    @Param('colId') colId: number,
+    @Param('rowId') rowId: number,
+    @Body('userId') userId: number,
+    @Body() updateData: Partial<any>
+  ): Promise<ApiResponse<any>> {
+    try {
+      const updatedFormat = await this.formatService.updatesharedCell(Pg, colId, rowId, userId, updateData);
+      if (!updatedFormat) {
+        return new ApiResponse(false, null, 'Format not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Construct the response data with the desired nested structure
+      const data = {
+        "Shared Cell": {
+          Format: updateData.Format || updatedFormat.Format,
+          User: updateData.User || updatedFormat.User,
+          Cell_ID: updatedFormat.Object || updatedFormat.Object,
+          Datatype: updatedFormat.cell.DataType,
+          DropDownSource: updatedFormat.cell.DropDownSource,
+          DefaultData: updateData.Default || updatedFormat.Default,
+          Status: updateData.Status || updatedFormat.Status,
+          Formula: updateData.Formula || updatedFormat.Formula,
+          FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
+          Comment: updateData.Comment || updatedFormat.Comment,
+          Transactions: updateData.TxList || updatedFormat.TxList,
+        },
+      };
+
+      return new ApiResponse(true, data, '', HttpStatus.OK);
+    } catch (error) {
+      console.error(error); // Log the error for debugging purposes
+      return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    // Construct the response data with the desired nested structure
-    const data = {
-      updated_local_cell: {
-        Format: updateData.Format || updatedFormat.Format,
-        User: updateData.User || updatedFormat.User,
-        Cell_ID: updateData.Object || updatedFormat.Object,
-        Status: updateData.Status || updatedFormat.Status,
-        MinWidth: updateData.ColMinWidth || updatedFormat.ColMinWidth,
-        FontStyle: updateData.FontStyle || updatedFormat.FontStyle,
-        Comment: updateData.Comment || updatedFormat.Comment,
-        Transactions: updateData.TxList || updatedFormat.TxList,
-      },
-    };
-
-    return new ApiResponse(true, data, '', HttpStatus.OK);
-  } catch (error) {
-    console.error(error); // Log the error for debugging purposes
-    return new ApiResponse(false, null, 'Something went wrong. Please try again', HttpStatus.INTERNAL_SERVER_ERROR);
   }
-}
 
 }

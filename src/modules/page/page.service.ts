@@ -1000,7 +1000,6 @@ export class PageService {
 
     return { column_names };
   }
-
   // Add Page Record with Format record
   async createPageWithFormat(cols: number[]): Promise<{ createdPage: any; createdFormat: Format }> {
     // Step 1: Create the Page entity
@@ -1014,10 +1013,12 @@ export class PageService {
       PgCols: createdPage.Cols, // Save the cols into the PgCols[] field
     });
 
+    // Step 3: Clear cache for the page
+    const clean = await this.clearPageCache(createdPage.Pg.toString()); // Clear cache for this page
+    console.log(clean);
     // Return both created entities
     return { createdPage, createdFormat };
   }
-
   async updatePageColsOrder(Pg: number, PgCols: number[]) {
     const pgFormatRecord = await this.formatService.findOneByColumnName('Object', Pg);
 
@@ -1028,7 +1029,6 @@ export class PageService {
 
     return updatedPgFormatRecord;
   }
-
   async getRegions() {
     const data = await this.getonePageData(1000000013);
     const filteredregions = data?.pageData?.filter((el) => el.RowLevel === 1);
