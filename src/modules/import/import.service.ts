@@ -171,7 +171,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: unitsEl.Row,
         Pg: PAGE_IDS.ALL_UNITS,
-        RowLevel: unitsEl.Row_Status == SECTION_HEAD ? 0 : unitsEl.Row_Level,
+        RowLevel: unitsEl.Row_Type == SECTION_HEAD ? 0 : unitsEl.Row_Level,
       });
 
       // Check and insert Token
@@ -215,7 +215,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: tokenEl.Row,
         Pg: PAGE_IDS.ALL_TOKENS,
-        RowLevel: tokenEl.Row_Status == SECTION_HEAD ? 0 : tokenEl.Row_level,
+        RowLevel: tokenEl.Row_Type == SECTION_HEAD ? 0 : tokenEl.Row_level,
       });
 
       // Check and insert Token
@@ -295,23 +295,23 @@ export class ImportService {
     // Process and normalize the sheet data
     const pagesData = [];
     for (const [rowIndex, row] of sheetData.entries()) {
-        pagesData[rowIndex] = {
-          Row: row[0],
-          Page_ID: row[1],
-          Page_Name: row.slice(2, 4).find((value) => value != null),
-          Page_Type: row[4] ?? row[4],
-          Page_Edition: row[5] ?? row[5],
-          Page_Owner: row[6] ?? row[6],
-          Page_URL: row[7] ?? row[7],
-          Page_SEO: row[8] ?? row[8],
-          Page_Status: row[9] ?? row[9],
-          Page_Comment: row[10] ?? row[10],
-          Row_Type: row[11] ?? row[11],
-          Row_Status: row[12] ?? row[12],
-          Row_Comment: row[13] ?? row[13],
-          Row_Level: this.calculateRowLevel(row.slice(2)),
-        };
-      }
+      pagesData[rowIndex] = {
+        Row: row[0],
+        Page_ID: row[1],
+        Page_Name: row.slice(2, 4).find((value) => value != null),
+        Page_Type: row[4] ?? row[4],
+        Page_Edition: row[5] ?? row[5],
+        Page_Owner: row[6] ?? row[6],
+        Page_URL: row[7] ?? row[7],
+        Page_SEO: row[8] ?? row[8],
+        Page_Status: row[9] ?? row[9],
+        Page_Comment: row[10] ?? row[10],
+        Row_Type: row[11] ?? row[11],
+        Row_Status: row[12] ?? row[12],
+        Row_Comment: row[13] ?? row[13],
+        Row_Level: this.calculateRowLevel(row.slice(2)),
+      };
+    }
     // Iterate through each processed page element
     for (const pageEl of pagesData) {
       // Find the page by its ID
@@ -355,6 +355,7 @@ export class ImportService {
         Object: createdRow.Row,
         Owner: user.User,
         Status: [systemRowId.Row],
+        Comment: pageEl.Row_Comment ? { [SYSTEM_INITIAL.ENGLISH]: pageEl.Row_Comment } : null,
       });
 
       // Check and insert page ID
@@ -563,7 +564,6 @@ export class ImportService {
         Object: col.Col,
         Status: colStatuses,
         Formula: colEl.Col_Formula ? { [SYSTEM_INITIAL.CALCULATE_DATA]: colEl.Col_Formula } : null,
-        Comment: colEl.Col_Comment ? { [SYSTEM_INITIAL.ENGLISH]: colEl.Col_Comment } : null,
       });
 
       // Create a new tRow record for the col
@@ -581,6 +581,7 @@ export class ImportService {
         Object: createdRow.Row,
         Owner: user.User,
         Status: rowStatuses,
+        Comment: colEl.Row_Comment ? { [SYSTEM_INITIAL.ENGLISH]: colEl.Row_Comment } : null,
       });
 
       // Check and insert col ID
@@ -719,13 +720,13 @@ export class ImportService {
     const filteredColumns = sheetColumns
       .filter((colName) => colName !== null)
       .map((colName) => colName.trim())
-      .filter((colName) => colName !== '')
-      .map((colName) => colName.replace(/[\s-]+/g, '_'));
+      .map((colName) => colName.replace(/[\s-]+/g, '_'))
+      .filter((colName) => colName !== '' && colName !== 'Col_Comment');
 
     // Map filtered rows to objects with normalized column names as keys
     const processedData: any = filteredRows.map((row) =>
       filteredColumns.reduce((acc, colName, index) => {
-        acc[colName] = row[index];
+        acc[colName] = row[index] ? row[index] : null;
         return acc;
       }, {}),
     );
@@ -742,7 +743,7 @@ export class ImportService {
    * @param {any[]} sheetData - The raw sheet data to be processed.
    * @returns {Promise<void>} - A promise that resolves when the insertion is complete.
    */
-  private async insertAllTokensData(sheetData: any[]): Promise<void> {
+  private async insertAllTokensData(sheetData: any[]): Promise<void>{
     const allTokenData = [];
 
     // Process each row in the sheet data
@@ -751,8 +752,7 @@ export class ImportService {
         Row: row[0],
         TOKEN: row.slice(1, 6).find((value) => value != null),
         Row_Type: row[7] ?? row[7],
-        Row_Status: row[8] ?? row[8],
-        Row_Comment: row[9] ?? row[9],
+        Row_Comment: row[8] ?? row[8],
         Row_level: this.calculateRowLevel(row.slice(1, 6)),
       };
     }
@@ -799,7 +799,6 @@ export class ImportService {
    * @returns {Promise<void>} - A promise that resolves when the formatting is complete.
    */
   private async rowFormatRecord(allTokenData: any[]): Promise<void> {
-    const sectionHeadRowId = await this.getRowId('JSON', TOKEN_NAMES.SectionHead);
     const user = await this.userService.getLastInsertedRecord();
 
     // Iterate through each token element to format the row records
@@ -812,7 +811,6 @@ export class ImportService {
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: row.Row,
         Owner: user.User,
-        Status: tokenEl.Row_Status ? [sectionHeadRowId.Row] : null,
         Comment: tokenEl.Row_Comment ? { [SYSTEM_INITIAL.ENGLISH]: tokenEl.Row_Comment } : null,
       });
     }
@@ -953,9 +951,7 @@ export class ImportService {
     const languagesData = await this.processSheetData(sheetData, sheetColumns);
 
     // Retrieve row IDs for different Token IDs
-    const rowStatuses = await this.processStatus(languagesData[0], 'Row_Status');
     const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText, [PAGE_IDS.ALL_UNITS]);
-    const nodeRowId = await this.getRowId('JSON', TOKEN_NAMES.Node);
 
     // Iterate through each processed lang element
     for (const langEL of languagesData) {
@@ -967,7 +963,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: langEL.Row ? langEL.Row : nextRowPk,
         Pg: PAGE_IDS.ALL_LANGUAGES,
-        RowLevel: langEL.Row_Status == SECTION_HEAD ? 0 : 1,
+        RowLevel: langEL.Row_Type == SECTION_HEAD ? 0 : 1,
       });
 
       // Create tFormat record for the newly created row
@@ -977,7 +973,6 @@ export class ImportService {
         ObjectType: SYSTEM_INITIAL.ROW,
         Object: createdRow.Row,
         Owner: user.User,
-        Status: langEL.Row_Status ? rowStatuses : null,
         Comment: langEL.Row_Comment ? { [SYSTEM_INITIAL.ENGLISH]: langEL.Row_Comment } : null,
       });
 
@@ -996,10 +991,10 @@ export class ImportService {
 
       // Check and insert row type
       if (COLUMN_NAMES.Row_Type in langEL && langEL.Row_Type != null) {
-        const row_type = langEL.Row_Type == 'Node' ? nodeRowId.Row : SYSTEM_INITIAL.DEFAULT;
+        const row_type = await this.getRowId('JSON', langEL.Row_Type, [PAGE_IDS.ALL_TOKENS]);
         if (row_type) {
           await this.rowService.updateRow(createdRow.Row, {
-            RowType: [row_type],
+            RowType: [row_type.Row],
           });
         }
       }
@@ -1025,15 +1020,12 @@ export class ImportService {
       allRegionsData[rowIndex] = {
         Region: row.slice(0, 6).find((value) => value != null),
         Row_Type: row[7] ?? row[7],
-        Row_Status: row[8] ?? row[8],
-        Row_Comment: row[9] ?? row[9],
         Row_Level: this.calculateRowLevel(row.slice(1)),
       };
     }
 
     // Retrieve row IDs for different token IDs
     const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText, [PAGE_IDS.ALL_UNITS]);
-    const rowStatuses = await this.processStatus(allRegionsData[0], 'Row_Status');
 
     // Iterate through each processed region element
     for (const regionEl of allRegionsData) {
@@ -1045,18 +1037,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
         Pg: PAGE_IDS.ALL_REGIONS,
-        RowLevel: regionEl.Row_Status == SECTION_HEAD ? 0 : regionEl.Row_Level,
-      });
-
-      // Create a tFormat record for the newly created row
-      const user = await this.userService.getLastInsertedRecord();
-      await this.formatService.createFormat({
-        User: null,
-        ObjectType: SYSTEM_INITIAL.ROW,
-        Object: createdRow.Row,
-        Owner: user.User,
-        Status: regionEl.Row_Status ? rowStatuses : null,
-        Comment: regionEl.Row_Comment ? { [SYSTEM_INITIAL.ENGLISH]: regionEl.Row_Comment } : null,
+        RowLevel: regionEl.Row_Type == SECTION_HEAD ? 0 : regionEl.Row_Level,
       });
 
       // Check and insert region name
@@ -1103,15 +1084,12 @@ export class ImportService {
       allSuppliersData[rowIndex] = {
         Supplier: row.slice(0, 7).find((value) => value != null),
         Row_Type: row[8] ?? row[8],
-        Row_Status: row[9] ?? row[9],
-        Row_Comment: row[10] ?? row[10],
         Row_Level: this.calculateRowLevel(row),
       };
     }
 
     // Retrieve row IDs for different token IDs
     const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText, [PAGE_IDS.ALL_UNITS]);
-    const rowStatuses = await this.processStatus(allSuppliersData[0], 'Row_Status');
 
     // Iterate through each processed supplier element
     for (const supplierEl of allSuppliersData) {
@@ -1123,18 +1101,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
         Pg: PAGE_IDS.ALL_SUPPLIERS,
-        RowLevel: supplierEl.Row_Status == SECTION_HEAD ? 0 : supplierEl.Row_Level,
-      });
-
-      // Create a tFormat record for the newly created row
-      const user = await this.userService.getLastInsertedRecord();
-      await this.formatService.createFormat({
-        User: null,
-        ObjectType: SYSTEM_INITIAL.ROW,
-        Object: createdRow.Row,
-        Owner: user.User,
-        Status: supplierEl.Row_Status ? rowStatuses : null,
-        Comment: supplierEl.Row_Comment ? { [SYSTEM_INITIAL.ENGLISH]: supplierEl.Row_Comment } : null,
+        RowLevel: supplierEl.Row_Type == SECTION_HEAD ? 0 : supplierEl.Row_Level,
       });
 
       // Check and insert supplier if available
@@ -1183,8 +1150,6 @@ export class ImportService {
         Model: row.slice(0, 7).find((value) => value != null),
         Release_Date: row[8] ? new Date((row[8] - 25569) * 86400 * 1000).toLocaleDateString() : null,
         Row_Type: row[9] ?? row[9],
-        Row_Status: row[10] ?? row[10],
-        Row_Comment: row[11] ?? row[11],
         Row_Level: this.calculateRowLevel(row),
       };
     }
@@ -1192,7 +1157,6 @@ export class ImportService {
     // Retrieve row IDs for different token IDs
     const mlTextRowId = await this.getRowId('JSON', TOKEN_NAMES.MLText, [PAGE_IDS.ALL_UNITS]);
     const dateRowId = await this.getRowId('JSON', TOKEN_NAMES.Date, [PAGE_IDS.ALL_UNITS]);
-    const rowStatuses = await this.processStatus(allModelsData[0], 'Row_Status');
 
     // Iterate through each processed model element
     for (const modelEl of allModelsData) {
@@ -1204,18 +1168,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: nextRowPk,
         Pg: PAGE_IDS.ALL_MODELS,
-        RowLevel: modelEl.Row_Status == SECTION_HEAD ? 0 : modelEl.Row_Level,
-      });
-
-      // Create a tFormat record for the newly created row
-      const user = await this.userService.getLastInsertedRecord();
-      await this.formatService.createFormat({
-        User: null,
-        ObjectType: SYSTEM_INITIAL.ROW,
-        Object: createdRow.Row,
-        Owner: user.User,
-        Status: modelEl.Row_Status ? rowStatuses : null,
-        Comment: modelEl.Row_Comment ? { [SYSTEM_INITIAL.ENGLISH]: modelEl.Row_Comment } : null,
+        RowLevel: modelEl.Row_Type == SECTION_HEAD ? 0 : modelEl.Row_Level,
       });
 
       // Check and insert model if available
@@ -1271,11 +1224,10 @@ export class ImportService {
     for (const [rowIndex, row] of sheetData.entries()) {
       allUnitsData[rowIndex] = {
         Row: row[0],
-        Unit: row.slice(1, 5).find((value) => value != null),
+        Unit: row.slice(1, 4).find((value) => value != null),
         Unit_Factor: row[5] ?? row[5],
         Row_Type: row[6] ?? row[6],
-        Row_Status: row[7] ?? row[7],
-        Row_Comment: row[8] || row[9] ? ((row[9] || '') + ' ' + (row[9] ?? '')).trim() : null,
+        Row_Comment: row[7] || row[8] ? ((row[7] || '') + ' ' + (row[8] ?? '')).trim() : null,
         Row_Level: this.calculateRowLevel(row.slice(1)),
       };
     }
@@ -1509,8 +1461,6 @@ export class ImportService {
    * @returns {Promise<void>} - A promise that resolves when all row types have been processed.
    */
   private async updateRowType(allTokenData: any[]): Promise<void> {
-    // Retrieve the Row IDs of token IDs
-    const nodeRowId = await this.getRowId('JSON', TOKEN_NAMES.Node);
     // Iterate through each token in the provided data
     for (const tokenEl of allTokenData) {
       // Find the existing row in the database using the token's Row ID
@@ -1518,10 +1468,10 @@ export class ImportService {
 
       // Check if Row_Type is specified for the current token
       if (tokenEl.Row_Type != null) {
+        const row_type = await this.getRowId('JSON', tokenEl.Row_Type, [PAGE_IDS.ALL_TOKENS]);
         // Determine the appropriate object ID based on the Row_Type
-        const row_type = tokenEl.Row_Type == 'Node' ? nodeRowId.Row : SYSTEM_INITIAL.DEFAULT;
         await this.rowService.updateRow(tokenRow.Row, {
-          RowType: [row_type],
+          RowType: [row_type.Row],
         });
       }
     }
