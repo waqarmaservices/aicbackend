@@ -158,8 +158,7 @@ export class ImportService {
         Unit: row.slice(1, 5).find((value) => value != null),
         Unit_Factor: row[5] ?? row[5],
         Row_Type: row[6] ?? row[6],
-        Row_Status: row[7] ?? row[7],
-        Row_Comment: row[8] || row[9] ? ((row[9] || '') + ' ' + (row[9] ?? '')).trim() : null,
+        Row_Comment: row[7] || row[8] ? ((row[8] || '') + ' ' + (row[8] ?? '')).trim() : null,
         Row_Level: this.calculateRowLevel(row.slice(1)),
       };
     }
@@ -204,8 +203,7 @@ export class ImportService {
         Row: row[0],
         TOKEN: row.slice(1, 6).find((value) => value != null),
         Row_Type: row[7] ?? row[7],
-        Row_Status: row[8] ?? row[8],
-        Row_Comment: row[9] ?? row[9],
+        Row_Comment: row[8] ?? row[8],
         Row_level: this.calculateRowLevel(row.slice(1, 6)),
       };
     }
@@ -307,8 +305,7 @@ export class ImportService {
         Page_Status: row[9] ?? row[9],
         Page_Comment: row[10] ?? row[10],
         Row_Type: row[11] ?? row[11],
-        Row_Status: row[12] ?? row[12],
-        Row_Comment: row[13] ?? row[13],
+        Row_Comment: row[12] ?? row[12],
         Row_Level: this.calculateRowLevel(row.slice(2)),
       };
     }
@@ -1342,8 +1339,7 @@ export class ImportService {
         Value_Status: row[10] == null ? '' : row[10],
         Value_Formula: row[11] == null ? '' : row[11],
         Row_Type: row[12] == null ? '' : row[12],
-        Row_Status: row[13] == null ? '' : row[13],
-        Row_Comment: row[14] == null ? '' : row[14],
+        Row_Comment: row[13] == null ? '' : row[13],
         Row_Level: this.calculateRowLevel(row.slice(1)), // Calculate row level based on the row data
       };
     }
