@@ -1374,7 +1374,12 @@ export class ImportService {
             Items: [createdItem.Item],
           });
         } else if (key == COLUMN_NAMES.Value_DataType && val) {
-          const objectRowId = await this.getRowId('JSON', val, [PAGE_IDS.ALL_UNITS]);
+          // TODO: Length (cm) should be removed after client confirmation
+          const objectRowId = await this.getRowId(
+            'JSON', 
+            val == 'Length' ? 'Length (cm)' : val, 
+            [PAGE_IDS.ALL_UNITS]
+          );
           if (objectRowId) {
             const createdItem = await this.itemService.createItem({
               DataType: dropDownRowId,
