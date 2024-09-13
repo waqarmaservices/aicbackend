@@ -137,8 +137,8 @@ export const COLUMN_IDS = {
     ROW_COMMENT: 2000000006,
     PAGE_ID: 2000000007,
     PAGE_NAME: 2000000008,
-    PAGE_EDITION: 2000000009,
-    PAGE_TYPE: 2000000010,
+    PAGE_EDITION: 2000000010,
+    PAGE_TYPE: 2000000009,
   },
 };
 
@@ -209,5 +209,5 @@ export const PAGE_CACHE = {
 };
 
 export const ALL_DATATYPES = {
-  DropDownSource: 3000001040,
+  DropDownSource: 3000001036,
 };

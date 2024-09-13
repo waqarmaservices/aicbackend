@@ -158,8 +158,7 @@ export class ImportService {
         Unit: row.slice(1, 5).find((value) => value != null),
         Unit_Factor: row[5] ?? row[5],
         Row_Type: row[6] ?? row[6],
-        Row_Status: row[7] ?? row[7],
-        Row_Comment: row[8] || row[9] ? ((row[9] || '') + ' ' + (row[9] ?? '')).trim() : null,
+        Row_Comment: row[7] || row[8] ? ((row[8] || '') + ' ' + (row[8] ?? '')).trim() : null,
         Row_Level: this.calculateRowLevel(row.slice(1)),
       };
     }
@@ -204,8 +203,7 @@ export class ImportService {
         Row: row[0],
         TOKEN: row.slice(1, 6).find((value) => value != null),
         Row_Type: row[7] ?? row[7],
-        Row_Status: row[8] ?? row[8],
-        Row_Comment: row[9] ?? row[9],
+        Row_Comment: row[8] ?? row[8],
         Row_level: this.calculateRowLevel(row.slice(1, 6)),
       };
     }
@@ -521,6 +519,38 @@ export class ImportService {
           itemString.split(';').map(async (singleString) => (await this.getRowId('JSON', singleString.trim()))?.Row),
         )
       : [(await this.getRowId('JSON', itemString.trim()))?.Row]);
+    return rowIds;
+  }
+
+  /**
+   * Converts a semicolon-separated string of items into their corresponding row IDs.
+   *
+   * If the input string is empty, the function returns null. If the string contains multiple items,
+   * it splits the string and retrieves the corresponding row IDs for each item. If the string is a
+   * single entry, it retrieves the row ID directly. The row IDs are returned as an array.
+   *
+   * @param {string} itemString - A semicolon-separated string of item identifiers.
+   * @returns {Promise<number[] | null>} - A promise that resolves to an array of row IDs or null if the string is empty.
+   */
+  private async processStringToRowIdsForAllLabels(itemString: string): Promise<number[] | null> {
+    if (!itemString) {
+      return null;
+    }
+
+    const pageIds = [
+      PAGE_IDS.ALL_SUPPLIERS,
+      PAGE_IDS.ALL_TOKENS, 
+      PAGE_IDS.ALL_UNITS, 
+      PAGE_IDS.ALL_LANGUAGES, 
+      PAGE_IDS.ALL_REGIONS,
+      PAGE_IDS.ALL_MODELS,
+    ];
+
+    const rowIds = await (this.isSemicolonSeparated(itemString)
+      ? Promise.all(
+          itemString.split(';').map(async (singleString) => (await this.getRowIdForAllLabels(singleString.trim(), pageIds))?.Row),
+        )
+      : [(await this.getRowIdForAllLabels(itemString.trim(), pageIds))?.Row]);
     return rowIds;
   }
 
@@ -1310,8 +1340,7 @@ export class ImportService {
         Value_Status: row[10] == null ? '' : row[10],
         Value_Formula: row[11] == null ? '' : row[11],
         Row_Type: row[12] == null ? '' : row[12],
-        Row_Status: row[13] == null ? '' : row[13],
-        Row_Comment: row[14] == null ? '' : row[14],
+        Row_Comment: row[13] == null ? '' : row[13],
         Row_Level: this.calculateRowLevel(row.slice(1)), // Calculate row level based on the row data
       };
     }
@@ -1321,7 +1350,7 @@ export class ImportService {
       const createdRow = await this.rowService.createRow({
         Row: labelEl.Row,
         Pg: PAGE_IDS.ALL_LABELS,
-        RowLevel: labelEl.Row_Status == SECTION_HEAD ? 0 : labelEl.Row_Level,
+        RowLevel: labelEl.Row_Type == SECTION_HEAD ? 0 : labelEl.Row_Level,
       });
 
       // Create a tFormat record for the newly created row
@@ -1345,7 +1374,12 @@ export class ImportService {
             Items: [createdItem.Item],
           });
         } else if (key == COLUMN_NAMES.Value_DataType && val) {
-          const objectRowId = await this.getRowId('JSON', val, [PAGE_IDS.ALL_UNITS]);
+          // TODO: Length (cm) should be removed after client confirmation
+          const objectRowId = await this.getRowId(
+            'JSON', 
+            val == 'Length' ? 'Length (cm)' : val, 
+            [PAGE_IDS.ALL_UNITS]
+          );
           if (objectRowId) {
             const createdItem = await this.itemService.createItem({
               DataType: dropDownRowId,
@@ -1358,7 +1392,7 @@ export class ImportService {
             });
           }
         } else if (key == COLUMN_NAMES.Value_DropDownSource && val) {
-          const rowsIds = await this.processStringToRowIds(val as string);
+          const rowsIds = await this.processStringToRowIdsForAllLabels(val as string);
           const createdItemIds = [];
           for (const rowId of rowsIds) {
             const createdItem = await this.itemService.createItem({
@@ -1379,7 +1413,7 @@ export class ImportService {
               CellItems: createdItemIds,
             });
           }
-        } else if (key == COLUMN_NAMES.Value_DefaultData && val && valueDataTypeRowId) {
+        } else if (key == COLUMN_NAMES.Value_DefaultData && val != null && valueDataTypeRowId) {
           const colValues = String(val).split(';'); // Split default data by semicolon
           const createdItemIds = [];
           for (const value of colValues) {
@@ -1505,6 +1539,33 @@ export class ImportService {
     const matchingItemId = itemIds.find((id) => id == item?.Item) || null;
     if (matchingItemId) {
       const cell = await this.cellService.findOneByColumnName('Items', matchingItemId);
+      if (cell.CellRow?.Row) {
+        const rowEntity = await this.rowService.findOne(cell.CellRow.Row);
+        return rowEntity;
+      }
+    }
+  }
+
+  private async getRowIdForAllLabels(
+    colValue: any,
+    pageIds: any = [PAGE_IDS.ALL_TOKENS],
+  ): Promise<any | undefined> {
+    const rows = await this.rowService.getRowsByPgs(pageIds);
+    const itemIds: number[] = [];
+    for (const row of rows) {
+      for (const cell of row.cells) {
+        const items = this.parseItemIds(String(cell.Items));
+        itemIds.push(...items);
+      }
+    }
+
+    const cellItems = await this.itemService.getItemsByItemIds(itemIds);
+    const matchingItem = cellItems.find(
+      (item) => JSON.stringify(item.JSON) === JSON.stringify({ 3000000100: colValue })
+    ) || null;
+
+    if (matchingItem) {
+      const cell = await this.cellService.findOneByColumnName('Items', matchingItem.Item);
       if (cell.CellRow?.Row) {
         const rowEntity = await this.rowService.findOne(cell.CellRow.Row);
         return rowEntity;
