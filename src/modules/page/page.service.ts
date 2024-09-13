@@ -361,8 +361,22 @@ export class PageService {
     switch (sheetName) {
       case SHEET_NAMES.ALL_LABELS:
         return COLUMN_IDS.ALL_LABELS.LABELS;
+
       case SHEET_NAMES.ALL_UNITS:
         return COLUMN_IDS.ALL_UNITS.UNIT;
+
+      case SHEET_NAMES.ALL_LANGUAGES:
+        return COLUMN_IDS.ALL_LANGUAGES.LANGUAGE;
+
+      case SHEET_NAMES.ALL_REGIONS:
+        return COLUMN_IDS.ALL_REGIONS.REGION;
+
+      case SHEET_NAMES.ALL_MODELS:
+        return COLUMN_IDS.ALL_MODELS.MODEL;
+        
+      case SHEET_NAMES.ALL_SUPPLIERS:
+        return COLUMN_IDS.ALL_SUPPLIERS.SUPPLIER;
+      
       default:
         return COLUMN_IDS.ALL_TOKENS.TOKEN;
     }
@@ -820,7 +834,12 @@ export class PageService {
         return (
           (await this.getRowJson(rowId)) ||
           (await this.getRowJson(rowId, SHEET_NAMES.ALL_LABELS)) ||
-          (await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS))
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_UNITS)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_SUPPLIERS)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_TOKENS)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_LANGUAGES)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_REGIONS)) ||
+          (await this.getRowJson(rowId, SHEET_NAMES.ALL_MODELS))
         );
       }),
     );

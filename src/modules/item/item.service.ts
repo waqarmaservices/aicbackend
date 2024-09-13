@@ -94,6 +94,14 @@ export class ItemService {
 
     return sortedData;
   }
+  async getItemsByItemIds(itemIds: number[]): Promise<Item[]> {
+    // Perform the asynchronous database query
+    const items = await this.itemRepository.find({
+      where: { Item: In(itemIds) }
+    });
+
+    return items;
+  }
   // Create Item table with Updation of Cell
   async createItemAndUpdateCell(payload: any): Promise<{ createdItem: Item; updatedCell: Cell }> {
     // Step 1: Create the Item entity

@@ -209,5 +209,5 @@ export const PAGE_CACHE = {
 };
 
 export const ALL_DATATYPES = {
-  DropDownSource: 3000001040,
+  DropDownSource: 3000001036,
 };
