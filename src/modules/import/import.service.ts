@@ -1411,7 +1411,7 @@ export class ImportService {
               CellItems: createdItemIds,
             });
           }
-        } else if (key == COLUMN_NAMES.Value_DefaultData && val && valueDataTypeRowId) {
+        } else if (key == COLUMN_NAMES.Value_DefaultData && val != null && valueDataTypeRowId) {
           const colValues = String(val).split(';'); // Split default data by semicolon
           const createdItemIds = [];
           for (const value of colValues) {
