@@ -305,7 +305,8 @@ export class ImportService {
         Page_Status: row[9] ?? row[9],
         Page_Comment: row[10] ?? row[10],
         Row_Type: row[11] ?? row[11],
-        Row_Comment: row[12] ?? row[12],
+        Row_Status: row[12] ?? row[12],
+        Row_Comment: row[13] ?? row[13],
         Row_Level: this.calculateRowLevel(row.slice(2)),
       };
     }
