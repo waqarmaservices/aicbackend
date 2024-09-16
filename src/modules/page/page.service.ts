@@ -1063,34 +1063,41 @@ export class PageService {
     return { regions };
   }
   // Get All the languages data from the specified Languages page
-  async getlanguages(pageId: number): Promise<any> {
-    // Step 1: Fetch the page data along with its associated rows and cells based on the given pageId
+  async getLanguages(pageId: number): Promise<any> {
+    // Step 1: Create a cache key
+    const cacheKey = pageId.toString();
+
+    // Step 2: Try to get cached data
+    const cachedResponse = await this.cacheManager.get(cacheKey) as string;
+    if (cachedResponse) {
+      return JSON.parse(cachedResponse);
+    }
+
+    // Step 3: Fetch the page data along with its associated rows and cells based on the given pageId
     const page = await this.entityManager.findOne(Page, {
       where: { Pg: pageId },
       relations: ['rows', 'rows.cells'], // Fetch rows and their associated cells
     });
 
-    // Step 2: If no page is found, throw an error
+    // Step 4: If no page is found, throw an error
     if (!page) {
       throw new Error('Page not found');
     }
 
-    // Step 3: Initialize the response structure for storing languages data
+    // Step 5: Initialize the response structure for storing languages data
     const response: { "ALL Languages": { [key: string]: string }[] } = {
-      "ALL Languages": []
+      "ALL Languages": [],
     };
 
-    // Step 4: Loop through each row in the fetched page
+    // Step 6: Loop through each row in the fetched page
     for (const row of page.rows) {
-
-      // Step 5: Loop through each cell in the current row
+      // Step 7: Loop through each cell in the current row
       for (const cell of row.cells) {
-
-        // Step 6: Check if the cell contains items (which are IDs)
+        // Step 8: Check if the cell contains items (which are IDs)
         if (cell.Items) {
           let itemsArray: number[] = [];
 
-          // Step 7: Parse the Items if they are in string format or assign them directly if they are already an array
+          // Step 9: Parse the Items if they are in string format or assign them directly if they are already an array
           if (typeof cell.Items === 'string') {
             // Convert the string of item IDs into an array of numbers
             itemsArray = (cell.Items as string)
@@ -1101,18 +1108,20 @@ export class PageService {
             itemsArray = cell.Items; // Use the array as is
           }
 
-          // Step 8: Fetch the item records from the database by their IDs
+          // Step 10: Fetch the item records from the database by their IDs
           const items = await this.entityManager.findByIds(Item, itemsArray);
 
-          // Step 9: Loop through the retrieved items and extract their JSON language data
+          // Step 11: Loop through the retrieved items and extract their JSON language data
           items.forEach((item) => {
             if (item.JSON) {
-              // Step 10: Loop through each key-value pair in the item's JSON object
+              // Step 12: Loop through each key-value pair in the item's JSON object
               for (const [jsonKey, languageName] of Object.entries(item.JSON)) {
-                // Step 11: Add the Row ID (from row.Row) and language name to the response
-                response["ALL Languages"].push({
-                  [row.Row.toString()]: languageName as string // Row ID as key, language name as value
-                });
+                // Step 13: Check if the language name is not "All Languages" and add it to the response
+                if (languageName !== "All Languages") {
+                  response["ALL Languages"].push({
+                    [row.Row.toString()]: languageName as string, // Row ID as key, language name as value
+                  });
+                }
               }
             }
           });
@@ -1120,11 +1129,17 @@ export class PageService {
       }
     }
 
-    // Step 12: Remove the first entry from the "ALL Languages" array as per requirement
-    response["ALL Languages"].shift();
+    // Step 14: Sort the response alphanumerically based on the Row ID (key)
+    response["ALL Languages"].sort((a, b) => {
+      const keyA = Object.keys(a)[0];
+      const keyB = Object.keys(b)[0];
+      return keyA.localeCompare(keyB, undefined, { numeric: true, sensitivity: 'base' });
+    });
 
-    // Step 13: Return the final response structure
-    return  response;
+    // Step 15: Cache the sorted response
+    await this.cacheManager.set(cacheKey, JSON.stringify(response), PAGE_CACHE.NEVER_EXPIRE);
+
+    // Step 16: Return the final sorted response
+    return response;
   }
-
 }
