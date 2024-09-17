@@ -24,6 +24,7 @@ import { UserController } from './modules/user/user.controller';
 import { TxController } from './modules/tx/tx.controller';
 import { ColController } from './modules/col/col.controller';
 import { ImportModule } from './modules/import/import.module';
+import { DatabaseModule } from './modules/database/database.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ImportModule } from './modules/import/import.module';
     TxModule,
     UserModule,
     ImportModule,
+    DatabaseModule,
   ],
   controllers: [
     AppController,

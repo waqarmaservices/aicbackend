@@ -1,12 +1,16 @@
-import { Controller, Get, HttpException, Res } from '@nestjs/common';
+import { Controller, Get, HttpException, Inject, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express';
 import * as path from 'path';
 import * as fs from 'fs';
+import { Pool } from 'pg';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    @Inject('PG_CONNECTION') private pool: Pool,
+  ) {}
 
   @Get()
   getHello(): string {
@@ -26,6 +30,17 @@ export class AppController {
       res.sendFile(logFilePath);
     } else {
       res.status(404).json({ message: 'Log file not found' });
+    }
+  }
+
+  @Get('pg')
+  async getPgRecrods() {
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query('SELECT * FROM "tUser"');
+      return result.rows;
+    } finally {
+      client.release();
     }
   }
 }
