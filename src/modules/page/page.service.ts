@@ -1041,6 +1041,7 @@ export class PageService {
     // Return both created entities
     return { createdPage, createdFormat };
   }
+  // Updating the page Columns Orders
   async updatePageColsOrder(Pg: number, PgCols: number[]) {
     const pgFormatRecord = await this.formatService.findOneByColumnName('Object', Pg);
 
@@ -1050,9 +1051,8 @@ export class PageService {
     await this.clearPageCache(Pg.toString());
 
     return updatedPgFormatRecord;
-
-    // Get All Regions From DataBase
   }
+  // get All Regions 
   async getRegions() {
     const data = await this.getonePageData(1000000013);
     const filteredregions = data?.pageData?.filter((el) => el.RowLevel === 1);
@@ -1062,7 +1062,7 @@ export class PageService {
     await this.cacheManager.set('regions', JSON.stringify(regions), PAGE_CACHE.NEVER_EXPIRE);
     return { regions };
   }
-  // Get All the languages data from the specified Languages page
+  // Get All the languages
   async getLanguages(pageId: number): Promise<any> {
     // Step 1: Create a cache key
     const cacheKey = pageId.toString();
@@ -1141,5 +1141,50 @@ export class PageService {
 
     // Step 16: Return the final sorted response
     return response;
+  }
+  // Get All The DDS Types  
+  async getDDS(payload: any): Promise<any> {
+    const pageId = 1000000009; // Token Page ID
+
+    // Step 1: Create a cache key
+    const cacheKey = pageId.toString();
+
+    // Step 2: Try to get cached data
+    const cachedResponse = await this.cacheManager.get(cacheKey) as string;
+    if (cachedResponse) {
+      return JSON.parse(cachedResponse); // Return cached response if found
+    }
+
+    // Step 3: Retrieve all token data from the specified page ID (Database)
+    const data = await this.getonePageData(pageId);
+
+    // Step 4: Filter the data by matching the DDS value with the token field
+    const ddsValue = payload.DDS;  // Expecting DDS in the payload
+    const pageTypeData = data?.pageData?.find((el) => el.token === ddsValue);
+
+    if (!pageTypeData) {
+      // Return an empty array if no match for DDS
+      return { DDS: [] };
+    }
+
+    const pageTypeRow = pageTypeData.row; // Get the row for the matching DDS (Page Type)
+
+    // Step 5: Filter the data to find all rows that have ParentRow matching the pageTypeRow
+    const filteredData = data?.pageData?.filter((el) => el.ParentRow?.Row === pageTypeRow);
+
+    // Step 6: Map the result to the desired format with row as the key and token as the value
+    const DDS = filteredData.map((el) => ({
+      [el.row]: el.token,
+    }));
+
+    // Step 7: Include the Page Type itself in the result
+    DDS.unshift({ [pageTypeRow]: pageTypeData.token });
+
+    // Step 8: Cache the response for future use
+    await this.cacheManager.set(cacheKey, JSON.stringify(DDS), PAGE_CACHE.NEVER_EXPIRE);
+
+
+    // Return the final result
+    return { DDS };
   }
 }
