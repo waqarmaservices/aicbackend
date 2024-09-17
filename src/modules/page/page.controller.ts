@@ -268,5 +268,13 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }
-
+  @Get('dds/type')
+  async getPageTypeData(@Body() payload: any, @Res() res: Response) {
+    try {
+      const DDS = await this.pageService.getDDS(payload); // Calling the page service with payload
+      return res.status(HttpStatus.OK).json(new ApiResponse(true, DDS, '', HttpStatus.OK));
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(new ApiResponse(false, null, 'Something went wrong', HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+  }
 }
