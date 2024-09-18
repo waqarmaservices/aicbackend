@@ -1164,7 +1164,7 @@ export class PageService {
 
     if (!pageTypeData) {
       // Return an empty array if no match for DDS
-      return { DDS: [] };
+      return { result: [] };
     }
 
     const pageTypeRow = pageTypeData.row; // Get the row for the matching DDS (Page Type)
@@ -1173,18 +1173,18 @@ export class PageService {
     const filteredData = data?.pageData?.filter((el) => el.ParentRow?.Row === pageTypeRow);
 
     // Step 6: Map the result to the desired format with row as the key and token as the value
-    const DDS = filteredData.map((el) => ({
+    const result = filteredData.map((el) => ({
       [el.row]: el.token,
     }));
 
     // Step 7: Include the Page Type itself in the result
-    DDS.unshift({ [pageTypeRow]: pageTypeData.token });
+    result.unshift({ [pageTypeRow]: pageTypeData.token });
 
     // Step 8: Cache the response for future use
-    await this.cacheManager.set(cacheKey, JSON.stringify(DDS), PAGE_CACHE.NEVER_EXPIRE);
+    await this.cacheManager.set(cacheKey, JSON.stringify(result), PAGE_CACHE.NEVER_EXPIRE);
 
 
     // Return the final result
-    return { DDS };
+    return { result };
   }
 }
