@@ -268,7 +268,7 @@ export class PageController {
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }
-  @Get('dds')
+  @Get('dds/status')
   async getPageTypeData(@Body() payload: any, @Res() res: Response) {
     try {
       const data = await this.pageService.getDDS(payload); 
