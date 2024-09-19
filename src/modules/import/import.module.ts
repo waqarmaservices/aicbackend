@@ -16,9 +16,11 @@ import { Cell } from '../cell/cell.entity';
 import { Item } from '../item/item.entity';
 import { Format } from '../format/format.entity';
 import { User } from '../user/user.entity';
+import { Pool } from 'pg';
+import { DatabaseModule } from 'modules/database/database.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Page, Row, Col, Cell, Item, Format, User])],
+  imports: [TypeOrmModule.forFeature([Page, Row, Col, Cell, Item, Format, User]), Pool, DatabaseModule],
   controllers: [ImportController],
   providers: [ImportService, PageService, RowService, ColService, CellService, ItemService, FormatService, UserService],
 })

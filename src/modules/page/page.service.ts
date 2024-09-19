@@ -25,6 +25,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Pool } from 'pg';
 
 @Injectable()
 export class PageService {
@@ -36,6 +37,8 @@ export class PageService {
     private readonly pageRepository: Repository<Page>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
+    @Inject('PG_CONNECTION') 
+    private pool: Pool,
     private readonly cellService: CellService,
     private readonly rowService: RowService,
     private readonly itemService: ItemService,
@@ -521,7 +524,8 @@ export class PageService {
       throw new Error('Page not found');
     }
 
-    const response = await this.cachePageResponse(page);
+    // const response = await this.cachePageResponse(page);
+    const response = await this.cachePageResponseFromRawQuery(page);
     return response;
   }
 
@@ -560,6 +564,90 @@ export class PageService {
     await this.cacheManager.set(cacheKey, JSON.stringify(response), PAGE_CACHE.NEVER_EXPIRE);
 
     return response;
+  }
+
+  private async cachePageResponseFromRawQuery(page: Page) {
+    const pageId = Number(page.Pg);
+    const client = await this.pool.connect();
+    
+    const pgRowsQuery = `
+      SELECT 
+        tRow."Row" AS "tRow_Row",
+        tCell."Cell" AS "tCell_Cell", 
+        tCell."Col" AS "tCell_Col", 
+        tCell."Items" AS "tCell_Items", 
+        tItem."Item" AS "tItem_Item",
+        tItem."DataType" AS "tItem_DataType", 
+        tItem."Object" AS "tItem_Object",
+        tItem."JSON" AS "tItem_JSON",
+        tCellItemObject."Row" AS "tCell_ItemObject",
+        tItemObject."JSON" AS "tItemObject_JSON"
+    
+      FROM "tCell" tCell
+      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+
+      LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
+      LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
+    
+      where tRow."Row" = 3000000101;
+    `;
+
+    const pgFormatsQuery = `
+      SELECT 
+        tPg."Pg" AS "tPg_Pg",
+        tPg."Cols" AS "tPg_Cols", 
+        tFormat."Format" AS "tFormat_Format", 
+        tFormat."Object" AS "tFormat_Object",
+        tFormat."Status" AS "tFormat_Status",
+
+        tCell."Items" as "tCell_Items",
+        tCell."Cell" as "tCell_Cell",
+        tItem."JSON" as "tItem_JSON"
+      
+      FROM "tPg" tPg
+      LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
+
+      LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+
+      WHERE tPg."Pg" = 1000000006;
+    `;
+
+
+    const result = {};
+    const pgRows = await client.query(pgRowsQuery);
+    const pgFormats = await client.query(pgFormatsQuery);
+
+    for(const row of pgRows.rows) {
+      // Initialize the row array if it doesn't exist
+      if (!result[row.tRow_Row]) {
+        result[row.tRow_Row] = [];  // Create an array for each tRow_Row
+      }
+
+      const columns = !row.tItem_JSON && !row.tItemObject_JSON 
+        ? {[row.tItem_Object]: 'ColId'}               // If both are falsy, use tItem_Object
+          : {                              
+            [row.tCell_Col]: row.tItem_JSON?.[3000000100] ?? row.tItemObject_JSON?.[3000000100]  // Otherwise, create a dynamic key using row.tCell_Col
+          }
+
+      // Push the column and value into the respective row      
+      result[row.tRow_Row].push(
+        // Check if both tItem_JSON and tItemObject_JSON are falsy
+        columns
+        // Uncomment this line when ready to use the filterRecord function
+        // status: this.filterRecord('tFormat_Object', row.tCell_Col, pgFormats.rows)
+      );
+    }
+
+    console.log(result);
+    return result;
+  }
+
+  private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
+    return filterData
+      .filter((data) => data[filterKey] == filterValue)
+      .map(fData => fData.tItem_JSON)
   }
 
   private async getOrderedPageColumns(Pg: number, pageColumns: any[]): Promise<any[]> {

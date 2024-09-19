@@ -13,9 +13,11 @@ import { RowService } from 'modules/row/row.service';
 import { Row } from 'modules/row/row.entity';
 import { ColService } from 'modules/col/col.service';
 import { Col } from 'modules/col/col.entity';
+import { Pool } from 'pg';
+import { DatabaseModule } from 'modules/database/database.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Item, Cell, Format, Page, Row, Col])],
+  imports: [TypeOrmModule.forFeature([Item, Cell, Format, Page, Row, Col]), Pool, DatabaseModule],
   controllers: [ItemController],
   providers: [ItemService, CellService, FormatService, PageService, RowService, ColService],
   exports: [ItemService],
