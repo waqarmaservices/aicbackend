@@ -641,13 +641,56 @@ export class PageService {
     }
 
     console.log(result);
-    return result;
+    return await this.getAllCols();
   }
 
   private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
     return filterData
       .filter((data) => data[filterKey] == filterValue)
       .map(fData => fData.tItem_JSON)
+  }
+
+  private async getAllCols() {
+    const client = await this.pool.connect();
+    const allColNamesQuery = `
+      SELECT
+        tItem."JSON" AS "tItem_JSON"
+ 
+      FROM "tCell" tCell
+      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+
+	    WHERE tRow."Pg" = 1000000006
+	    AND tCell."Col" = 2000000056
+	    ORDER BY tRow."Row" ASC;
+    `;
+
+    const allColIdsQuery = `
+      SELECT
+        tItem."Object" AS "tItem_Object"
+ 
+      FROM "tCell" tCell
+      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+
+	    WHERE tRow."Pg" = 1000000006
+	    AND tCell."Col" = 2000000053
+	    ORDER BY tRow."Row" ASC;
+    `;
+
+    const allColNames = (await client.query(allColNamesQuery)).rows;
+    const allColIds = (await client.query(allColIdsQuery)).rows;
+
+    const mergeObjects = allColNames.reduce((acc, item, index) => {
+      acc.push({
+        colId: allColIds[index].tItem_Object,
+        colName: item.tItem_JSON[3000000100]
+      });
+      
+      return acc;
+    }, []);  // Initialize as an array, not an object
+
+    return mergeObjects
   }
 
   private async getOrderedPageColumns(Pg: number, pageColumns: any[]): Promise<any[]> {
