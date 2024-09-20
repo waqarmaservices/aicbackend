@@ -569,6 +569,7 @@ export class PageService {
   private async cachePageResponseFromRawQuery(page: Page) {
     const pageId = Number(page.Pg);
     const client = await this.pool.connect();
+    const allCols = await this.getAllCols();
     
     const pgRowsQuery = `
       SELECT 
@@ -619,29 +620,35 @@ export class PageService {
     const pgRows = await client.query(pgRowsQuery);
     const pgFormats = await client.query(pgFormatsQuery);
 
+    // Get rows and its cells
     for(const row of pgRows.rows) {
       // Initialize the row array if it doesn't exist
       if (!result[row.tRow_Row]) {
         result[row.tRow_Row] = [];  // Create an array for each tRow_Row
       }
 
-      const columns = !row.tItem_JSON && !row.tItemObject_JSON 
-        ? {[row.tItem_Object]: 'ColId'}               // If both are falsy, use tItem_Object
-          : {                              
-            [row.tCell_Col]: row.tItem_JSON?.[3000000100] ?? row.tItemObject_JSON?.[3000000100]  // Otherwise, create a dynamic key using row.tCell_Col
-          }
+      let column = {};
+      if (!row.tItem_JSON && !row.tItemObject_JSON) {
+        const foundedCol = allCols.find(col => col.colId == row.tCell_Col);
+        column = {[foundedCol.colName]: row.tItem_Object} 
 
+      } else {
+        const foundedCol = allCols.find(col => col.colId == row.tCell_Col);
+        column = {                              
+          [foundedCol.colName]: row.tItem_JSON?.[3000000100] ?? row.tItemObject_JSON?.[3000000100]
+        }
+      }
+     
       // Push the column and value into the respective row      
       result[row.tRow_Row].push(
         // Check if both tItem_JSON and tItemObject_JSON are falsy
-        columns
+        column
         // Uncomment this line when ready to use the filterRecord function
         // status: this.filterRecord('tFormat_Object', row.tCell_Col, pgFormats.rows)
       );
     }
 
-    console.log(result);
-    return await this.getAllCols();
+    return result;
   }
 
   private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
@@ -681,7 +688,7 @@ export class PageService {
     const allColNames = (await client.query(allColNamesQuery)).rows;
     const allColIds = (await client.query(allColIdsQuery)).rows;
 
-    const mergeObjects = allColNames.reduce((acc, item, index) => {
+    const mergeCols = allColNames.reduce((acc, item, index) => {
       acc.push({
         colId: allColIds[index].tItem_Object,
         colName: item.tItem_JSON[3000000100]
@@ -690,7 +697,7 @@ export class PageService {
       return acc;
     }, []);  // Initialize as an array, not an object
 
-    return mergeObjects
+    return mergeCols
   }
 
   private async getOrderedPageColumns(Pg: number, pageColumns: any[]): Promise<any[]> {
