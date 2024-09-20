@@ -26,6 +26,7 @@ import { Cache } from 'cache-manager';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Pool } from 'pg';
+import { Col } from 'modules/col/col.entity';
 
 @Injectable()
 export class PageService {
@@ -652,28 +653,82 @@ export class PageService {
 
       } else {
         const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
-        const cellItems = row.tItem_JSON?.[3000000100] ?? row.tItemObject_JSON?.[3000000100];
+        const cellItem = row.tItem_JSON ?? row.tItemObject_JSON;
         if (!cell) {
           column =  {   
             cellId : row.tCell_Cell,
             colId:  foundedCol.colId,
             colName: foundedCol.colName,
-            cellItems: [cellItems]
+            cellItems: [cellItem]
           };
 
           // Push the column and value into the respective row
           result.get(row.tRow_Row).push(column);
 
         } else {
-          cell.cellItems.push(cellItems)
+          cell.cellItems.push(cellItem)
         }
       }
     }
 
     // If you need to convert the Map back to a regular object
     const finalResult = Object.fromEntries(result);
-    return finalResult;
+    // /console.log((finalResult));
+
+    // Initialize result object
+    const transformed = this.transformDataForRawQuery(finalResult);
+
+    return transformed;
   }
+
+ 
+
+  private transformDataForRawQuery(data: any) {
+    const transformedData = [];
+
+    Object.keys(data).forEach((key) => {
+      const pageObject = {};
+      let rowLevel: any[];
+      let parentRow: any[];
+      let colName: '';
+      data[key].forEach((obj: any) => {
+        // Capture the RowLevel value
+        rowLevel = obj.RowLevel;
+        parentRow = obj.ParentRow;
+        pageObject[obj.colName] = obj.cellItems
+        // Object.keys(obj).forEach((col) => {
+        //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
+        //     if (!pageObject[col]) {
+        //       pageObject[col] = [];
+        //     }
+        //     //pageObject[col].push(...obj[col].map((item) => item));
+        //   }
+        // });
+      });
+      // Concatenate array values with semicolons and create the final page object
+      const finalPageObject = {};
+      Object.keys(pageObject).forEach((col) => {
+        //finalPageObject[col] = pageObject[col].join(';');
+      });
+      finalPageObject['row'] = key;
+      finalPageObject['RowLevel'] = rowLevel;
+      finalPageObject['ParentRow'] = parentRow;
+      transformedData.push(pageObject);
+    });
+
+    return transformedData;
+  }
+
+
+
+
+
+
+
+
+
+
+  
 
   private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
     return filterData
