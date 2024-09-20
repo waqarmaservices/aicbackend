@@ -591,7 +591,8 @@ export class PageService {
       LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
       LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
     
-      where tRow."Row" = 3000000101;
+      WHERE tRow."Pg" = ${pageId}
+       ORDER BY tRow."Row" ASC;
     `;
 
     const pgFormatsQuery = `
@@ -612,43 +613,66 @@ export class PageService {
       LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
       LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
 
-      WHERE tPg."Pg" = 1000000006;
+      WHERE tPg."Pg" = 1000000001;
     `;
 
 
-    const result = {};
+    // Use Map for better performance and structure
+    const result = new Map();
     const pgRows = await client.query(pgRowsQuery);
     const pgFormats = await client.query(pgFormatsQuery);
 
-    // Get rows and its cells
-    for(const row of pgRows.rows) {
-      // Initialize the row array if it doesn't exist
-      if (!result[row.tRow_Row]) {
-        result[row.tRow_Row] = [];  // Create an array for each tRow_Row
+    // Get rows and their cells
+    for (const row of pgRows.rows) {
+      // If the row doesn't exist in the result map, initialize it as an array
+      if (!result.has(row.tRow_Row)) {
+        result.set(row.tRow_Row, []);  // Initialize an array for each tRow_Row
       }
 
       let column = {};
+      
+      // Determine the column based on the condition
+      const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
+
       if (!row.tItem_JSON && !row.tItemObject_JSON) {
-        const foundedCol = allCols.find(col => col.colId == row.tCell_Col);
-        column = {[foundedCol.colName]: row.tItem_Object} 
+        column = { 
+          cellId : row.tCell_Cell,
+          colId:  foundedCol.colId,
+          colName: foundedCol.colName,
+          cellItems: [row.tItem_Object]
+        };
+
+        // Append column status to the row
+        result.get(row.tRow_Row).push({
+          Status: this.filterRecord('tFormat_Object', row.tItem_Object, pgFormats.rows)
+        });
+
+        // Push the column and value into the respective row
+        result.get(row.tRow_Row).push(column);
 
       } else {
-        const foundedCol = allCols.find(col => col.colId == row.tCell_Col);
-        column = {                              
-          [foundedCol.colName]: row.tItem_JSON?.[3000000100] ?? row.tItemObject_JSON?.[3000000100]
+        const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
+        const cellItems = row.tItem_JSON?.[3000000100] ?? row.tItemObject_JSON?.[3000000100];
+        if (!cell) {
+          column =  {   
+            cellId : row.tCell_Cell,
+            colId:  foundedCol.colId,
+            colName: foundedCol.colName,
+            cellItems: [cellItems]
+          };
+
+          // Push the column and value into the respective row
+          result.get(row.tRow_Row).push(column);
+
+        } else {
+          cell.cellItems.push(cellItems)
         }
       }
-     
-      // Push the column and value into the respective row      
-      result[row.tRow_Row].push(
-        // Check if both tItem_JSON and tItemObject_JSON are falsy
-        column
-        // Uncomment this line when ready to use the filterRecord function
-        // status: this.filterRecord('tFormat_Object', row.tCell_Col, pgFormats.rows)
-      );
     }
 
-    return result;
+    // If you need to convert the Map back to a regular object
+    const finalResult = Object.fromEntries(result);
+    return finalResult;
   }
 
   private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
