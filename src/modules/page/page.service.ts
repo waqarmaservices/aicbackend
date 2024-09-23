@@ -243,10 +243,18 @@ export class PageService {
     // Initialize result object
     const transformed = this.transformDataForRawQuery(finalResult);
 
+    const isAllPagesPage: boolean = pageId == 1000000001 ? true : false; 
+
     return transformed
       .map(row => {
-        if (row['Page ID'] == pageId || row['Page Type'] == 'Each Page') {
-          return row;
+        if (isAllPagesPage) {
+          if (row['Page ID'] == pageId || row['Page Type'] == 'Each Page' || row['Page Type'] == 'Pages List') {
+            return row;
+          }    
+        } else {
+          if (row['Page ID'] == pageId || row['Page Type'] == 'Each Page') {
+            return row;
+          }
         } 
       })
       .filter((row => row != null))
