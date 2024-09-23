@@ -210,12 +210,6 @@ export class PageService {
           cellItems: [row.tItem_Object]
         };
 
-        // Append column status to the row
-        result.get(row.tRow_Row).push({
-          colName: 'Col Status',
-          cellItems: this.filterRecord('tFormat_Object', row.tItem_Object, pgFormats.rows)
-        });
-
         // Push the column and value into the respective row
         result.get(row.tRow_Row).push(column);
 
@@ -256,6 +250,11 @@ export class PageService {
         } 
       })
       .filter((row => row != null))
+      .map(row => {
+        const colStatuses = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
+        row['Col Status'] = colStatuses.map(status => status[3000000100])
+        return row;
+      })
   }
 
   /**
@@ -730,6 +729,7 @@ export class PageService {
       Object.keys(pageObject).forEach((col) => {
         //finalPageObject[col] = pageObject[col].join(';');
       });
+      
       finalPageObject['row'] = key;
       finalPageObject['RowLevel'] = rowLevel;
       finalPageObject['ParentRow'] = parentRow;
