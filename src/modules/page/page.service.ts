@@ -194,15 +194,15 @@ export class PageService {
   
         let cellItem = null;
         const ids = [3000000100, 3000000325];
-        const currentCell = result.get(rowKey);
+        const currentRow = result.get(rowKey);
         
         // Dynamically find the cell item
         cellItem = ids.reduce((acc, id) => acc ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], null);
   
-        const existingCell = currentCell.find(cell => cell.cellId === row.tCell_Cell);
+        const existingCell = currentRow.find(cell => cell.cellId === row.tCell_Cell);
   
         if (!existingCell) {
-          currentCell.push({
+          currentRow.push({
             cellId: row.tCell_Cell,
             colId: foundedCol?.colId || null,
             colName: foundedCol?.colName || 'Unknown',
