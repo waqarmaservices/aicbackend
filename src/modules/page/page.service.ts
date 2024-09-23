@@ -238,10 +238,9 @@ export class PageService {
 
     // If you need to convert the Map back to a regular object
     const finalResult = Object.fromEntries(result);
-    // /console.log((finalResult));
 
     // Initialize result object
-    const transformed = this.transformDataForRawQuery(finalResult);
+    const transformed = this.transformColDataForRawQuery(finalResult);
 
     const isAllPagesPage: boolean = pageId == 1000000001 ? true : false; 
 
@@ -263,6 +262,124 @@ export class PageService {
         row['Col Status'] = colStatuses.map(status => status[3000000100])
         return row;
       })
+  }
+
+  async getPageDataFromRawQuery(pageId: number) {
+    const client = await this.pool.connect();
+    const allCols = await this.getAllCols();
+    
+    const pgRowsQuery = `
+      SELECT 
+        tRow."Row" AS "tRow_Row",
+        tCell."Cell" AS "tCell_Cell", 
+        tCell."Col" AS "tCell_Col", 
+        tCell."Items" AS "tCell_Items", 
+        tItem."Item" AS "tItem_Item",
+        tItem."DataType" AS "tItem_DataType", 
+        tItem."Object" AS "tItem_Object",
+        tItem."JSON" AS "tItem_JSON",
+        tCellItemObject."Row" AS "tCell_ItemObject",
+        tItemObject."JSON" AS "tItemObject_JSON"
+    
+      FROM "tCell" tCell
+      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+
+      LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
+      LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
+    
+      WHERE tRow."Pg" = ${pageId}
+       ORDER BY tRow."Row" ASC;
+    `;
+
+    const pgFormatsQuery = `
+      SELECT 
+        tPg."Pg" AS "tPg_Pg",
+        tPg."Cols" AS "tPg_Cols", 
+        tFormat."Format" AS "tFormat_Format", 
+        tFormat."Object" AS "tFormat_Object",
+        tFormat."Status" AS "tFormat_Status",
+
+        tCell."Items" as "tCell_Items",
+        tCell."Cell" as "tCell_Cell",
+        tItem."JSON" as "tItem_JSON"
+      
+      FROM "tPg" tPg
+      LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
+
+      LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+
+      WHERE tPg."Pg" = ${pageId};
+    `;
+
+
+    // Use Map for better performance and structure
+    const result = new Map();
+    const pgRows = await client.query(pgRowsQuery);
+    const pgFormats = await client.query(pgFormatsQuery);
+
+    // Get rows and their cells
+    for (const row of pgRows.rows) {
+      // If the row doesn't exist in the result map, initialize it as an array
+      if (!result.has(row.tRow_Row)) {
+        result.set(row.tRow_Row, []);  // Initialize an array for each tRow_Row
+      }
+
+      let column = {};
+      
+      // Determine the column based on the condition
+      const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
+
+      if (!row.tItem_JSON && !row.tItemObject_JSON) {
+        column = { 
+          cellId : row.tCell_Cell,
+          colId:  foundedCol.colId,
+          colName: foundedCol.colName,
+          cellItems: [row.tItem_Object]
+        };
+
+        // Push the column and value into the respective row
+        result.get(row.tRow_Row).push(column);
+
+      } else {
+        const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
+        const ids = [3000000100, 3000000325];
+        const cellItem = ids.reduce((result, id) => 
+          result ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
+
+        if (!cell) {
+          column =  {   
+            cellId : row.tCell_Cell,
+            colId:  foundedCol.colId,
+            colName: foundedCol.colName,
+            cellItems: [cellItem]
+          };
+
+          // Push the column and value into the respective row
+          result.get(row.tRow_Row).push(column);
+
+        } else {
+          cell.cellItems.push(cellItem)
+        }
+      }
+    }
+
+    // If you need to convert the Map back to a regular object
+    const finalResult = Object.fromEntries(result);
+
+    // Initialize result object
+    const transformed = this.transformColDataForRawQuery(finalResult);
+
+    const isAllPagesPage: boolean = pageId == 1000000001 ? true : false; 
+
+    return transformed
+      
+      // .map(row => {
+      //   const colStatuses = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
+      //   row['Col Status'] = colStatuses.map(status => status[3000000100])
+      //   return row;
+      // })
   }
 
   /**
@@ -703,12 +820,14 @@ export class PageService {
 
     const pageColumns = await this.getPageColumnsFromRawQuery(Pg);
 
-    return pageColumns;
+    const pageData = await this.getPageDataFromRawQuery(Pg)
+
+    return {pageColumns, pageData};
   }
 
  
 
-  private transformDataForRawQuery(data: any) {
+  private transformColDataForRawQuery(data: any) {
     const transformedData = [];
 
     Object.keys(data).forEach((key) => {
