@@ -136,133 +136,104 @@ export class PageService {
 
   async getPageColumnsFromRawQuery(pageId: number) {
     const client = await this.pool.connect();
-    const allCols = await this.getAllCols();
-    const allColsPageId = 1000000006;
-    
-    const pgRowsQuery = `
-      SELECT 
-        tRow."Row" AS "tRow_Row",
-        tCell."Cell" AS "tCell_Cell", 
-        tCell."Col" AS "tCell_Col", 
-        tCell."Items" AS "tCell_Items", 
-        tItem."Item" AS "tItem_Item",
-        tItem."DataType" AS "tItem_DataType", 
-        tItem."Object" AS "tItem_Object",
-        tItem."JSON" AS "tItem_JSON",
-        tCellItemObject."Row" AS "tCell_ItemObject",
-        tItemObject."JSON" AS "tItemObject_JSON"
-    
-      FROM "tCell" tCell
-      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-
-      LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
-      LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
-    
-      WHERE tRow."Pg" = ${allColsPageId}
-       ORDER BY tRow."Row" ASC;
-    `;
-
-    const pgFormatsQuery = `
-      SELECT 
-        tPg."Pg" AS "tPg_Pg",
-        tPg."Cols" AS "tPg_Cols", 
-        tFormat."Format" AS "tFormat_Format", 
-        tFormat."Object" AS "tFormat_Object",
-        tFormat."Status" AS "tFormat_Status",
-
-        tCell."Items" as "tCell_Items",
-        tCell."Cell" as "tCell_Cell",
-        tItem."JSON" as "tItem_JSON"
-      
-      FROM "tPg" tPg
-      LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
-
-      LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
-      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-
-      WHERE tPg."Pg" = ${pageId};
-    `;
-
-
-    // Use Map for better performance and structure
-    const result = new Map();
-    const pgRows = await client.query(pgRowsQuery);
-    const pgFormats = await client.query(pgFormatsQuery);
-
-    // Get rows and their cells
-    for (const row of pgRows.rows) {
-      // If the row doesn't exist in the result map, initialize it as an array
-      if (!result.has(row.tRow_Row)) {
-        result.set(row.tRow_Row, []);  // Initialize an array for each tRow_Row
-      }
-
-      let column = {};
-      
-      // Determine the column based on the condition
-      const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
-
-      if (!row.tItem_JSON && !row.tItemObject_JSON) {
-        column = { 
-          cellId : row.tCell_Cell,
-          colId:  foundedCol.colId,
-          colName: foundedCol.colName,
-          cellItems: [row.tItem_Object]
-        };
-
-        // Push the column and value into the respective row
-        result.get(row.tRow_Row).push(column);
-
-      } else {
-        const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
+    try {
+      const allCols = await this.getAllCols();
+      const allColsPageId = 1000000006;
+  
+      // Parameterized queries for better security
+      const pgRowsQuery = `
+        SELECT 
+          tRow."Row" AS "tRow_Row",
+          tCell."Cell" AS "tCell_Cell", 
+          tCell."Col" AS "tCell_Col", 
+          tCell."Items" AS "tCell_Items", 
+          tItem."Item" AS "tItem_Item",
+          tItem."DataType" AS "tItem_DataType", 
+          tItem."Object" AS "tItem_Object",
+          tItem."JSON" AS "tItem_JSON",
+          tCellItemObject."Row" AS "tCell_ItemObject",
+          tItemObject."JSON" AS "tItemObject_JSON"
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+        LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
+        LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
+        WHERE tRow."Pg" = $1
+        ORDER BY tRow."Row" ASC;
+      `;
+  
+      const pgFormatsQuery = `
+        SELECT 
+          tPg."Pg" AS "tPg_Pg",
+          tPg."Cols" AS "tPg_Cols", 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tCell."Items" AS "tCell_Items",
+          tCell."Cell" AS "tCell_Cell",
+          tItem."JSON" AS "tItem_JSON"
+        FROM "tPg" tPg
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        WHERE tPg."Pg" = $1;
+      `;
+  
+      const pgRows = await client.query(pgRowsQuery, [allColsPageId]);
+      const pgFormats = await client.query(pgFormatsQuery, [pageId]);
+  
+      const result = new Map();
+  
+      for (const row of pgRows.rows) {
+        const rowKey = row.tRow_Row;
+        const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
+        
+        if (!result.has(rowKey)) {
+          result.set(rowKey, []);
+        }
+  
+        let cellItem = null;
         const ids = [3000000100, 3000000325];
-        const cellItem = ids.reduce((result, id) => 
-          result ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
-
-        if (!cell) {
-          column =  {   
-            cellId : row.tCell_Cell,
-            colId:  foundedCol.colId,
-            colName: foundedCol.colName,
-            cellItems: [cellItem]
-          };
-
-          // Push the column and value into the respective row
-          result.get(row.tRow_Row).push(column);
-
+        const currentCell = result.get(rowKey);
+        
+        // Dynamically find the cell item
+        cellItem = ids.reduce((acc, id) => acc ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], null);
+  
+        const existingCell = currentCell.find(cell => cell.cellId === row.tCell_Cell);
+  
+        if (!existingCell) {
+          currentCell.push({
+            cellId: row.tCell_Cell,
+            colId: foundedCol?.colId || null,
+            colName: foundedCol?.colName || 'Unknown',
+            cellItems: [cellItem || row.tItem_Object]
+          });
         } else {
-          cell.cellItems.push(cellItem)
+          existingCell.cellItems.push(cellItem || row.tItem_Object);
         }
       }
+  
+      const finalResult = Object.fromEntries(result);
+  
+      const transformed = this.transformColDataForRawQuery(finalResult);
+  
+      const isAllPagesPage = pageId === 1000000001;
+  
+      // Filter and process rows based on page type and ID
+      return transformed
+        .filter(row => isAllPagesPage 
+          ? row['Page ID'] == pageId || row['Page Type'] === 'Each Page' || row['Page Type'] === 'Pages List'
+          : row['Page ID'] == pageId || row['Page Type'] === 'Each Page')
+        .map(row => {
+          const colStatuses = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
+          row['Col Status'] = colStatuses.map(status => status[3000000100]);
+          return row;
+        });
+    } finally {
+      client.release();
     }
-
-    // If you need to convert the Map back to a regular object
-    const finalResult = Object.fromEntries(result);
-
-    // Initialize result object
-    const transformed = this.transformColDataForRawQuery(finalResult);
-
-    const isAllPagesPage: boolean = pageId == 1000000001 ? true : false; 
-
-    return transformed
-      .map(row => {
-        if (isAllPagesPage) {
-          if (row['Page ID'] == pageId || row['Page Type'] == 'Each Page' || row['Page Type'] == 'Pages List') {
-            return row;
-          }    
-        } else {
-          if (row['Page ID'] == pageId || row['Page Type'] == 'Each Page') {
-            return row;
-          }
-        } 
-      })
-      .filter((row => row != null))
-      .map(row => {
-        const colStatuses = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
-        row['Col Status'] = colStatuses.map(status => status[3000000100])
-        return row;
-      })
   }
+  
 
   async getPageDataFromRawQuery(pageId: number) {
     const client = await this.pool.connect();
