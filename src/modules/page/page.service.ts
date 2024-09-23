@@ -181,7 +181,7 @@ export class PageService {
       LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
       LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
 
-      WHERE tPg."Pg" = ${allColsPageId};
+      WHERE tPg."Pg" = ${pageId};
     `;
 
 
@@ -249,7 +249,13 @@ export class PageService {
     // Initialize result object
     const transformed = this.transformDataForRawQuery(finalResult);
 
-    return transformed;
+    return transformed
+      .map(row => {
+        if (row['Page ID'] == pageId || row['Page Type'] == 'Each Page') {
+          return row;
+        } 
+      })
+      .filter((row => row != null))
   }
 
   /**
