@@ -653,7 +653,10 @@ export class PageService {
 
       } else {
         const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
-        const cellItem = row.tItem_JSON ?? row.tItemObject_JSON;
+        const ids = [3000000100, 3000000325];
+        const cellItem = ids.reduce((result, id) => 
+          result ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
+
         if (!cell) {
           column =  {   
             cellId : row.tCell_Cell,
@@ -695,7 +698,9 @@ export class PageService {
         // Capture the RowLevel value
         rowLevel = obj.RowLevel;
         parentRow = obj.ParentRow;
-        pageObject[obj.colName] = obj.cellItems
+
+        const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
+        pageObject[obj.colName] = items
         // Object.keys(obj).forEach((col) => {
         //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
         //     if (!pageObject[col]) {
