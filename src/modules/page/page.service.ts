@@ -307,12 +307,15 @@ export class PageService {
           res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
 
         if (!row.tItem_JSON && !row.tItemObject_JSON) {
+          // if column has no json value than it should have have from item object
           column = {
             cellId: row.tCell_Cell,
             colId: foundedCol?.colId,
             colName: foundedCol?.colName,
             cellItems: [row.tItem_Object]
           };
+
+          result.get(row.tRow_Row).push(column);
         } else {
           const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
           if (!cell) {
