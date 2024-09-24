@@ -847,8 +847,8 @@ export class PageService {
         parentRow = obj.ParentRow;
 
       colName = this.replaceSpaceWithUnderscore(obj.colName);
-        const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
-        pageObject[colName] = items
+        const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems.join(';');
+        pageObject[colName] = items;
         // Object.keys(obj).forEach((col) => {
         //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
         //     if (!pageObject[col]) {
@@ -1245,7 +1245,7 @@ export class PageService {
       result.push({
         ...record,
         row_status: rowFormats.map(rowFormat => rowFormat.tItem_JSON[3000000100]).join(';'),
-        row_comment: rowFormats.map(rowFormat => rowFormat.tFormat_Comment[3000000100]).join(';'),
+        row_comment: rowFormats.map(rowFormat => rowFormat.tFormat_Comment?.[3000000100]).join(';'),
         // [`${objectKey}_comment`]: comment ?? null,
         // [`${objectKey}_status`]: status ?? null,
         // [`${objectKey}_owner`]: pageColOwner ?? null,
