@@ -864,6 +864,8 @@ export class PageService {
       finalPageObject['row'] = key;
       finalPageObject['RowLevel'] = rowLevel;
       finalPageObject['ParentRow'] = parentRow;
+
+      pageObject['row'] = key;
       transformedData.push(pageObject);
     });
 
