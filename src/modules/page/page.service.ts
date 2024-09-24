@@ -1178,31 +1178,65 @@ export class PageService {
     }
   }
 
+  private async getPgFormats() {
+    const client = await this.pool.connect();
+    try {
+      const pgFormatsQuery = `
+        SELECT 
+          tPg."Pg" AS "tPg_Pg", 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tFormat."Comment" AS "tFormat_Comment",
+			    tCell."Items" as "tCell_Items",
+          tCell."Cell" as "tCell_Cell",
+			    tCell."Row" as "tCell_Row",
+          tItem."JSON" as "tItem_JSON"
+          
+        FROM "tPg" tPg
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tPg."Pg"
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+	      ORDER BY tPg."Pg" ASC;
+      `
+
+      // Execute the queries
+      const pgRowFormats = (await client.query(pgFormatsQuery)).rows;
+      return pgRowFormats;
+
+    } finally {
+      client.release();
+    }
+  }
+
   private async enrichRecordFromRawQuery(pageId: number, data: any[]): Promise<any> {
     const result = []; 
     const isAllPagesPage = data.some(row => Object.keys(row).includes('page_id'));
     const isAllColsPage = data.some(row => Object.keys(row).includes('col_id'));
     const pgRowFormats = await this.getPgRowFormats(pageId);
+    const pgFormats = isAllPagesPage ? await this.getPgFormats() : null;
+    const pgColFormats = null;
 
 
     for (const record of data) {
-      const rowFormats = this.filterRecord('tFormat_Object', record['row'], pgRowFormats);
+      const pgRowFormat = this.filterRecord('tFormat_Object', record['row'], pgRowFormats);
+      const pgFormat = isAllPagesPage ? this.filterRecord('tFormat_Object', record['page_id'], pgFormats) : null
         
-      const format = await this.formatService.findOneByColumnName('Object', record['row']);
+      //const format = await this.formatService.findOneByColumnName('Object', record['row']);
       // const row = await this.rowService.findOne(record.row);
       let comment = null;
       let status = null;
       let rowType = null;
       let colFormula = null;
       let pageColOwner = null;
-      if (format?.Comment) {
-        for (const key in format?.Comment) {
-          if (format?.Comment.hasOwnProperty(key)) {
-            comment = format?.Comment[key];
-            break; // want the first key-value pair
-          }
-        }
-      }
+      // if (format?.Comment) {
+      //   for (const key in format?.Comment) {
+      //     if (format?.Comment.hasOwnProperty(key)) {
+      //       comment = format?.Comment[key];
+      //       break; // want the first key-value pair
+      //     }
+      //   }
+      // }
 
       // if (objectKey == 'page' || objectKey == 'col') {
       //   pageColOwner = 'Admin';
@@ -1244,8 +1278,13 @@ export class PageService {
       // row_commnet, row_status & row_type would be part of every page
       result.push({
         ...record,
-        row_status: rowFormats.map(rowFormat => rowFormat.tItem_JSON?.[3000000100]).join(';'),
-        row_comment: rowFormats.map(rowFormat => rowFormat.tFormat_Comment?.[3000000100]).join(';'),
+        row_status: pgRowFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
+        row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[3000000100]),
+        ...(isAllPagesPage ? { 
+            page_status : pgFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
+            page_comment: pgFormat.map(format => format.tFormat_Comment?.[3000000100])
+          } : {}
+        ),
         // [`${objectKey}_comment`]: comment ?? null,
         // [`${objectKey}_status`]: status ?? null,
         // [`${objectKey}_owner`]: pageColOwner ?? null,
