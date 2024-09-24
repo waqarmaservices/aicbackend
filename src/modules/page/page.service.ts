@@ -229,13 +229,21 @@ export class PageService {
           const colStatuses = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
           row['Col Status'] = colStatuses.map(status => status[3000000100]);
           return row;
+        })
+        .map(column => {
+          return {
+            col: column['Col ID'],
+            datatype: column['Col DataType'].trim(),
+            field: this.transformColName(column['Col Name']),
+            status: column['Col Status'],
+            title: column['Col Name'].trim()
+          }
         });
     } finally {
       client.release();
     }
   }
   
-
   async getPageDataFromRawQuery(pageId: number) {
     const client = await this.pool.connect();
     const allCols = await this.getAllCols();
@@ -252,16 +260,13 @@ export class PageService {
         tItem."JSON" AS "tItem_JSON",
         tCellItemObject."Row" AS "tCell_ItemObject",
         tItemObject."JSON" AS "tItemObject_JSON"
-    
       FROM "tCell" tCell
       LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
       LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-
       LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
       LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
-    
-      WHERE tRow."Pg" = ${pageId}
-       ORDER BY tRow."Row" ASC;
+      WHERE tRow."Pg" = $1
+      ORDER BY tRow."Row" ASC;
     `;
 
     const pgFormatsQuery = `
@@ -271,87 +276,64 @@ export class PageService {
         tFormat."Format" AS "tFormat_Format", 
         tFormat."Object" AS "tFormat_Object",
         tFormat."Status" AS "tFormat_Status",
-
         tCell."Items" as "tCell_Items",
         tCell."Cell" as "tCell_Cell",
         tItem."JSON" as "tItem_JSON"
-      
       FROM "tPg" tPg
       LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
-
       LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
       LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-
-      WHERE tPg."Pg" = ${pageId};
+      WHERE tPg."Pg" = $1;
     `;
 
+    // Execute the queries
+    const [pgRows, pgFormats] = await Promise.all([
+      client.query(pgRowsQuery, [pageId]),
+      client.query(pgFormatsQuery, [pageId])
+    ]);
 
-    // Use Map for better performance and structure
     const result = new Map();
-    const pgRows = await client.query(pgRowsQuery);
-    const pgFormats = await client.query(pgFormatsQuery);
 
-    // Get rows and their cells
+    // Process the rows
     for (const row of pgRows.rows) {
-      // If the row doesn't exist in the result map, initialize it as an array
       if (!result.has(row.tRow_Row)) {
-        result.set(row.tRow_Row, []);  // Initialize an array for each tRow_Row
+        result.set(row.tRow_Row, []);
       }
 
-      let column = {};
-      
-      // Determine the column based on the condition
       const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
+      let column;
+      const ids = [3000000100, 3000000325];
+      const cellItem = ids.reduce((res, id) => 
+        res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
 
       if (!row.tItem_JSON && !row.tItemObject_JSON) {
-        column = { 
-          cellId : row.tCell_Cell,
-          colId:  foundedCol.colId,
-          colName: foundedCol.colName,
+        column = {
+          cellId: row.tCell_Cell,
+          colId: foundedCol?.colId,
+          colName: foundedCol?.colName,
           cellItems: [row.tItem_Object]
         };
-
-        // Push the column and value into the respective row
-        result.get(row.tRow_Row).push(column);
-
       } else {
         const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
-        const ids = [3000000100, 3000000325];
-        const cellItem = ids.reduce((result, id) => 
-          result ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
-
         if (!cell) {
-          column =  {   
-            cellId : row.tCell_Cell,
-            colId:  foundedCol.colId,
-            colName: foundedCol.colName,
+          column = {
+            cellId: row.tCell_Cell,
+            colId: foundedCol?.colId,
+            colName: foundedCol?.colName,
             cellItems: [cellItem]
           };
-
-          // Push the column and value into the respective row
           result.get(row.tRow_Row).push(column);
-
         } else {
-          cell.cellItems.push(cellItem)
+          cell.cellItems.push(cellItem);
         }
       }
     }
 
-    // If you need to convert the Map back to a regular object
     const finalResult = Object.fromEntries(result);
-
-    // Initialize result object
     const transformed = this.transformPageDataFromRawQuery(finalResult);
 
-    const isAllPagesPage: boolean = pageId == 1000000001 ? true : false; 
-
-    return transformed
-      
-      // .map(row => {
-      //   const colStatuses = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
-      //   row['Col Status'] = colStatuses.map(status => status[3000000100])
-      //   return row;
-      // })
+    const isAllPagesPage = pageId === 1000000001;
+    return transformed;
   }
 
   /**
