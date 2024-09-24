@@ -246,94 +246,97 @@ export class PageService {
   
   async getPageDataFromRawQuery(pageId: number) {
     const client = await this.pool.connect();
-    const allCols = await this.getAllCols();
-    
-    const pgRowsQuery = `
-      SELECT 
-        tRow."Row" AS "tRow_Row",
-        tCell."Cell" AS "tCell_Cell", 
-        tCell."Col" AS "tCell_Col", 
-        tCell."Items" AS "tCell_Items", 
-        tItem."Item" AS "tItem_Item",
-        tItem."DataType" AS "tItem_DataType", 
-        tItem."Object" AS "tItem_Object",
-        tItem."JSON" AS "tItem_JSON",
-        tCellItemObject."Row" AS "tCell_ItemObject",
-        tItemObject."JSON" AS "tItemObject_JSON"
-      FROM "tCell" tCell
-      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-      LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
-      LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
-      WHERE tRow."Pg" = $1
-      ORDER BY tRow."Row" ASC;
-    `;
+    try {
+      const allCols = await this.getAllCols();
+      const pgRowsQuery = `
+        SELECT 
+          tRow."Row" AS "tRow_Row",
+          tCell."Cell" AS "tCell_Cell", 
+          tCell."Col" AS "tCell_Col", 
+          tCell."Items" AS "tCell_Items", 
+          tItem."Item" AS "tItem_Item",
+          tItem."DataType" AS "tItem_DataType", 
+          tItem."Object" AS "tItem_Object",
+          tItem."JSON" AS "tItem_JSON",
+          tCellItemObject."Row" AS "tCell_ItemObject",
+          tItemObject."JSON" AS "tItemObject_JSON"
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+        LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
+        LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
+        WHERE tRow."Pg" = $1
+        ORDER BY tRow."Row" ASC;
+      `;
 
-    const pgFormatsQuery = `
-      SELECT 
-        tPg."Pg" AS "tPg_Pg",
-        tPg."Cols" AS "tPg_Cols", 
-        tFormat."Format" AS "tFormat_Format", 
-        tFormat."Object" AS "tFormat_Object",
-        tFormat."Status" AS "tFormat_Status",
-        tCell."Items" as "tCell_Items",
-        tCell."Cell" as "tCell_Cell",
-        tItem."JSON" as "tItem_JSON"
-      FROM "tPg" tPg
-      LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
-      LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
-      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-      WHERE tPg."Pg" = $1;
-    `;
+      const pgFormatsQuery = `
+        SELECT 
+          tPg."Pg" AS "tPg_Pg",
+          tPg."Cols" AS "tPg_Cols", 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tCell."Items" as "tCell_Items",
+          tCell."Cell" as "tCell_Cell",
+          tItem."JSON" as "tItem_JSON"
+        FROM "tPg" tPg
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        WHERE tPg."Pg" = $1;
+      `;
 
-    // Execute the queries
-    const [pgRows, pgFormats] = await Promise.all([
-      client.query(pgRowsQuery, [pageId]),
-      client.query(pgFormatsQuery, [pageId])
-    ]);
+      // Execute the queries
+      const [pgRows, pgFormats] = await Promise.all([
+        client.query(pgRowsQuery, [pageId]),
+        client.query(pgFormatsQuery, [pageId])
+      ]);
 
-    const result = new Map();
+      const result = new Map();
 
-    // Process the rows
-    for (const row of pgRows.rows) {
-      if (!result.has(row.tRow_Row)) {
-        result.set(row.tRow_Row, []);
-      }
+      // Process the rows
+      for (const row of pgRows.rows) {
+        if (!result.has(row.tRow_Row)) {
+          result.set(row.tRow_Row, []);
+        }
 
-      const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
-      let column;
-      const ids = [3000000100, 3000000325];
-      const cellItem = ids.reduce((res, id) => 
-        res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
+        const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
+        let column;
+        const ids = [3000000100, 3000000325];
+        const cellItem = ids.reduce((res, id) => 
+          res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
 
-      if (!row.tItem_JSON && !row.tItemObject_JSON) {
-        column = {
-          cellId: row.tCell_Cell,
-          colId: foundedCol?.colId,
-          colName: foundedCol?.colName,
-          cellItems: [row.tItem_Object]
-        };
-      } else {
-        const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
-        if (!cell) {
+        if (!row.tItem_JSON && !row.tItemObject_JSON) {
           column = {
             cellId: row.tCell_Cell,
             colId: foundedCol?.colId,
             colName: foundedCol?.colName,
-            cellItems: [cellItem]
+            cellItems: [row.tItem_Object]
           };
-          result.get(row.tRow_Row).push(column);
         } else {
-          cell.cellItems.push(cellItem);
+          const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
+          if (!cell) {
+            column = {
+              cellId: row.tCell_Cell,
+              colId: foundedCol?.colId,
+              colName: foundedCol?.colName,
+              cellItems: [cellItem]
+            };
+            result.get(row.tRow_Row).push(column);
+          } else {
+            cell.cellItems.push(cellItem);
+          }
         }
       }
+
+      const finalResult = Object.fromEntries(result);
+      const transformed = this.transformPageDataFromRawQuery(finalResult);
+
+      const isAllPagesPage = pageId === 1000000001;
+      return transformed;
+    } finally {
+      client.release();
     }
-
-    const finalResult = Object.fromEntries(result);
-    const transformed = this.transformPageDataFromRawQuery(finalResult);
-
-    const isAllPagesPage = pageId === 1000000001;
-    return transformed;
   }
 
   /**
