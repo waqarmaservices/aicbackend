@@ -777,7 +777,9 @@ export class PageService {
 
     const pageColumns = await this.getPageColumnsFromRawQuery(Pg);
 
-    const pageData = await this.getPageDataFromRawQuery(Pg)
+    const pageData = await this.getPageDataFromRawQuery(Pg);
+
+    //const enrichData = await this.enrichDataFromRawQuery(pageData);
 
     return {pageColumns, pageData};
   }
@@ -838,8 +840,9 @@ export class PageService {
         rowLevel = obj.RowLevel;
         parentRow = obj.ParentRow;
 
+      colName = this.replaceSpaceWithUnderscore(obj.colName);
         const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
-        pageObject[obj.colName] = items
+        pageObject[colName] = items
         // Object.keys(obj).forEach((col) => {
         //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
         //     if (!pageObject[col]) {
@@ -863,6 +866,15 @@ export class PageService {
 
     return transformedData;
   }
+
+  public replaceSpaceWithUnderscore(input) {
+    return input
+      .toLowerCase() // Convert to lowercase
+      .trim() // Trim leading/trailing spaces
+      .split(' ')
+      .join('_');
+  }
+
 
 
 
@@ -1044,6 +1056,91 @@ export class PageService {
   }
 
   private async enrichRecord(record: any, key: string, objectKey: string): Promise<any> {
+    if (key in record && record[key]) {
+      const format = await this.formatService.findOneByColumnName('Object', record[key]);
+      const row = await this.rowService.findOne(record.row);
+      let comment = null;
+      let status = null;
+      let rowType = null;
+      let colFormula = null;
+      let pageColOwner = null;
+      if (format?.Comment) {
+        for (const key in format?.Comment) {
+          if (format?.Comment.hasOwnProperty(key)) {
+            comment = format?.Comment[key];
+            break; // want the first key-value pair
+          }
+        }
+      }
+
+      if (objectKey == 'page' || objectKey == 'col') {
+        pageColOwner = 'Admin';
+      }
+
+      if (format?.Formula && objectKey == 'col') {
+        for (const key in format?.Formula) {
+          if (format?.Formula.hasOwnProperty(key)) {
+            colFormula = format?.Formula[key];
+            break; // want the first key-value pair
+          }
+        }
+      }
+
+      if (format && format?.Status) {
+        const statuses = await Promise.all(
+          format.Status.toString()
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map(async (status) => {
+              return await this.getRowJson(Number(status));
+            }),
+        );
+        status = statuses.join(';');
+      }
+
+      if (row?.RowType) {
+        const rowTypes = await Promise.all(
+          row.RowType.toString()
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map(async (type) => {
+              return await this.getRowJson(Number(type));
+            }),
+        );
+        rowType = rowTypes.join(';');
+      }
+
+      // row_commnet, row_status & row_type would be part of every page
+      return {
+        ...record,
+        [`${objectKey}_comment`]: comment ?? null,
+        [`${objectKey}_status`]: status ?? null,
+        [`${objectKey}_owner`]: pageColOwner ?? null,
+        [`row_type`]: rowType ?? null,
+        ...(colFormula ? { [`col_formula`]: colFormula } : {}),
+      };
+    }
+
+    return record;
+  }
+
+  private async enrichDataFromRawQuery(data: any[]): Promise<any[]> {
+    const enrichedData = [];
+
+    for (const record of data) {
+      let enrichedRecord = { ...record };
+
+      enrichedRecord = await this.enrichRecordFromRawQuery(enrichedRecord, 'row', 'row');
+      enrichedRecord = await this.enrichRecordFromRawQuery(enrichedRecord, 'page_id', 'page');
+      enrichedRecord = await this.enrichRecordFromRawQuery(enrichedRecord, 'col_id', 'col');
+
+      enrichedData.push(enrichedRecord);
+    }
+
+    return enrichedData;
+  }
+
+  private async enrichRecordFromRawQuery(record: any, key: string, objectKey: string): Promise<any> {
     if (key in record && record[key]) {
       const format = await this.formatService.findOneByColumnName('Object', record[key]);
       const row = await this.rowService.findOne(record.row);
