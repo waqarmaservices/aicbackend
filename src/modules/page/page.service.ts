@@ -209,13 +209,14 @@ export class PageService {
             cellItems: [cellItem || row.tItem_Object]
           });
         } else {
+          // if there is no cell item then it should be object i,e col ID
           existingCell.cellItems.push(cellItem || row.tItem_Object);
         }
       }
   
       const finalResult = Object.fromEntries(result);
   
-      const transformed = this.transformColDataForRawQuery(finalResult);
+      const transformed = this.transformColDataFromRawQuery(finalResult);
   
       const isAllPagesPage = pageId === 1000000001;
   
@@ -340,7 +341,7 @@ export class PageService {
     const finalResult = Object.fromEntries(result);
 
     // Initialize result object
-    const transformed = this.transformColDataForRawQuery(finalResult);
+    const transformed = this.transformPageDataFromRawQuery(finalResult);
 
     const isAllPagesPage: boolean = pageId == 1000000001 ? true : false; 
 
@@ -798,7 +799,48 @@ export class PageService {
 
  
 
-  private transformColDataForRawQuery(data: any) {
+  private transformColDataFromRawQuery(data: any) {
+    const transformedData = [];
+
+    Object.keys(data).forEach((key) => {
+      const pageObject = {};
+      let rowLevel: any[];
+      let parentRow: any[];
+      let colName: '';
+      data[key].forEach((obj: any) => {
+        // Capture the RowLevel value
+        rowLevel = obj.RowLevel;
+        parentRow = obj.ParentRow;
+
+        const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
+        pageObject[obj.colName] = items
+        // Object.keys(obj).forEach((col) => {
+        //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
+        //     if (!pageObject[col]) {
+        //       pageObject[col] = [];
+        //     }
+        //     //pageObject[col].push(...obj[col].map((item) => item));
+        //   }
+        // });
+      });
+      // Concatenate array values with semicolons and create the final page object
+      const finalPageObject = {};
+      Object.keys(pageObject).forEach((col) => {
+        //finalPageObject[col] = pageObject[col].join(';');
+      });
+      
+      finalPageObject['row'] = key;
+      finalPageObject['RowLevel'] = rowLevel;
+      finalPageObject['ParentRow'] = parentRow;
+      transformedData.push(pageObject);
+    });
+
+    return transformedData;
+  }
+
+
+
+  private transformPageDataFromRawQuery(data: any) {
     const transformedData = [];
 
     Object.keys(data).forEach((key) => {
