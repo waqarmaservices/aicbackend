@@ -1279,10 +1279,11 @@ export class PageService {
       result.push({
         ...record,
         row_status: pgRowFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
-        row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[3000000100]),
+        row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[3000000100]).join(';'),
         ...(isAllPagesPage ? { 
             page_status : pgFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
-            page_comment: pgFormat.map(format => format.tFormat_Comment?.[3000000100])
+            page_comment: pgFormat.map(format => format.tFormat_Comment?.[3000000100]),
+            page_owner: 'Admin'
           } : {}
         ),
         // [`${objectKey}_comment`]: comment ?? null,
