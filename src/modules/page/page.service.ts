@@ -1244,7 +1244,7 @@ export class PageService {
       // row_commnet, row_status & row_type would be part of every page
       result.push({
         ...record,
-        row_status: rowFormats.map(rowFormat => rowFormat.tItem_JSON[3000000100]).join(';'),
+        row_status: rowFormats.map(rowFormat => rowFormat.tItem_JSON?.[3000000100]).join(';'),
         row_comment: rowFormats.map(rowFormat => rowFormat.tFormat_Comment?.[3000000100]).join(';'),
         // [`${objectKey}_comment`]: comment ?? null,
         // [`${objectKey}_status`]: status ?? null,
