@@ -226,8 +226,8 @@ export class PageService {
           ? row['Page ID'] == pageId || row['Page Type'] === 'Each Page' || row['Page Type'] === 'Pages List'
           : row['Page ID'] == pageId || row['Page Type'] === 'Each Page')
         .map(row => {
-          const colStatuses = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
-          row['Col Status'] = colStatuses.map(status => status[3000000100]);
+          const formatRecoreds = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
+          row['Col Status'] = formatRecoreds.map(formatRecord => formatRecord.tItem_JSON[3000000100]);
           return row;
         })
         .map(column => {
@@ -776,15 +776,18 @@ export class PageService {
   }
 
   private async cachePageResponseFromRawQuery(page: Page) {
-    const Pg = Number(page.Pg);
+    const pageId = Number(page.Pg);
 
-    const pageColumns = await this.getPageColumnsFromRawQuery(Pg);
+    const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
 
-    const pageData = await this.getPageDataFromRawQuery(Pg);
+    const pageData = await this.getPageDataFromRawQuery(pageId);
 
-    //const enrichData = await this.enrichDataFromRawQuery(pageData);
+    const enrichData = await this.enrichDataFromRawQuery(pageId, pageData);
 
-    return {pageColumns, pageData};
+    return {
+      pageColumns: pageColumns, 
+      pageData: enrichData
+    };
   }
 
  
@@ -895,10 +898,8 @@ export class PageService {
   private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
     const data = filterData
       .filter((data) => data[filterKey] == filterValue)
-      .map(fData => fData.tItem_JSON);
-
+    
     return data;
-
   }
 
   private async getAllCols() {
@@ -1129,26 +1130,66 @@ export class PageService {
     return record;
   }
 
-  private async enrichDataFromRawQuery(data: any[]): Promise<any[]> {
-    const enrichedData = [];
+  private async enrichDataFromRawQuery(pageId: number, data: any[]): Promise<any[]> {
+    //const enrichedData = [];
 
-    for (const record of data) {
-      let enrichedRecord = { ...record };
+   
+      // let enrichedRecord = { ...record };
 
-      enrichedRecord = await this.enrichRecordFromRawQuery(enrichedRecord, 'row', 'row');
-      enrichedRecord = await this.enrichRecordFromRawQuery(enrichedRecord, 'page_id', 'page');
-      enrichedRecord = await this.enrichRecordFromRawQuery(enrichedRecord, 'col_id', 'col');
+      const enrichDataArray = await this.enrichRecordFromRawQuery(pageId, data);
+      // enrichedRecord = await this.enrichRecordFromRawQuery(data, 'page_id', 'page');
+      // enrichedRecord = await this.enrichRecordFromRawQuery(data, 'col_id', 'col');
 
-      enrichedData.push(enrichedRecord);
-    }
+      //enrichedData.push(enrichDataArray);
+    
 
-    return enrichedData;
+    return enrichDataArray;
   }
 
-  private async enrichRecordFromRawQuery(record: any, key: string, objectKey: string): Promise<any> {
-    if (key in record && record[key]) {
-      const format = await this.formatService.findOneByColumnName('Object', record[key]);
-      const row = await this.rowService.findOne(record.row);
+  private async getPgRowFormats(pageId: number) {
+    const client = await this.pool.connect();
+    try {
+      const pgRowFormatsQuery = `
+        SELECT 
+          tRow."Pg" AS "tRow_Pg",
+		      tRow."Row" AS "tRow_Row",
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tFormat."Comment" AS "tFormat_Comment",
+			    tCell."Items" as "tCell_Items",
+          tCell."Cell" as "tCell_Cell",
+			    tCell."Row" as "tCell_Row",
+          tItem."JSON" as "tItem_JSON"
+          
+        FROM "tRow" tRow
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tRow."Row"
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        WHERE tRow."Pg" = $1;
+      `;
+
+      // Execute the queries
+      const pgRowFormats = (await client.query(pgRowFormatsQuery, [pageId])).rows;
+      return pgRowFormats;
+
+    } finally {
+      client.release();
+    }
+  }
+
+  private async enrichRecordFromRawQuery(pageId: number, data: any[]): Promise<any> {
+    const result = []; 
+    const isAllPagesPage = data.some(row => Object.keys(row).includes('page_id'));
+    const isAllColsPage = data.some(row => Object.keys(row).includes('col_id'));
+    const pgRowFormats = await this.getPgRowFormats(pageId);
+
+
+    for (const record of data) {
+      const rowFormats = this.filterRecord('tFormat_Object', record['row'], pgRowFormats);
+        
+      const format = await this.formatService.findOneByColumnName('Object', record['row']);
+      // const row = await this.rowService.findOne(record.row);
       let comment = null;
       let status = null;
       let rowType = null;
@@ -1163,55 +1204,58 @@ export class PageService {
         }
       }
 
-      if (objectKey == 'page' || objectKey == 'col') {
-        pageColOwner = 'Admin';
-      }
+      // if (objectKey == 'page' || objectKey == 'col') {
+      //   pageColOwner = 'Admin';
+      // }
 
-      if (format?.Formula && objectKey == 'col') {
-        for (const key in format?.Formula) {
-          if (format?.Formula.hasOwnProperty(key)) {
-            colFormula = format?.Formula[key];
-            break; // want the first key-value pair
-          }
-        }
-      }
+      // if (format?.Formula && objectKey == 'col') {
+      //   for (const key in format?.Formula) {
+      //     if (format?.Formula.hasOwnProperty(key)) {
+      //       colFormula = format?.Formula[key];
+      //       break; // want the first key-value pair
+      //     }
+      //   }
+      // }
 
-      if (format && format?.Status) {
-        const statuses = await Promise.all(
-          format.Status.toString()
-            .replace(/[{}]/g, '')
-            .split(',')
-            .map(async (status) => {
-              return await this.getRowJson(Number(status));
-            }),
-        );
-        status = statuses.join(';');
-      }
+      // if (format && format?.Status) {
+      //   const statuses = await Promise.all(
+      //     format.Status.toString()
+      //       .replace(/[{}]/g, '')
+      //       .split(',')
+      //       .map(async (status) => {
+      //         return await this.getRowJson(Number(status));
+      //       }),
+      //   );
+      //   status = statuses.join(';');
+      // }
 
-      if (row?.RowType) {
-        const rowTypes = await Promise.all(
-          row.RowType.toString()
-            .replace(/[{}]/g, '')
-            .split(',')
-            .map(async (type) => {
-              return await this.getRowJson(Number(type));
-            }),
-        );
-        rowType = rowTypes.join(';');
-      }
+      // if (row?.RowType) {
+      //   const rowTypes = await Promise.all(
+      //     row.RowType.toString()
+      //       .replace(/[{}]/g, '')
+      //       .split(',')
+      //       .map(async (type) => {
+      //         return await this.getRowJson(Number(type));
+      //       }),
+      //   );
+      //   rowType = rowTypes.join(';');
+      // }
 
       // row_commnet, row_status & row_type would be part of every page
-      return {
+      result.push({
         ...record,
-        [`${objectKey}_comment`]: comment ?? null,
-        [`${objectKey}_status`]: status ?? null,
-        [`${objectKey}_owner`]: pageColOwner ?? null,
-        [`row_type`]: rowType ?? null,
-        ...(colFormula ? { [`col_formula`]: colFormula } : {}),
-      };
+        row_status: rowFormats.map(rowFormat => rowFormat.tItem_JSON[3000000100]).join(';'),
+        row_comment: rowFormats.map(rowFormat => rowFormat.tFormat_Comment[3000000100]).join(';'),
+        // [`${objectKey}_comment`]: comment ?? null,
+        // [`${objectKey}_status`]: status ?? null,
+        // [`${objectKey}_owner`]: pageColOwner ?? null,
+        // [`row_type`]: rowType ?? null,
+        // ...(colFormula ? { [`col_formula`]: colFormula } : {}),
+      });
+      
     }
 
-    return record;
+    return result;
   }
 
   private async extractStatusRowsWithItems(rows: any[]) {
