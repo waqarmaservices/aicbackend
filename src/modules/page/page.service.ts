@@ -302,7 +302,7 @@ export class PageService {
 
         const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
         let column;
-        const ids = [3000000100, 3000000325];
+        const ids = [3000000100, 3000000325, 3000000300]; // 3000000100 Default English, 3000000325 Original URL ,3000000300 DDS-Type Exclude Head
         const cellItem = ids.reduce((res, id) => 
           res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
 
