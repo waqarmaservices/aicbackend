@@ -1178,6 +1178,34 @@ export class PageService {
     }
   }
 
+  private async getPgRowTypes(pageId: number) {
+    const client = await this.pool.connect();
+    try {
+      const pgRowTypesQuery = `
+        SELECT 
+          tRow."Pg" AS "tRow_Pg",
+		      tRow."Row" AS "tRow_Row",
+	        tRow."RowType" AS "tRow_RowType",
+	        tCell."Cell" as "tCell_Cell",
+			    tCell."Row" as "tCell_Row",
+			    tCell."Items" as "tCell_Items",
+          tItem."JSON" as "tItem_JSON"
+          
+        FROM "tRow" tRow
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tRow."RowType")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        WHERE tRow."Pg" = $1;
+      `;
+
+      // Execute the queries
+      const pgRowTypes = (await client.query(pgRowTypesQuery, [pageId])).rows;
+      return pgRowTypes;
+
+    } finally {
+      client.release();
+    }
+  }
+
   private async getPgFormats() {
     const client = await this.pool.connect();
     try {
@@ -1201,8 +1229,8 @@ export class PageService {
       `
 
       // Execute the queries
-      const pgRowFormats = (await client.query(pgFormatsQuery)).rows;
-      return pgRowFormats;
+      const pgFormats = (await client.query(pgFormatsQuery)).rows;
+      return pgFormats;
 
     } finally {
       client.release();
@@ -1232,8 +1260,8 @@ export class PageService {
       `
 
       // Execute the queries
-      const pgRowFormats = (await client.query(pgColFormatsQuery)).rows;
-      return pgRowFormats;
+      const pgColFormats = (await client.query(pgColFormatsQuery)).rows;
+      return pgColFormats;
 
     } finally {
       client.release();
@@ -1245,12 +1273,14 @@ export class PageService {
     const isAllPagesPage = data.some(row => Object.keys(row).includes('page_id'));
     const isAllColsPage = data.some(row => Object.keys(row).includes('col_id'));
     const pgRowFormats = await this.getPgRowFormats(pageId);
+    const pgRowTypes = await this.getPgRowTypes(pageId);
     const pgFormats = isAllPagesPage ? await this.getPgFormats() : null;
     const pgColFormats = isAllColsPage ? await this.getPgColFormats() : null;
 
 
     for (const record of data) {
       const pgRowFormat = this.filterRecord('tFormat_Object', record['row'], pgRowFormats);
+      const pgRowType = this.filterRecord('tRow_Row', record['row'], pgRowTypes);
       const pgFormat = isAllPagesPage ? this.filterRecord('tFormat_Object', record['page_id'], pgFormats) : null
       const pgColFormat = isAllColsPage ? this.filterRecord('tFormat_Object', record['col_id'], pgColFormats) : null
         
@@ -1312,6 +1342,7 @@ export class PageService {
         ...record,
         row_status: pgRowFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
         row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[3000000100]).join(';'),
+        row_type: pgRowType.map(type => type.tItem_JSON?.[3000000100]).join(';'),
         ...(isAllPagesPage ? { 
             page_status : pgFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
             page_comment: (pgFormat.map(format => format.tFormat_Comment?.[3000000100]))[0],
