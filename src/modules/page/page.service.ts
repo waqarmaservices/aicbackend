@@ -259,12 +259,16 @@ export class PageService {
           tItem."Object" AS "tItem_Object",
           tItem."JSON" AS "tItem_JSON",
           tCellItemObject."Row" AS "tCell_ItemObject",
-          tItemObject."JSON" AS "tItemObject_JSON"
+          tItemObject."JSON" AS "tItemObject_JSON",
+          tItemDDS."JSON" AS "tItemDDS_JSON"
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
         LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
         LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
+
+        LEFT JOIN "tCell" tCellItemDDS ON tCellItemDDS."Row" = (tItem."JSON"->>'3000000300')::bigint
+        LEFT JOIN "tItem" tItemDDS ON tItemDDS."Item" = ANY(tCellItemDDS."Items")
         WHERE tRow."Pg" = $1
         ORDER BY tRow."Row" ASC;
       `;
@@ -302,10 +306,16 @@ export class PageService {
 
         const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
         let column;
-        const ids = [3000000100, 3000000325, 3000000300]; // 3000000100 Default English, 3000000325 Original URL ,3000000300 DDS-Type Exclude Head
-        const cellItem = ids.reduce((res, id) => 
-          res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
-
+        const ids = [3000000100, 3000000325]; // 3000000100 Default English, 3000000325 Original URL
+        let cellItem = null;
+        if (row?.tItemDDS_JSON) {
+          cellItem = ids.reduce((res, id) => 
+            res ?? row.tItemDDS_JSON?.[id], undefined);  
+        } else {
+          cellItem = ids.reduce((res, id) => 
+            res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
+        }
+        
         if (!row.tItem_JSON && !row.tItemObject_JSON) {
           // if column has no json value than it should have have from item object
           column = {
