@@ -1209,7 +1209,7 @@ export class PageService {
     }
   }
 
-  private async getPgColFormats(pageId: number) {
+  private async getPgColFormats() {
     const client = await this.pool.connect();
 
     try {
@@ -1246,7 +1246,7 @@ export class PageService {
     const isAllColsPage = data.some(row => Object.keys(row).includes('col_id'));
     const pgRowFormats = await this.getPgRowFormats(pageId);
     const pgFormats = isAllPagesPage ? await this.getPgFormats() : null;
-    const pgColFormats = isAllColsPage ? await this.getPgColFormats(pageId) : null;
+    const pgColFormats = isAllColsPage ? await this.getPgColFormats() : null;
 
 
     for (const record of data) {
