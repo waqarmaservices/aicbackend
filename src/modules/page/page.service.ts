@@ -25,6 +25,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Pool } from 'pg';
+import { Col } from 'modules/col/col.entity';
 
 @Injectable()
 export class PageService {
@@ -36,6 +38,8 @@ export class PageService {
     private readonly pageRepository: Repository<Page>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
+    @Inject('PG_CONNECTION') 
+    private pool: Pool,
     private readonly cellService: CellService,
     private readonly rowService: RowService,
     private readonly itemService: ItemService,
@@ -128,6 +132,203 @@ export class PageService {
       });
     }
     return pgColResponse;
+  }
+
+  async getPageColumnsFromRawQuery(pageId: number) {
+    const client = await this.pool.connect();
+    try {
+      const allCols = await this.getAllCols();
+      const allColsPageId = 1000000006;
+  
+      // Parameterized queries for better security
+      const pgRowsQuery = `
+        SELECT 
+          tRow."Row" AS "tRow_Row",
+          tCell."Cell" AS "tCell_Cell", 
+          tCell."Col" AS "tCell_Col", 
+          tCell."Items" AS "tCell_Items", 
+          tItem."Item" AS "tItem_Item",
+          tItem."DataType" AS "tItem_DataType", 
+          tItem."Object" AS "tItem_Object",
+          tItem."JSON" AS "tItem_JSON",
+          tCellItemObject."Row" AS "tCell_ItemObject",
+          tItemObject."JSON" AS "tItemObject_JSON"
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+        LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
+        LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
+        WHERE tRow."Pg" = $1
+        ORDER BY tRow."Row" ASC;
+      `;
+  
+      const pgFormatsQuery = `
+        SELECT 
+          tPg."Pg" AS "tPg_Pg",
+          tPg."Cols" AS "tPg_Cols", 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tCell."Items" AS "tCell_Items",
+          tCell."Cell" AS "tCell_Cell",
+          tItem."JSON" AS "tItem_JSON"
+        FROM "tPg" tPg
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        WHERE tPg."Pg" = $1;
+      `;
+  
+      const pgRows = await client.query(pgRowsQuery, [allColsPageId]);
+      const pgFormats = await client.query(pgFormatsQuery, [pageId]);
+  
+      const result = new Map();
+  
+      for (const row of pgRows.rows) {
+        const rowKey = row.tRow_Row;
+        const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
+        
+        if (!result.has(rowKey)) {
+          result.set(rowKey, []);
+        }
+  
+        let cellItem = null;
+        const ids = [3000000100, 3000000325];
+        const currentRow = result.get(rowKey);
+        
+        // Dynamically find the cell item
+        cellItem = ids.reduce((acc, id) => acc ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], null);
+  
+        const existingCell = currentRow.find(cell => cell.cellId === row.tCell_Cell);
+  
+        if (!existingCell) {
+          currentRow.push({
+            cellId: row.tCell_Cell,
+            colId: foundedCol?.colId || null,
+            colName: foundedCol?.colName || 'Unknown',
+            cellItems: [cellItem || row.tItem_Object]
+          });
+        } else {
+          // if there is no cell item then it should be object i,e col ID
+          existingCell.cellItems.push(cellItem || row.tItem_Object);
+        }
+      }
+  
+      const finalResult = Object.fromEntries(result);
+  
+      const transformed = this.transformColDataFromRawQuery(finalResult);
+  
+      const isAllPagesPage = pageId === 1000000001;
+  
+      // Filter and process rows based on page type and ID
+      return transformed
+        .filter(row => isAllPagesPage 
+          ? row['Page ID'] == pageId || row['Page Type'] === 'Each Page' || row['Page Type'] === 'Pages List'
+          : row['Page ID'] == pageId || row['Page Type'] === 'Each Page')
+        .map(row => {
+          const formatRecoreds = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
+          row['Col Status'] = formatRecoreds.map(formatRecord => formatRecord.tItem_JSON[3000000100]);
+          return row;
+        })
+        .map(column => {
+          return {
+            col: column['Col ID'],
+            datatype: column['Col DataType'].trim(),
+            field: this.transformColName(column['Col Name']),
+            status: column['Col Status'],
+            title: column['Col Name'].trim()
+          }
+        });
+    } finally {
+      client.release();
+    }
+  }
+  
+  async getPageDataFromRawQuery(pageId: number) {
+    const client = await this.pool.connect();
+    try {
+      const allCols = await this.getAllCols();
+      const pgRowsQuery = `
+        SELECT 
+          tRow."Row" AS "tRow_Row",
+          tCell."Cell" AS "tCell_Cell", 
+          tCell."Col" AS "tCell_Col", 
+          tCell."Items" AS "tCell_Items", 
+          tItem."Item" AS "tItem_Item",
+          tItem."DataType" AS "tItem_DataType", 
+          tItem."Object" AS "tItem_Object",
+          tItem."JSON" AS "tItem_JSON",
+          tCellItemObject."Row" AS "tCell_ItemObject",
+          tItemObject."JSON" AS "tItemObject_JSON",
+          tItemDDS."JSON" AS "tItemDDS_JSON"
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+        LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
+        LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
+
+        LEFT JOIN "tCell" tCellItemDDS ON tCellItemDDS."Row" = (tItem."JSON"->>'3000000300')::bigint
+        LEFT JOIN "tItem" tItemDDS ON tItemDDS."Item" = ANY(tCellItemDDS."Items")
+        WHERE tRow."Pg" = $1
+        ORDER BY tRow."Row" ASC;
+      `;
+
+      // Execute the queries
+      const pgRows = await client.query(pgRowsQuery, [pageId]);
+
+      const result = new Map();
+
+      // Process the rows
+      for (const row of pgRows.rows) {
+        if (!result.has(row.tRow_Row)) {
+          result.set(row.tRow_Row, []);
+        }
+
+        const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
+        let column;
+        const ids = [3000000100, 3000000325, 3000000309]; // 3000000100 Default English, 3000000325 Original URL, 3000000309 Calculate Data
+        let cellItem = null;
+        if (row?.tItemDDS_JSON) {
+          cellItem = ids.reduce((res, id) => 
+            res ?? row.tItemDDS_JSON?.[id], undefined);  
+        } else {
+          cellItem = ids.reduce((res, id) => 
+            res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
+        }
+        
+        if (!row.tItem_JSON && !row.tItemObject_JSON) {
+          // if column has no json value than it should have have from item object
+          column = {
+            cellId: row.tCell_Cell,
+            colId: foundedCol?.colId,
+            colName: foundedCol?.colName,
+            cellItems: [row.tItem_Object]
+          };
+
+          result.get(row.tRow_Row).push(column);
+        } else {
+          const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
+          if (!cell) {
+            column = {
+              cellId: row.tCell_Cell,
+              colId: foundedCol?.colId,
+              colName: foundedCol?.colName,
+              cellItems: [cellItem]
+            };
+            result.get(row.tRow_Row).push(column);
+          } else {
+            cell.cellItems.push(cellItem);
+          }
+        }
+      }
+
+      const finalResult = Object.fromEntries(result);
+      const transformed = this.transformPageDataFromRawQuery(finalResult);
+
+      return transformed;
+    } finally {
+      client.release();
+    }
   }
 
   /**
@@ -512,16 +713,17 @@ export class PageService {
    * @returns {Promise<any>} The reponse of Pg type.
    */
   async getonePageData(Pg: number): Promise<any> {
-    const page = await this.entityManager.findOne(Page, {
-      where: { Pg },
-      relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
-    });
+    // const page = await this.entityManager.findOne(Page, {
+    //   where: { Pg },
+    //   relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
+    // });
 
-    if (!page) {
-      throw new Error('Page not found');
-    }
+    // if (!page) {
+    //   throw new Error('Page not found');
+    // }
 
-    const response = await this.cachePageResponse(page);
+    // const response = await this.cachePageResponse(page);
+    const response = await this.cachePageResponseFromRawQuery(Pg);
     return response;
   }
 
@@ -560,6 +762,180 @@ export class PageService {
     await this.cacheManager.set(cacheKey, JSON.stringify(response), PAGE_CACHE.NEVER_EXPIRE);
 
     return response;
+  }
+
+  private async cachePageResponseFromRawQuery(pageId: number) {
+
+    const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
+
+    const pageData = await this.getPageDataFromRawQuery(pageId);
+
+    const enrichData = await this.enrichDataFromRawQuery(pageId, pageData);
+
+    return {
+      pageColumns: pageColumns, 
+      pageData: enrichData
+    };
+  }
+
+ 
+
+  private transformColDataFromRawQuery(data: any) {
+    const transformedData = [];
+
+    Object.keys(data).forEach((key) => {
+      const pageObject = {};
+      let rowLevel: any[];
+      let parentRow: any[];
+      let colName: '';
+      data[key].forEach((obj: any) => {
+        // Capture the RowLevel value
+        rowLevel = obj.RowLevel;
+        parentRow = obj.ParentRow;
+
+        const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
+        pageObject[obj.colName] = items
+        // Object.keys(obj).forEach((col) => {
+        //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
+        //     if (!pageObject[col]) {
+        //       pageObject[col] = [];
+        //     }
+        //     //pageObject[col].push(...obj[col].map((item) => item));
+        //   }
+        // });
+      });
+      // Concatenate array values with semicolons and create the final page object
+      const finalPageObject = {};
+      Object.keys(pageObject).forEach((col) => {
+        //finalPageObject[col] = pageObject[col].join(';');
+      });
+      
+      finalPageObject['row'] = key;
+      finalPageObject['RowLevel'] = rowLevel;
+      finalPageObject['ParentRow'] = parentRow;
+      transformedData.push(pageObject);
+    });
+
+    return transformedData;
+  }
+
+
+
+  private transformPageDataFromRawQuery(data: any) {
+    const transformedData = [];
+
+    Object.keys(data).forEach((key) => {
+      const pageObject = {};
+      let rowLevel: any[];
+      let parentRow: any[];
+      let colName: '';
+      data[key].forEach((obj: any) => {
+        // Capture the RowLevel value
+        rowLevel = obj.RowLevel;
+        parentRow = obj.ParentRow;
+
+      colName = this.replaceSpaceWithUnderscore(obj.colName);
+        const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems.join(';');
+        pageObject[colName] = items;
+        // Object.keys(obj).forEach((col) => {
+        //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
+        //     if (!pageObject[col]) {
+        //       pageObject[col] = [];
+        //     }
+        //     //pageObject[col].push(...obj[col].map((item) => item));
+        //   }
+        // });
+      });
+      // Concatenate array values with semicolons and create the final page object
+      const finalPageObject = {};
+      Object.keys(pageObject).forEach((col) => {
+        //finalPageObject[col] = pageObject[col].join(';');
+      });
+      
+      finalPageObject['row'] = key;
+      finalPageObject['RowLevel'] = rowLevel;
+      finalPageObject['ParentRow'] = parentRow;
+
+      pageObject['row'] = key;
+      transformedData.push(pageObject);
+    });
+
+    return transformedData;
+  }
+
+  public replaceSpaceWithUnderscore(input) {
+    return input
+      .toLowerCase() // Convert to lowercase
+      .trim() // Trim leading/trailing spaces
+      .split(' ')
+      .join('_');
+  }
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
+    const data = filterData
+      .filter((data) => data[filterKey] == filterValue)
+    
+    return data;
+  }
+
+  private async getAllCols() {
+    const client = await this.pool.connect();
+    try {
+      const allColNamesQuery = `
+        SELECT
+          tItem."JSON" AS "tItem_JSON"
+  
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+
+        WHERE tRow."Pg" = 1000000006
+        AND tCell."Col" = 2000000056
+        ORDER BY tRow."Row" ASC;
+      `;
+
+      const allColIdsQuery = `
+        SELECT
+          tItem."Object" AS "tItem_Object"
+  
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+
+        WHERE tRow."Pg" = 1000000006
+        AND tCell."Col" = 2000000053
+        ORDER BY tRow."Row" ASC;
+      `;
+
+      const allColNames = (await client.query(allColNamesQuery)).rows;
+      const allColIds = (await client.query(allColIdsQuery)).rows;
+
+      const mergeCols = allColNames.reduce((acc, item, index) => {
+        acc.push({
+          colId: allColIds[index].tItem_Object,
+          colName: item.tItem_JSON[3000000100]
+        });
+        
+        return acc;
+      }, []);  // Initialize as an array, not an object
+
+      return mergeCols;
+      
+    } finally {
+      client.release();
+    }
   }
 
   private async getOrderedPageColumns(Pg: number, pageColumns: any[]): Promise<any[]> {
@@ -745,6 +1121,176 @@ export class PageService {
     }
 
     return record;
+  }
+
+  private async enrichDataFromRawQuery(pageId: number, data: any[]): Promise<any[]> {
+    // Add format related information to data
+    const enrichDataArray = await this.enrichRecordFromRawQuery(pageId, data);
+     
+    return enrichDataArray;
+  }
+
+  private async getPgRowFormats(pageId: number) {
+    const client = await this.pool.connect();
+    try {
+      const pgRowFormatsQuery = `
+        SELECT 
+          tRow."Pg" AS "tRow_Pg",
+		      tRow."Row" AS "tRow_Row",
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tFormat."Comment" AS "tFormat_Comment",
+			    tCell."Items" as "tCell_Items",
+          tCell."Cell" as "tCell_Cell",
+			    tCell."Row" as "tCell_Row",
+          tItem."JSON" as "tItem_JSON"
+          
+        FROM "tRow" tRow
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tRow."Row"
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        WHERE tRow."Pg" = $1;
+      `;
+
+      // Execute the queries
+      const pgRowFormats = (await client.query(pgRowFormatsQuery, [pageId])).rows;
+      return pgRowFormats;
+
+    } finally {
+      client.release();
+    }
+  }
+
+  private async getPgRowTypes(pageId: number) {
+    const client = await this.pool.connect();
+    try {
+      const pgRowTypesQuery = `
+        SELECT 
+          tRow."Pg" AS "tRow_Pg",
+		      tRow."Row" AS "tRow_Row",
+	        tRow."RowType" AS "tRow_RowType",
+	        tCell."Cell" as "tCell_Cell",
+			    tCell."Row" as "tCell_Row",
+			    tCell."Items" as "tCell_Items",
+          tItem."JSON" as "tItem_JSON"
+          
+        FROM "tRow" tRow
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tRow."RowType")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        WHERE tRow."Pg" = $1;
+      `;
+
+      // Execute the queries
+      const pgRowTypes = (await client.query(pgRowTypesQuery, [pageId])).rows;
+      return pgRowTypes;
+
+    } finally {
+      client.release();
+    }
+  }
+
+  private async getPgFormats() {
+    const client = await this.pool.connect();
+    try {
+      const pgFormatsQuery = `
+        SELECT 
+          tPg."Pg" AS "tPg_Pg", 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tFormat."Comment" AS "tFormat_Comment",
+			    tCell."Items" as "tCell_Items",
+          tCell."Cell" as "tCell_Cell",
+			    tCell."Row" as "tCell_Row",
+          tItem."JSON" as "tItem_JSON"
+          
+        FROM "tPg" tPg
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tPg."Pg"
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+	      ORDER BY tPg."Pg" ASC;
+      `
+
+      // Execute the queries
+      const pgFormats = (await client.query(pgFormatsQuery)).rows;
+      return pgFormats;
+
+    } finally {
+      client.release();
+    }
+  }
+
+  private async getPgColFormats() {
+    const client = await this.pool.connect();
+
+    try {
+      const pgColFormatsQuery = `
+        SELECT 
+          tCol."Col" AS tCol_Col, 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tFormat."Comment" AS "tFormat_Comment",
+	        tFormat."Formula" AS "tFormat_Formula",
+          tCell."Items" as "tCell_Items",
+          tCell."Cell" as "tCell_Cell",
+          tItem."JSON" as "tItem_JSON"
+        FROM "tCol" tCol
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tCol."Col"
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+	      ORDER BY tCol."Col" ASC;
+      `
+
+      // Execute the queries
+      const pgColFormats = (await client.query(pgColFormatsQuery)).rows;
+      return pgColFormats;
+
+    } finally {
+      client.release();
+    }
+  }
+
+  private async enrichRecordFromRawQuery(pageId: number, data: any[]): Promise<any> {
+    const result = []; 
+    const isAllPagesPage = data.some(row => Object.keys(row).includes('page_id'));
+    const isAllColsPage = data.some(row => Object.keys(row).includes('col_id'));
+    const pgRowFormats = await this.getPgRowFormats(pageId);
+    const pgRowTypes = await this.getPgRowTypes(pageId);
+    const pgFormats = isAllPagesPage ? await this.getPgFormats() : null;
+    const pgColFormats = isAllColsPage ? await this.getPgColFormats() : null;
+
+
+    for (const record of data) {
+      const pgRowFormat = this.filterRecord('tFormat_Object', record['row'], pgRowFormats);
+      const pgRowType = this.filterRecord('tRow_Row', record['row'], pgRowTypes);
+      const pgFormat = isAllPagesPage ? this.filterRecord('tFormat_Object', record['page_id'], pgFormats) : null
+      const pgColFormat = isAllColsPage ? this.filterRecord('tFormat_Object', record['col_id'], pgColFormats) : null
+        
+      result.push({
+        ...record,
+        row_status: pgRowFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
+        row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[3000000100]).join(';'),
+        row_type: pgRowType.map(type => type.tItem_JSON?.[3000000100]).join(';'),
+        ...(isAllPagesPage ? { 
+            page_status : pgFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
+            page_comment: (pgFormat.map(format => format.tFormat_Comment?.[3000000100]))[0],
+            page_owner: 'Admin'
+          } : {}
+        ),
+        ...(isAllColsPage ? { 
+            col_status : pgColFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
+            col_comment: (pgColFormat.map(format => format.tFormat_Comment?.[3000000100]))[0],
+            col_formula: (pgColFormat.map(format => format.tFormat_Formula?.[3000000309]))[0],
+            col_owner: 'Admin'
+          } : {}
+        ),
+      });
+      
+    }
+
+    return result;
   }
 
   private async extractStatusRowsWithItems(rows: any[]) {
