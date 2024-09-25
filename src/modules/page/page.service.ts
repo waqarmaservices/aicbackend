@@ -713,17 +713,17 @@ export class PageService {
    * @returns {Promise<any>} The reponse of Pg type.
    */
   async getonePageData(Pg: number): Promise<any> {
-    const page = await this.entityManager.findOne(Page, {
-      where: { Pg },
-      relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
-    });
+    // const page = await this.entityManager.findOne(Page, {
+    //   where: { Pg },
+    //   relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
+    // });
 
-    if (!page) {
-      throw new Error('Page not found');
-    }
+    // if (!page) {
+    //   throw new Error('Page not found');
+    // }
 
     // const response = await this.cachePageResponse(page);
-    const response = await this.cachePageResponseFromRawQuery(page);
+    const response = await this.cachePageResponseFromRawQuery(Pg);
     return response;
   }
 
@@ -764,8 +764,7 @@ export class PageService {
     return response;
   }
 
-  private async cachePageResponseFromRawQuery(page: Page) {
-    const pageId = Number(page.Pg);
+  private async cachePageResponseFromRawQuery(pageId: number) {
 
     const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
 
@@ -893,45 +892,50 @@ export class PageService {
 
   private async getAllCols() {
     const client = await this.pool.connect();
-    const allColNamesQuery = `
-      SELECT
-        tItem."JSON" AS "tItem_JSON"
- 
-      FROM "tCell" tCell
-      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+    try {
+      const allColNamesQuery = `
+        SELECT
+          tItem."JSON" AS "tItem_JSON"
+  
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
 
-	    WHERE tRow."Pg" = 1000000006
-	    AND tCell."Col" = 2000000056
-	    ORDER BY tRow."Row" ASC;
-    `;
+        WHERE tRow."Pg" = 1000000006
+        AND tCell."Col" = 2000000056
+        ORDER BY tRow."Row" ASC;
+      `;
 
-    const allColIdsQuery = `
-      SELECT
-        tItem."Object" AS "tItem_Object"
- 
-      FROM "tCell" tCell
-      LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-      LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
+      const allColIdsQuery = `
+        SELECT
+          tItem."Object" AS "tItem_Object"
+  
+        FROM "tCell" tCell
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+        LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
 
-	    WHERE tRow."Pg" = 1000000006
-	    AND tCell."Col" = 2000000053
-	    ORDER BY tRow."Row" ASC;
-    `;
+        WHERE tRow."Pg" = 1000000006
+        AND tCell."Col" = 2000000053
+        ORDER BY tRow."Row" ASC;
+      `;
 
-    const allColNames = (await client.query(allColNamesQuery)).rows;
-    const allColIds = (await client.query(allColIdsQuery)).rows;
+      const allColNames = (await client.query(allColNamesQuery)).rows;
+      const allColIds = (await client.query(allColIdsQuery)).rows;
 
-    const mergeCols = allColNames.reduce((acc, item, index) => {
-      acc.push({
-        colId: allColIds[index].tItem_Object,
-        colName: item.tItem_JSON[3000000100]
-      });
+      const mergeCols = allColNames.reduce((acc, item, index) => {
+        acc.push({
+          colId: allColIds[index].tItem_Object,
+          colName: item.tItem_JSON[3000000100]
+        });
+        
+        return acc;
+      }, []);  // Initialize as an array, not an object
+
+      return mergeCols;
       
-      return acc;
-    }, []);  // Initialize as an array, not an object
-
-    return mergeCols
+    } finally {
+      client.release();
+    }
   }
 
   private async getOrderedPageColumns(Pg: number, pageColumns: any[]): Promise<any[]> {
