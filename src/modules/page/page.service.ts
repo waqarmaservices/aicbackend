@@ -218,7 +218,7 @@ export class PageService {
   
       const transformed = this.transformColDataFromRawQuery(finalResult);
   
-      const isAllPagesPage = pageId === 1000000001;
+      const isAllPagesPage = pageId == 1000000001;
   
       // Filter and process rows based on page type and ID
       return transformed
@@ -226,8 +226,8 @@ export class PageService {
           ? row['Page ID'] == pageId || row['Page Type'] === 'Each Page' || row['Page Type'] === 'Pages List'
           : row['Page ID'] == pageId || row['Page Type'] === 'Each Page')
         .map(row => {
-          const formatRecoreds = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
-          row['Col Status'] = formatRecoreds.map(formatRecord => formatRecord.tItem_JSON[3000000100]);
+          const formatRecords = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
+          row['Col Status'] = formatRecords.map(formatRecord => formatRecord.tItem_JSON[3000000100]);
           return row;
         })
         .map(column => {
@@ -713,6 +713,7 @@ export class PageService {
    * @returns {Promise<any>} The reponse of Pg type.
    */
   async getonePageData(Pg: number): Promise<any> {
+    const pageId = Number(Pg);
     // const page = await this.entityManager.findOne(Page, {
     //   where: { Pg },
     //   relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
@@ -723,7 +724,7 @@ export class PageService {
     // }
 
     // const response = await this.cachePageResponse(page);
-    const response = await this.cachePageResponseFromRawQuery(Pg);
+    const response = await this.cachePageResponseFromRawQuery(pageId);
     return response;
   }
 
