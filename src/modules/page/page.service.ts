@@ -724,7 +724,7 @@ export class PageService {
     // }
 
     // const response = await this.cachePageResponse(page);
-    const response = await this.cachePageResponseFromRawQuery(pageId);
+    const response = await this.getPageResponseFromRawQuery(pageId);
     return response;
   }
 
@@ -765,7 +765,7 @@ export class PageService {
     return response;
   }
 
-  private async cachePageResponseFromRawQuery(pageId: number) {
+  private async getPageResponseFromRawQuery(pageId: number) {
 
     const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
 
