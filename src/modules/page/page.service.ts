@@ -1691,46 +1691,68 @@ export class PageService {
   // Get All The DDS Types  
   async getDDS(payload: any): Promise<any> {
     const pageId = 1000000009; // Token Page ID
-
+  
     // Step 1: Create a cache key
     const cacheKey = pageId.toString();
-
+  
     // Step 2: Try to get cached data
     const cachedResponse = await this.cacheManager.get(cacheKey) as string;
     if (cachedResponse) {
       return JSON.parse(cachedResponse); // Return cached response if found
     }
-
+  
     // Step 3: Retrieve all token data from the specified page ID (Database)
     const data = await this.getonePageData(pageId);
-
+  
     // Step 4: Filter the data by matching the DDS value with the token field
     const ddsValue = payload.DDS;  // Expecting DDS in the payload
     const pageTypeData = data?.pageData?.find((el) => el.token === ddsValue);
-
+  
     if (!pageTypeData) {
       // Return an empty array if no match for DDS
-      return { DDS: [] };
+      return { result: [] };
     }
-
+  
     const pageTypeRow = pageTypeData.row; // Get the row for the matching DDS (Page Type)
-
-    // Step 5: Filter the data to find all rows that have ParentRow matching the pageTypeRow
-    const filteredData = data?.pageData?.filter((el) => el.ParentRow?.Row === pageTypeRow);
-
-    // Step 6: Map the result to the desired format with row as the key and token as the value
-    const DDS = filteredData.map((el) => ({
+  
+    // Step 5: Initialize an empty array for storing all related rows (parents and their children)
+    let allRelatedRows = [];
+  
+    // Step 5.1: Add the initial parent row (the one matching the DDS value) only once
+    allRelatedRows.push(pageTypeData);
+  
+    // Step 5.2: Define a queue for processing the child rows, starting with the current parent row
+    const queue = [pageTypeRow];
+  
+    // Step 5.3: Loop through the queue and process each parent row to find its children
+    while (queue.length > 0) {
+      const currentParentRow = queue.shift(); // Get the first parent row from the queue
+  
+      // Find all rows where the ParentRow matches the current parent row
+      const childRows = data?.pageData?.filter((el) => el.ParentRow?.Row === currentParentRow);
+  
+      // Add each child row to the results and push their row IDs to the queue for further processing
+      childRows.forEach((child) => {
+        if (!allRelatedRows.some((row) => row.row === child.row)) {
+          // Add the child row to the result only if it's not already added
+          allRelatedRows.push(child);
+          queue.push(child.row); // Add the child row ID to the queue to check for its children
+        }
+      });
+    }
+  
+    // Step 6: Sort the result based on the row IDs (ascending order)
+    allRelatedRows.sort((a, b) => a.row - b.row);
+  
+    // Step 7: Map the result to the desired format with row as the key and token as the value
+    const result = allRelatedRows.map((el) => ({
       [el.row]: el.token,
     }));
-
-    // Step 7: Include the Page Type itself in the result
-    DDS.unshift({ [pageTypeRow]: pageTypeData.token });
-
+  
     // Step 8: Cache the response for future use
-    await this.cacheManager.set(cacheKey, JSON.stringify(DDS), PAGE_CACHE.NEVER_EXPIRE);
-
-
+     await this.cacheManager.set(cacheKey, JSON.stringify(result), PAGE_CACHE.NEVER_EXPIRE);
+  
     // Return the final result
-    return { DDS };
+    return { result };
   }
 }

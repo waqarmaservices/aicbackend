@@ -262,19 +262,19 @@ export class PageController {
   async getlanguages(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
       const data = await this.pageService.getLanguages(pageId);
-      return new ApiResponse(true, data, '', 200);
+      return new ApiResponse(true, data, '', HttpStatus.OK);
     } catch (error) {
       console.error('Error in getOnePage controller:', error); // Logging the error
       return new ApiResponse(false, null, 'Something went wrong. Please try again', 500);
     }
   }
-  @Get('dds/type')
+  @Post('dds/status')
   async getPageTypeData(@Body() payload: any, @Res() res: Response) {
     try {
-      const DDS = await this.pageService.getDDS(payload); // Calling the page service with payload
-      return res.status(HttpStatus.OK).json(new ApiResponse(true, DDS, '', HttpStatus.OK));
+      const data = await this.pageService.getDDS(payload); 
+      return res.status(HttpStatus.OK).json(new ApiResponse(true, data, '', HttpStatus.OK));
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(new ApiResponse(false, null, 'Something went wrong', HttpStatus.INTERNAL_SERVER_ERROR));
+      throw error;
     }
   }
 }
