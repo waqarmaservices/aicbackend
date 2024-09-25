@@ -1209,18 +1209,50 @@ export class PageService {
     }
   }
 
+  private async getPgColFormats(pageId: number) {
+    const client = await this.pool.connect();
+
+    try {
+      const pgColFormatsQuery = `
+        SELECT 
+          tCol."Col" AS tCol_Col, 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."Status" AS "tFormat_Status",
+          tFormat."Comment" AS "tFormat_Comment",
+	        tFormat."Formula" AS "tFormat_Formula",
+          tCell."Items" as "tCell_Items",
+          tCell."Cell" as "tCell_Cell",
+          tItem."JSON" as "tItem_JSON"
+        FROM "tCol" tCol
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tCol."Col"
+        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
+        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
+	      ORDER BY tCol."Col" ASC;
+      `
+
+      // Execute the queries
+      const pgRowFormats = (await client.query(pgColFormatsQuery)).rows;
+      return pgRowFormats;
+
+    } finally {
+      client.release();
+    }
+  }
+
   private async enrichRecordFromRawQuery(pageId: number, data: any[]): Promise<any> {
     const result = []; 
     const isAllPagesPage = data.some(row => Object.keys(row).includes('page_id'));
     const isAllColsPage = data.some(row => Object.keys(row).includes('col_id'));
     const pgRowFormats = await this.getPgRowFormats(pageId);
     const pgFormats = isAllPagesPage ? await this.getPgFormats() : null;
-    const pgColFormats = null;
+    const pgColFormats = isAllColsPage ? await this.getPgColFormats(pageId) : null;
 
 
     for (const record of data) {
       const pgRowFormat = this.filterRecord('tFormat_Object', record['row'], pgRowFormats);
       const pgFormat = isAllPagesPage ? this.filterRecord('tFormat_Object', record['page_id'], pgFormats) : null
+      const pgColFormat = isAllColsPage ? this.filterRecord('tFormat_Object', record['col_id'], pgColFormats) : null
         
       //const format = await this.formatService.findOneByColumnName('Object', record['row']);
       // const row = await this.rowService.findOne(record.row);
@@ -1282,8 +1314,15 @@ export class PageService {
         row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[3000000100]).join(';'),
         ...(isAllPagesPage ? { 
             page_status : pgFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
-            page_comment: pgFormat.map(format => format.tFormat_Comment?.[3000000100]),
+            page_comment: (pgFormat.map(format => format.tFormat_Comment?.[3000000100]))[0],
             page_owner: 'Admin'
+          } : {}
+        ),
+        ...(isAllColsPage ? { 
+            col_status : pgColFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
+            col_comment: (pgColFormat.map(format => format.tFormat_Comment?.[3000000100]))[0],
+            col_formula: (pgColFormat.map(format => format.tFormat_Formula?.[3000000309]))[0],
+            col_owner: 'Admin'
           } : {}
         ),
         // [`${objectKey}_comment`]: comment ?? null,
