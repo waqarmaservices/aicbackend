@@ -779,41 +779,17 @@ export class PageService {
     };
   }
 
- 
-
   private transformColDataFromRawQuery(data: any) {
     const transformedData = [];
 
     Object.keys(data).forEach((key) => {
       const pageObject = {};
-      let rowLevel: any[];
-      let parentRow: any[];
-      let colName: '';
       data[key].forEach((obj: any) => {
-        // Capture the RowLevel value
-        rowLevel = obj.RowLevel;
-        parentRow = obj.ParentRow;
-
+        // Key value pair i,e Col Name and its items
         const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
-        pageObject[obj.colName] = items
-        // Object.keys(obj).forEach((col) => {
-        //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
-        //     if (!pageObject[col]) {
-        //       pageObject[col] = [];
-        //     }
-        //     //pageObject[col].push(...obj[col].map((item) => item));
-        //   }
-        // });
-      });
-      // Concatenate array values with semicolons and create the final page object
-      const finalPageObject = {};
-      Object.keys(pageObject).forEach((col) => {
-        //finalPageObject[col] = pageObject[col].join(';');
+        pageObject[obj.colName] = items;
       });
       
-      finalPageObject['row'] = key;
-      finalPageObject['RowLevel'] = rowLevel;
-      finalPageObject['ParentRow'] = parentRow;
       transformedData.push(pageObject);
     });
 
