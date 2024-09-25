@@ -273,28 +273,8 @@ export class PageService {
         ORDER BY tRow."Row" ASC;
       `;
 
-      const pgFormatsQuery = `
-        SELECT 
-          tPg."Pg" AS "tPg_Pg",
-          tPg."Cols" AS "tPg_Cols", 
-          tFormat."Format" AS "tFormat_Format", 
-          tFormat."Object" AS "tFormat_Object",
-          tFormat."Status" AS "tFormat_Status",
-          tCell."Items" as "tCell_Items",
-          tCell."Cell" as "tCell_Cell",
-          tItem."JSON" as "tItem_JSON"
-        FROM "tPg" tPg
-        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
-        LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
-        LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-        WHERE tPg."Pg" = $1;
-      `;
-
       // Execute the queries
-      const [pgRows, pgFormats] = await Promise.all([
-        client.query(pgRowsQuery, [pageId]),
-        client.query(pgFormatsQuery, [pageId])
-      ]);
+      const pgRows = await client.query(pgRowsQuery, [pageId]);
 
       const result = new Map();
 
@@ -345,7 +325,6 @@ export class PageService {
       const finalResult = Object.fromEntries(result);
       const transformed = this.transformPageDataFromRawQuery(finalResult);
 
-      const isAllPagesPage = pageId === 1000000001;
       return transformed;
     } finally {
       client.release();
@@ -1141,18 +1120,9 @@ export class PageService {
   }
 
   private async enrichDataFromRawQuery(pageId: number, data: any[]): Promise<any[]> {
-    //const enrichedData = [];
-
-   
-      // let enrichedRecord = { ...record };
-
-      const enrichDataArray = await this.enrichRecordFromRawQuery(pageId, data);
-      // enrichedRecord = await this.enrichRecordFromRawQuery(data, 'page_id', 'page');
-      // enrichedRecord = await this.enrichRecordFromRawQuery(data, 'col_id', 'col');
-
-      //enrichedData.push(enrichDataArray);
-    
-
+    // Add format related information to data
+    const enrichDataArray = await this.enrichRecordFromRawQuery(pageId, data);
+     
     return enrichDataArray;
   }
 
@@ -1294,60 +1264,6 @@ export class PageService {
       const pgFormat = isAllPagesPage ? this.filterRecord('tFormat_Object', record['page_id'], pgFormats) : null
       const pgColFormat = isAllColsPage ? this.filterRecord('tFormat_Object', record['col_id'], pgColFormats) : null
         
-      //const format = await this.formatService.findOneByColumnName('Object', record['row']);
-      // const row = await this.rowService.findOne(record.row);
-      let comment = null;
-      let status = null;
-      let rowType = null;
-      let colFormula = null;
-      let pageColOwner = null;
-      // if (format?.Comment) {
-      //   for (const key in format?.Comment) {
-      //     if (format?.Comment.hasOwnProperty(key)) {
-      //       comment = format?.Comment[key];
-      //       break; // want the first key-value pair
-      //     }
-      //   }
-      // }
-
-      // if (objectKey == 'page' || objectKey == 'col') {
-      //   pageColOwner = 'Admin';
-      // }
-
-      // if (format?.Formula && objectKey == 'col') {
-      //   for (const key in format?.Formula) {
-      //     if (format?.Formula.hasOwnProperty(key)) {
-      //       colFormula = format?.Formula[key];
-      //       break; // want the first key-value pair
-      //     }
-      //   }
-      // }
-
-      // if (format && format?.Status) {
-      //   const statuses = await Promise.all(
-      //     format.Status.toString()
-      //       .replace(/[{}]/g, '')
-      //       .split(',')
-      //       .map(async (status) => {
-      //         return await this.getRowJson(Number(status));
-      //       }),
-      //   );
-      //   status = statuses.join(';');
-      // }
-
-      // if (row?.RowType) {
-      //   const rowTypes = await Promise.all(
-      //     row.RowType.toString()
-      //       .replace(/[{}]/g, '')
-      //       .split(',')
-      //       .map(async (type) => {
-      //         return await this.getRowJson(Number(type));
-      //       }),
-      //   );
-      //   rowType = rowTypes.join(';');
-      // }
-
-      // row_commnet, row_status & row_type would be part of every page
       result.push({
         ...record,
         row_status: pgRowFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
@@ -1366,11 +1282,6 @@ export class PageService {
             col_owner: 'Admin'
           } : {}
         ),
-        // [`${objectKey}_comment`]: comment ?? null,
-        // [`${objectKey}_status`]: status ?? null,
-        // [`${objectKey}_owner`]: pageColOwner ?? null,
-        // [`row_type`]: rowType ?? null,
-        // ...(colFormula ? { [`col_formula`]: colFormula } : {}),
       });
       
     }
