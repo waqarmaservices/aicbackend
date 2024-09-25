@@ -306,7 +306,7 @@ export class PageService {
 
         const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
         let column;
-        const ids = [3000000100, 3000000325]; // 3000000100 Default English, 3000000325 Original URL
+        const ids = [3000000100, 3000000325, 3000000309]; // 3000000100 Default English, 3000000325 Original URL, 3000000309 Calculate Data
         let cellItem = null;
         if (row?.tItemDDS_JSON) {
           cellItem = ids.reduce((res, id) => 
