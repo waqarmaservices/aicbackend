@@ -218,7 +218,7 @@ export class PageService {
   
       const transformed = this.transformColDataFromRawQuery(finalResult);
   
-      const isAllPagesPage = pageId === 1000000001;
+      const isAllPagesPage = pageId == 1000000001;
   
       // Filter and process rows based on page type and ID
       return transformed
@@ -226,8 +226,8 @@ export class PageService {
           ? row['Page ID'] == pageId || row['Page Type'] === 'Each Page' || row['Page Type'] === 'Pages List'
           : row['Page ID'] == pageId || row['Page Type'] === 'Each Page')
         .map(row => {
-          const formatRecoreds = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
-          row['Col Status'] = formatRecoreds.map(formatRecord => formatRecord.tItem_JSON[3000000100]);
+          const formatRecords = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
+          row['Col Status'] = formatRecords.map(formatRecord => formatRecord.tItem_JSON[3000000100]);
           return row;
         })
         .map(column => {
@@ -713,6 +713,7 @@ export class PageService {
    * @returns {Promise<any>} The reponse of Pg type.
    */
   async getonePageData(Pg: number): Promise<any> {
+    const pageId = Number(Pg);
     // const page = await this.entityManager.findOne(Page, {
     //   where: { Pg },
     //   relations: ['rows', 'rows.ParentRow', 'rows.cells', 'rows.cells.CellCol'],
@@ -723,7 +724,7 @@ export class PageService {
     // }
 
     // const response = await this.cachePageResponse(page);
-    const response = await this.cachePageResponseFromRawQuery(Pg);
+    const response = await this.getPageResponseFromRawQuery(pageId);
     return response;
   }
 
@@ -764,7 +765,7 @@ export class PageService {
     return response;
   }
 
-  private async cachePageResponseFromRawQuery(pageId: number) {
+  private async getPageResponseFromRawQuery(pageId: number) {
 
     const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
 
@@ -778,41 +779,17 @@ export class PageService {
     };
   }
 
- 
-
   private transformColDataFromRawQuery(data: any) {
     const transformedData = [];
 
     Object.keys(data).forEach((key) => {
       const pageObject = {};
-      let rowLevel: any[];
-      let parentRow: any[];
-      let colName: '';
       data[key].forEach((obj: any) => {
-        // Capture the RowLevel value
-        rowLevel = obj.RowLevel;
-        parentRow = obj.ParentRow;
-
+        // Key value pair i,e Col Name and its items
         const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
-        pageObject[obj.colName] = items
-        // Object.keys(obj).forEach((col) => {
-        //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
-        //     if (!pageObject[col]) {
-        //       pageObject[col] = [];
-        //     }
-        //     //pageObject[col].push(...obj[col].map((item) => item));
-        //   }
-        // });
-      });
-      // Concatenate array values with semicolons and create the final page object
-      const finalPageObject = {};
-      Object.keys(pageObject).forEach((col) => {
-        //finalPageObject[col] = pageObject[col].join(';');
+        pageObject[obj.colName] = items;
       });
       
-      finalPageObject['row'] = key;
-      finalPageObject['RowLevel'] = rowLevel;
-      finalPageObject['ParentRow'] = parentRow;
       transformedData.push(pageObject);
     });
 
