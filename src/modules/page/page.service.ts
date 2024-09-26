@@ -251,6 +251,10 @@ export class PageService {
       const pgRowsQuery = `
         SELECT 
           tRow."Row" AS "tRow_Row",
+          tRow."RowLevel" AS "tRow_RowLevel",
+          tRow."ParentRow" AS "tRow_ParentRow",
+          tRowParentRow."Row" AS "tRowParentRow_Row",
+          tRowParentRow."RowLevel" AS "tRowParentRow_RowLevel",
           tCell."Cell" AS "tCell_Cell", 
           tCell."Col" AS "tCell_Col", 
           tCell."Items" AS "tCell_Items", 
@@ -266,7 +270,7 @@ export class PageService {
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
         LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
         LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
-
+        LEFT JOIN "tRow" tRowParentRow ON  tRowParentRow."Row" = tRow."ParentRow"
         LEFT JOIN "tCell" tCellItemDDS ON tCellItemDDS."Row" = (tItem."JSON"->>'3000000300')::bigint
         LEFT JOIN "tItem" tItemDDS ON tItemDDS."Item" = ANY(tCellItemDDS."Items")
         WHERE tRow."Pg" = $1
@@ -302,7 +306,9 @@ export class PageService {
             cellId: row.tCell_Cell,
             colId: foundedCol?.colId,
             colName: foundedCol?.colName,
-            cellItems: [row.tItem_Object]
+            cellItems: [row.tItem_Object],
+            RowLevel: row.tRow_RowLevel,
+            ParentRow: { Row: row.tRowParentRow_Row, RowLevel: row.tRowParentRow_RowLevel }
           };
 
           result.get(row.tRow_Row).push(column);
@@ -313,7 +319,9 @@ export class PageService {
               cellId: row.tCell_Cell,
               colId: foundedCol?.colId,
               colName: foundedCol?.colName,
-              cellItems: [cellItem]
+              cellItems: [cellItem],
+              RowLevel: row.tRow_RowLevel,
+              ParentRow: { Row: row.tRowParentRow_Row, RowLevel: row.tRowParentRow_RowLevel }
             };
             result.get(row.tRow_Row).push(column);
           } else {
@@ -834,6 +842,8 @@ export class PageService {
       finalPageObject['ParentRow'] = parentRow;
 
       pageObject['row'] = key;
+      pageObject['RowLevel'] = rowLevel;
+      pageObject['ParentRow'] = parentRow;
       transformedData.push(pageObject);
     });
 
