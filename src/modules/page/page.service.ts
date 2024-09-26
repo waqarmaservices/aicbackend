@@ -278,18 +278,18 @@ export class PageService {
       `;
 
       // Execute the queries
-      const pgRows = await client.query(pgRowsQuery, [pageId]);
+      const pgRows = (await client.query(pgRowsQuery, [pageId])).rows;
 
       const result = new Map();
 
       // Process the rows
-      for (const row of pgRows.rows) {
+      for (const row of pgRows) {
         if (!result.has(row.tRow_Row)) {
           result.set(row.tRow_Row, []);
         }
 
         const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
-        let column;
+        let column = {};
         const ids = [3000000100, 3000000325, 3000000309]; // 3000000100 Default English, 3000000325 Original URL, 3000000309 Calculate Data
         let cellItem = null;
         if (row?.tItemDDS_JSON) {
