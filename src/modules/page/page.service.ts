@@ -841,23 +841,33 @@ export class PageService {
     };
   }
 
+  /**
+   * Transforms column data from a raw query into a structured format.
+   * 
+   * @param {any} data - The raw data to be transformed, structured as an 
+   * object with keys representing pages and values as arrays of column data.
+   * @returns {any[]} - An array of transformed page objects with column names 
+   * as keys and their corresponding items as values.
+   */
   private transformColDataFromRawQuery(data: any) {
     const transformedData = [];
 
+    // Iterate over each key in the input data
     Object.keys(data).forEach((key) => {
       const pageObject = {};
       data[key].forEach((obj: any) => {
-        // Key value pair i,e Col Name and its items
+        // Extract items, handling cases where there is one or multiple items
         const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems;
+        // Assign the items to the pageObject under the column name
         pageObject[obj.colName] = items;
       });
       
+      // Add the constructed page object to the transformed data array
       transformedData.push(pageObject);
     });
 
     return transformedData;
   }
-
 
   /**
    * Transforms raw page data into a more structured format by processing columns and row metadata.
