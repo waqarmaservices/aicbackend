@@ -830,7 +830,7 @@ export class PageService {
         parentRow = obj.ParentRow;
 
         // Capture unordered cell items
-        const cellItems = [] = obj?.cellItems.filter(cellItem => cellItem.item != undefined);
+        const cellItems = [] = obj?.cellItems.filter(cellItem => cellItem.item !== undefined);
         
         // Capture ordered cell items
         let cellOrderedItems = [];
@@ -845,7 +845,7 @@ export class PageService {
 
           cellOrderedItems = cellOrderedItemIds
             .map((orderedId) => cellItems.find((item: any) => item.id == orderedId))
-            .map(cellItem => cellItem.item)
+            .map(cellItem => cellItem?.item)
             .filter(Boolean); // Filter out any undefined values
         }
         
