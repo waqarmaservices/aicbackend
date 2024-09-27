@@ -835,9 +835,9 @@ export class PageService {
         // Capture ordered cell items
         let cellOrderedItems = [];
         // Cell have more than one items, means it has an item order
-        if (cellItems && cellItems.length > 1) {
+        if (obj.cellFormatItems) {
           // Map through the orderedItemsIds to find and order the corresponding items from cellItems
-          const cellOrderedItemIds = obj?.cellFormatItems
+          const cellOrderedItemIds = obj.cellFormatItems
             .replace(/[{}]/g, '')
             .split(',')
             .map((id) => parseInt(id.trim(), 10))
