@@ -300,7 +300,7 @@ export class PageService {
             res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
         }
         
-        if (!row.tItem_JSON && !row.tItemObject_JSON) {
+        if (!row.tItem_JSON && !row.tItemObject_JSON && (foundedCol.colName == 'Col ID' || foundedCol.colName == 'Page ID')) {
           // if column has no json value than it should have have from item object
           column = {
             cellId: row.tCell_Cell,
@@ -820,7 +820,8 @@ export class PageService {
         parentRow = obj.ParentRow;
 
       colName = this.replaceSpaceWithUnderscore(obj.colName);
-        const items = obj?.cellItems?.length == 1 ? obj.cellItems[0] : obj.cellItems.join(';');
+        const cellItems = obj?.cellItems.filter(item => item != undefined);
+        const items = cellItems?.length == 1 ? cellItems[0] : obj.cellItems.join(';');
         pageObject[colName] = items;
         // Object.keys(obj).forEach((col) => {
         //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
