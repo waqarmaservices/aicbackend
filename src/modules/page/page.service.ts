@@ -777,12 +777,14 @@ export class PageService {
 
     const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
 
+    const orderedPageColumns = await this.getOrderedPageColumnsFromRawQuery(pageId, pageColumns);
+
     const pageData = await this.getPageDataFromRawQuery(pageId);
 
     const enrichData = await this.enrichDataFromRawQuery(pageId, pageData);
 
     return {
-      pageColumns: pageColumns, 
+      pageColumns: orderedPageColumns, 
       pageData: enrichData
     };
   }
@@ -946,6 +948,46 @@ export class PageService {
 
     // Combine ordered columns with hidden columns
     return [...orderedColumns, ...hiddenColumns];
+  }
+
+  private async getOrderedPageColumnsFromRawQuery(pageId: number, pageColumns: any[]): Promise<any[]> {
+    const client = await this.pool.connect();
+    try {
+      const pgFormatQuery = `
+        SELECT 
+          tFormat."Format" AS "tFormat_Format", 
+          tFormat."Object" AS "tFormat_Object",
+          tFormat."PgCols" as "tFormat_PgCols",
+          tFormat."Status" AS "tFormat_Status",
+          tFormat."Comment" AS "tFormat_Comment"
+        FROM "tFormat" tFormat
+        WHERE tFormat."Object" = $1
+        LIMIT 1;
+      `;
+
+      // Execute the queries
+      const pgFormat = (await client.query(pgFormatQuery, [pageId])).rows[0];
+
+      // Extract and clean the ordered column IDs from the format
+      const orderedColumnIds = pgFormat.tFormat_PgCols.toString()
+        .replace(/[{}]/g, '')
+        .split(',')
+        .map((id) => id.trim());
+
+      // Map through the orderedColumnIds to find and order the corresponding columns from pageColumns
+      const orderedColumns = orderedColumnIds
+        .map((orderedColId) => pageColumns.find((col: any) => col.col === orderedColId))
+        .filter(Boolean); // Filter out any undefined values
+
+      // Filter and collect columns that are hidden
+      const hiddenColumns = pageColumns.filter((col) => col.status.includes('Hidden'));
+
+      // Combine ordered columns with hidden columns
+      return [...orderedColumns, ...hiddenColumns];
+
+    } finally {
+      client.release();
+    }
   }
 
   private createJsonFile(fileName: string, data: any) {
