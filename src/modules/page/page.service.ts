@@ -264,7 +264,9 @@ export class PageService {
           tItem."JSON" AS "tItem_JSON",
           tCellItemObject."Row" AS "tCell_ItemObject",
           tItemObject."JSON" AS "tItemObject_JSON",
-          tItemDDS."JSON" AS "tItemDDS_JSON"
+          tItemDDS."JSON" AS "tItemDDS_JSON",
+	        tFormat."Format"  AS "tFormat_Format",
+	        tFormat."CellItems" AS "tFormat_CellItems"
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
@@ -273,6 +275,7 @@ export class PageService {
         LEFT JOIN "tRow" tRowParentRow ON  tRowParentRow."Row" = tRow."ParentRow"
         LEFT JOIN "tCell" tCellItemDDS ON tCellItemDDS."Row" = (tItem."JSON"->>'3000000300')::bigint
         LEFT JOIN "tItem" tItemDDS ON tItemDDS."Item" = ANY(tCellItemDDS."Items")
+        LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tCell."Cell"
         WHERE tRow."Pg" = $1
         ORDER BY tRow."Row" ASC;
       `;
@@ -291,12 +294,14 @@ export class PageService {
         const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
         let column = {};
         const ids = [3000000100, 3000000325, 3000000309]; // 3000000100 Default English, 3000000325 Original URL, 3000000309 Calculate Data
-        let cellItem = null;
+        const cellItem = { };
         if (row?.tItemDDS_JSON) {
-          cellItem = ids.reduce((res, id) => 
+          cellItem['id'] = row.tItem_Item;
+          cellItem['item'] = ids.reduce((res, id) => 
             res ?? row.tItemDDS_JSON?.[id], undefined);  
         } else {
-          cellItem = ids.reduce((res, id) => 
+          cellItem['id'] = row.tItem_Item;
+          cellItem['item'] = ids.reduce((res, id) => 
             res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
         }
         
@@ -306,7 +311,8 @@ export class PageService {
             cellId: row.tCell_Cell,
             colId: foundedCol?.colId,
             colName: foundedCol?.colName,
-            cellItems: [row.tItem_Object],
+            cellItems: [{ id: row.tItem_Item, item: row.tItem_Object, format: row.tFormat_CellItems }],
+            cellFormatItems: row.tFormat_CellItems,
             RowLevel: row.tRow_RowLevel,
             ParentRow: { Row: row.tRowParentRow_Row, RowLevel: row.tRowParentRow_RowLevel }
           };
@@ -320,6 +326,7 @@ export class PageService {
               colId: foundedCol?.colId,
               colName: foundedCol?.colName,
               cellItems: [cellItem],
+              cellFormatItems: row.tFormat_CellItems,
               RowLevel: row.tRow_RowLevel,
               ParentRow: { Row: row.tRowParentRow_Row, RowLevel: row.tRowParentRow_RowLevel }
             };
@@ -817,32 +824,40 @@ export class PageService {
       let parentRow: any[];
       let colName: '';
       data[key].forEach((obj: any) => {
-        // Capture the RowLevel value
+        colName = this.replaceSpaceWithUnderscore(obj.colName);
+        let items = null;
         rowLevel = obj.RowLevel;
         parentRow = obj.ParentRow;
 
-      colName = this.replaceSpaceWithUnderscore(obj.colName);
-        const cellItems = obj?.cellItems.filter(item => item != undefined);
-        const items = cellItems?.length == 1 ? cellItems[0] : obj.cellItems.join(';');
+        // Capture unordered cell items
+        const cellItems = [] = obj?.cellItems.filter(Boolean);
+        
+        // Capture ordered cell items
+        let cellOrderedItems = [];
+        // Cell have more than one items, means it has an item order
+        if (cellItems && cellItems.length > 1) {
+          // Map through the orderedItemsIds to find and order the corresponding items from cellItems
+          const cellOrderedItemIds = obj?.cellFormatItems
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map((id) => parseInt(id.trim(), 10))
+            .filter((id) => !isNaN(id));
+
+          cellOrderedItems = cellOrderedItemIds
+            .map((orderedId) => cellItems.find((item: any) => item.id == orderedId))
+            .map(cellItem => cellItem.item)
+            .filter(Boolean); // Filter out any undefined values
+        }
+        
+        if (cellOrderedItems?.length >= 1) {
+          items = cellOrderedItems?.length == 1 ? cellOrderedItems[0] : cellOrderedItems?.join(';');
+        } else {
+          items = cellItems?.length == 1 ? cellItems[0].item : cellItems?.map(cellItem => cellItem.item).join(';');
+        }
+        
+        // Assign items to Col Name as key value pair
         pageObject[colName] = items;
-        // Object.keys(obj).forEach((col) => {
-        //   if (col !== 'Col' && col !== 'Cell' && col !== 'RowLevel' && col !== 'ParentRow') {
-        //     if (!pageObject[col]) {
-        //       pageObject[col] = [];
-        //     }
-        //     //pageObject[col].push(...obj[col].map((item) => item));
-        //   }
-        // });
       });
-      // Concatenate array values with semicolons and create the final page object
-      const finalPageObject = {};
-      Object.keys(pageObject).forEach((col) => {
-        //finalPageObject[col] = pageObject[col].join(';');
-      });
-      
-      finalPageObject['row'] = key;
-      finalPageObject['RowLevel'] = rowLevel;
-      finalPageObject['ParentRow'] = parentRow;
 
       pageObject['row'] = key;
       pageObject['RowLevel'] = rowLevel;
