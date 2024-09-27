@@ -830,7 +830,7 @@ export class PageService {
         parentRow = obj.ParentRow;
 
         // Capture unordered cell items
-        const cellItems = [] = obj?.cellItems.filter(Boolean);
+        const cellItems = [] = obj?.cellItems.filter(cellItem => cellItem.item != undefined);
         
         // Capture ordered cell items
         let cellOrderedItems = [];
