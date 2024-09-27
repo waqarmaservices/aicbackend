@@ -134,13 +134,21 @@ export class PageService {
     return pgColResponse;
   }
 
-  async getPageColumnsFromRawQuery(pageId: number) {
+  /**
+ * Retrieves page columns based on the given page ID by querying the database.
+ * This function uses a series of SQL queries to fetch data from multiple tables.
+ * 
+ * @param {number} pageId - The ID of the page to retrieve columns for.
+ * @returns {Promise<any[]>} - An array of page columns with metadata (column ID, name, datatype, status, etc.).
+ */
+  async getPageColumnsFromRawQuery(pageId: number): Promise<any[]>  {
     const client = await this.pool.connect();
     try {
+      // Fetch all column definitions and filter results by a specific page ID
       const allCols = await this.getAllCols();
       const allColsPageId = 1000000006;
   
-      // Parameterized queries for better security
+      // SQL query to retrieve rows and corresponding column/cell data for the page
       const pgRowsQuery = `
         SELECT 
           tRow."Row" AS "tRow_Row",
@@ -162,6 +170,7 @@ export class PageService {
         ORDER BY tRow."Row" ASC;
       `;
   
+      // SQL query to retrieve column formats associated with the page
       const pgFormatsQuery = `
         SELECT 
           tPg."Pg" AS "tPg_Pg",
@@ -179,28 +188,31 @@ export class PageService {
         WHERE tPg."Pg" = $1;
       `;
   
+      // Execute both queries with the relevant page ID
       const pgRows = await client.query(pgRowsQuery, [allColsPageId]);
       const pgFormats = await client.query(pgFormatsQuery, [pageId]);
   
       const result = new Map();
   
+      // Process the rows and organize the data
       for (const row of pgRows.rows) {
         const rowKey = row.tRow_Row;
         const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
         
+         // Initialize a row entry in the result if it doesn't already exist
         if (!result.has(rowKey)) {
           result.set(rowKey, []);
         }
   
+        // Find the cell item by checking specific JSON keys
         let cellItem = null;
         const ids = [3000000100, 3000000325];
-        const currentRow = result.get(rowKey);
-        
-        // Dynamically find the cell item
         cellItem = ids.reduce((acc, id) => acc ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], null);
-  
+        
+        const currentRow = result.get(rowKey);
         const existingCell = currentRow.find(cell => cell.cellId === row.tCell_Cell);
   
+        // If the cell doesn't exist, add a new cell entry
         if (!existingCell) {
           currentRow.push({
             cellId: row.tCell_Cell,
@@ -214,13 +226,12 @@ export class PageService {
         }
       }
   
+      // Convert the map into an object and transform the data
       const finalResult = Object.fromEntries(result);
-  
       const transformed = this.transformColDataFromRawQuery(finalResult);
   
+       // Check if the page is an "All Pages" page and filter rows accordingly
       const isAllPagesPage = pageId == 1000000001;
-  
-      // Filter and process rows based on page type and ID
       return transformed
         .filter(row => isAllPagesPage 
           ? row['Page ID'] == pageId || row['Page Type'] === 'Each Page' || row['Page Type'] === 'Pages List'
@@ -240,14 +251,27 @@ export class PageService {
           }
         });
     } finally {
+      // Ensure the database connection is released
       client.release();
     }
   }
   
+  /**
+   * Fetches and transforms page data for a given pageId by querying multiple tables.
+   * 
+   * This function performs several SQL queries to retrieve row and cell data, including 
+   * cell items, formats, and parent-child row relationships.
+   *
+   * @param {number} pageId - The ID of the page for which the data is fetched.
+   * @returns {Promise<any>} - A promise resolving with the transformed page data.
+   */
   async getPageDataFromRawQuery(pageId: number) {
     const client = await this.pool.connect();
     try {
+      // Fetch all column metadata
       const allCols = await this.getAllCols();
+
+      // Query to retrieve rows, cells, and related items for the page
       const pgRowsQuery = `
         SELECT 
           tRow."Row" AS "tRow_Row",
@@ -280,31 +304,34 @@ export class PageService {
         ORDER BY tRow."Row" ASC;
       `;
 
-      // Execute the queries
+      // Execute the query and get results
       const pgRows = (await client.query(pgRowsQuery, [pageId])).rows;
 
+      // Initialize a Map to store row-wise data
       const result = new Map();
 
-      // Process the rows
+      // Process each row in the result set
       for (const row of pgRows) {
         if (!result.has(row.tRow_Row)) {
           result.set(row.tRow_Row, []);
         }
 
+        // Locate the corresponding column metadata
         const foundedCol = allCols.find(col => col.colId === row.tCell_Col);
         let column = {};
+
+        // Determine the cell item based on several possible JSON fields
         const ids = [3000000100, 3000000325, 3000000309]; // 3000000100 Default English, 3000000325 Original URL, 3000000309 Calculate Data
         const cellItem = { };
         if (row?.tItemDDS_JSON) {
           cellItem['id'] = row.tItem_Item;
-          cellItem['item'] = ids.reduce((res, id) => 
-            res ?? row.tItemDDS_JSON?.[id], undefined);  
+          cellItem['item'] = ids.reduce((res, id) => res ?? row.tItemDDS_JSON?.[id], undefined);  
         } else {
           cellItem['id'] = row.tItem_Item;
-          cellItem['item'] = ids.reduce((res, id) => 
-            res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
+          cellItem['item'] = ids.reduce((res, id) => res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
         }
         
+        // Check if the row contains a column with no JSON data (use object if missing)
         if (!row.tItem_JSON && !row.tItemObject_JSON && (foundedCol.colName == 'Col ID' || foundedCol.colName == 'Page ID')) {
           // if column has no json value than it should have have from item object
           column = {
@@ -319,6 +346,7 @@ export class PageService {
 
           result.get(row.tRow_Row).push(column);
         } else {
+          // Add cell item to the existing row and column
           const cell = result.get(row.tRow_Row).find(cell => cell.cellId === row.tCell_Cell);
           if (!cell) {
             column = {
@@ -337,11 +365,13 @@ export class PageService {
         }
       }
 
+      // Convert the result Map to a plain object and apply any final transformations
       const finalResult = Object.fromEntries(result);
       const transformed = this.transformPageDataFromRawQuery(finalResult);
 
       return transformed;
     } finally {
+      // Release the database connection
       client.release();
     }
   }
@@ -780,16 +810,31 @@ export class PageService {
     return response;
   }
 
-  private async getPageResponseFromRawQuery(pageId: number) {
+  /**
+ * Retrieves and processes page response data by querying the database.
+ * 
+ * This function performs multiple asynchronous queries to fetch the page columns,
+ * order them, get the corresponding page data, and finally enrich that data 
+ * before returning the response in a structured format.
+ * 
+ * @param {number} pageId - The ID of the page to retrieve data for.
+ * @returns {Promise<{pageColumns: any[], pageData: any[]}>} - The ordered page columns and enriched page data.
+ */
+  private async getPageResponseFromRawQuery(pageId: number): Promise<{ pageColumns: any[], pageData: any[] }> {
 
+    // Fetch all page columns related to the given page ID.
     const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
 
+    // Order the page columns based on predefined format (or custom logic).
     const orderedPageColumns = await this.getOrderedPageColumnsFromRawQuery(pageId, pageColumns);
 
+    // Retrieve raw page data from the query for the given page ID.
     const pageData = await this.getPageDataFromRawQuery(pageId);
 
+    // Enrich the raw page data by applying additional logic (e.g., calculations, mappings).
     const enrichData = await this.enrichDataFromRawQuery(pageId, pageData);
 
+    // Return the structured response with ordered columns and enriched data.
     return {
       pageColumns: orderedPageColumns, 
       pageData: enrichData
@@ -814,25 +859,34 @@ export class PageService {
   }
 
 
-
-  private transformPageDataFromRawQuery(data: any) {
+  /**
+   * Transforms raw page data into a more structured format by processing columns and row metadata.
+   * It orders cell items based on a specified format and handles both ordered and unordered items.
+   *
+   * @param {any} data - The raw page data from the query result.
+   * @returns {Array} - Transformed data where each entry represents a row with associated column data.
+   */
+  private transformPageDataFromRawQuery(data: any): any[] {
     const transformedData = [];
 
+    // Iterate through each row in the input data
     Object.keys(data).forEach((key) => {
-      const pageObject = {};
-      let rowLevel: any[];
-      let parentRow: any[];
-      let colName: '';
+      const pageObject: any = {};
+      let rowLevel: any[] = [];
+      let parentRow: any[] = [];
+      let colName: string = "";
+
+      // Iterate through each column of the row
       data[key].forEach((obj: any) => {
         colName = this.replaceSpaceWithUnderscore(obj.colName);
         let items = null;
         rowLevel = obj.RowLevel;
         parentRow = obj.ParentRow;
 
-        // Capture unordered cell items
-        const cellItems = [] = obj?.cellItems.filter(cellItem => cellItem.item !== undefined);
+        // Capture unordered cell items, excluding undefined items
+        const cellItems = [] = obj?.cellItems.filter((cellItem) => cellItem.item !== undefined);
         
-        // Capture ordered cell items
+        // Capture ordered cell items based on the column's specified format
         let cellOrderedItems = [];
         // Cell have more than one items, means it has an item order
         if (obj.cellFormatItems) {
@@ -843,22 +897,27 @@ export class PageService {
             .map((id) => parseInt(id.trim(), 10))
             .filter((id) => !isNaN(id));
 
+          // Order cell items based on format and capture valid ones
           cellOrderedItems = cellOrderedItemIds
             .map((orderedId) => cellItems.find((item: any) => item.id == orderedId))
             .map(cellItem => cellItem?.item)
             .filter(Boolean); // Filter out any undefined values
         }
         
+        // Determine final items to be stored
         if (cellOrderedItems?.length >= 1) {
+          // Use ordered items if available
           items = cellOrderedItems?.length == 1 ? cellOrderedItems[0] : cellOrderedItems?.join(';');
         } else {
-          items = cellItems?.length == 1 ? cellItems[0].item : cellItems?.map(cellItem => cellItem.item).join(';');
+          // Otherwise, fall back to unordered items
+          items = cellItems?.length == 1 ? cellItems[0].item : cellItems?.map((cellItem) => cellItem.item).join(';');
         }
         
         // Assign items to Col Name as key value pair
         pageObject[colName] = items;
       });
 
+      // Add additional metadata (row, row level, parent row) to the page object
       pageObject['row'] = key;
       pageObject['RowLevel'] = rowLevel;
       pageObject['ParentRow'] = parentRow;
@@ -868,7 +927,14 @@ export class PageService {
     return transformedData;
   }
 
-  public replaceSpaceWithUnderscore(input) {
+  /**
+   * Replaces all spaces in a string with underscores, converts the string to lowercase,
+   * and trims any leading or trailing whitespace.
+   *
+   * @param {string} input - The input string to be transformed.
+   * @returns {string} - The transformed string with spaces replaced by underscores.
+   */
+  public replaceSpaceWithUnderscore(input: string): string {
     return input
       .toLowerCase() // Convert to lowercase
       .trim() // Trim leading/trailing spaces
@@ -876,57 +942,58 @@ export class PageService {
       .join('_');
   }
 
+  /**
+   * Filters an array of objects based on a specified key-value pair.
+   * 
+   * @param {string} filterKey - The key in each object to filter by.
+   * @param {string | number} filterValue - The value to match against the key.
+   * @param {Array<object>} filterData - The array of objects to filter.
+   * @returns {Array<object>} - An array of objects that match the key-value pair.
+   */
+  private filterRecord(filterKey: string, filterValue: string | number, filterData: any[]) {
+    if (!filterData || !Array.isArray(filterData)) return []; // Return empty array if invalid input
 
-
-
-
-
-
-
-
-
-
-  
-
-  private filterRecord(filterKey: string, filterValue: string, filterData: any[]) {
-    const data = filterData
-      .filter((data) => data[filterKey] == filterValue)
-    
-    return data;
+    return filterData
+      .filter((data) => data[filterKey] == filterValue);
   }
 
-  private async getAllCols() {
+  /**
+   * Retrieves and merges column names and IDs from the database by querying the "tCell" and "tItem" tables.
+   *
+   * @returns {Promise<Array<{colId: number, colName: string}>>} - An array of objects where each object contains a `colId` and a `colName`.
+   */
+  private async getAllCols(): Promise<Array<{colId: number, colName: string}>>  {
     const client = await this.pool.connect();
+    // SQL query to retrieve JSON data from "tItem" associated with the column names
     try {
       const allColNamesQuery = `
         SELECT
           tItem."JSON" AS "tItem_JSON"
-  
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-
         WHERE tRow."Pg" = 1000000006
         AND tCell."Col" = 2000000056
         ORDER BY tRow."Row" ASC;
       `;
 
+      // SQL query to retrieve column IDs from "tItem" associated with the given column
       const allColIdsQuery = `
         SELECT
           tItem."Object" AS "tItem_Object"
-  
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-
         WHERE tRow."Pg" = 1000000006
         AND tCell."Col" = 2000000053
         ORDER BY tRow."Row" ASC;
       `;
 
+      // Execute both queries concurrently
       const allColNames = (await client.query(allColNamesQuery)).rows;
       const allColIds = (await client.query(allColIdsQuery)).rows;
 
+      // Merge column names and IDs into an array of objects
       const mergeCols = allColNames.reduce((acc, item, index) => {
         acc.push({
           colId: allColIds[index].tItem_Object,
@@ -965,9 +1032,19 @@ export class PageService {
     return [...orderedColumns, ...hiddenColumns];
   }
 
+  /**
+   * Retrieves and orders page columns based on the format associated with a specific page ID.
+   * The function fetches the format, extracts the ordered column IDs, matches them to the provided
+   * `pageColumns` array, and also appends any hidden columns that are not part of the format.
+   *
+   * @param {number} pageId - The ID of the page for which to retrieve and order columns.
+   * @param {any[]} pageColumns - The array of page columns to be ordered and filtered.
+   * @returns {Promise<any[]>} - A promise that resolves to an array of ordered page columns combined with hidden columns.
+   */
   private async getOrderedPageColumnsFromRawQuery(pageId: number, pageColumns: any[]): Promise<any[]> {
     const client = await this.pool.connect();
     try {
+      // Query to get the format details associated with the provided page ID
       const pgFormatQuery = `
         SELECT 
           tFormat."Format" AS "tFormat_Format", 
@@ -980,27 +1057,29 @@ export class PageService {
         LIMIT 1;
       `;
 
-      // Execute the queries
+      // Execute the query to get the page format for the given pageId
       const pgFormat = (await client.query(pgFormatQuery, [pageId])).rows[0];
 
-      // Extract and clean the ordered column IDs from the format
-      const orderedColumnIds = pgFormat.tFormat_PgCols.toString()
+      // Extract and clean the ordered column IDs from the format's PgCols field
+      const orderedColumnIds = pgFormat.tFormat_PgCols
+        .toString()
         .replace(/[{}]/g, '')
         .split(',')
         .map((id) => id.trim());
 
-      // Map through the orderedColumnIds to find and order the corresponding columns from pageColumns
+      // Find and order columns based on the ordered column IDs
       const orderedColumns = orderedColumnIds
         .map((orderedColId) => pageColumns.find((col: any) => col.col === orderedColId))
         .filter(Boolean); // Filter out any undefined values
 
-      // Filter and collect columns that are hidden
+       // Identify hidden columns based on their status
       const hiddenColumns = pageColumns.filter((col) => col.status.includes('Hidden'));
 
       // Combine ordered columns with hidden columns
       return [...orderedColumns, ...hiddenColumns];
 
     } finally {
+      // Ensure the client is released after query execution
       client.release();
     }
   }
@@ -1168,16 +1247,36 @@ export class PageService {
     return record;
   }
 
+/**
+ * Enriches data records retrieved from a raw query with additional format-related information.
+ *
+ *
+ * @param {number} pageId - The ID of the page used to fetch additional format information.
+ * @param {any[]} data - An array of data records to be enriched.
+ * @returns {Promise<any[]>} - A promise resolving with an enriched array of data records.
+ */
   private async enrichDataFromRawQuery(pageId: number, data: any[]): Promise<any[]> {
-    // Add format related information to data
+    // Fetch format-related information for the provided data using the page ID.
     const enrichDataArray = await this.enrichRecordFromRawQuery(pageId, data);
      
+    // Return the enriched data array.
     return enrichDataArray;
   }
 
+  /**
+   * Retrieves the format details for rows associated with a specific page from the database.
+   *
+   * This function executes a SQL query to fetch the formats linked to the rows of a given page.
+   * The retrieved data includes the format, object, status, comment, cell items, and item JSON.
+   *
+   * @param {number} pageId - The ID of the page for which to retrieve row formats.
+   * @returns {Promise<any[]>} - A promise resolving with an array of row format objects associated with the specified page.
+   */
   private async getPgRowFormats(pageId: number) {
+    // Establish a connection to the PostgreSQL database.
     const client = await this.pool.connect();
     try {
+      // Define the SQL query to retrieve row formats.
       const pgRowFormatsQuery = `
         SELECT 
           tRow."Pg" AS "tRow_Pg",
@@ -1198,17 +1297,30 @@ export class PageService {
         WHERE tRow."Pg" = $1;
       `;
 
-      // Execute the queries
+      // Execute the query and retrieve the results.
       const pgRowFormats = (await client.query(pgRowFormatsQuery, [pageId])).rows;
+      
+      // Return the retrieved row formats.
       return pgRowFormats;
-
     } finally {
+      // Ensure the database connection is released after use.
       client.release();
     }
   }
 
+  /**
+   * Retrieves the row types and their associated details for a specific page from the database.
+   *
+   * This function executes a SQL query to fetch the row types linked to the rows of a given page,
+   * along with their associated cells and item JSON data.
+   *
+   * @param {number} pageId - The ID of the page for which to retrieve row types.
+   * @returns {Promise<any[]>} - A promise resolving with an array of row type objects associated with the specified page.
+   */
   private async getPgRowTypes(pageId: number) {
+    // Establish a connection to the PostgreSQL database.
     const client = await this.pool.connect();
+    // Define the SQL query to retrieve row types and their details.
     try {
       const pgRowTypesQuery = `
         SELECT 
@@ -1226,18 +1338,27 @@ export class PageService {
         WHERE tRow."Pg" = $1;
       `;
 
-      // Execute the queries
+      // Execute the query and retrieve the results.
       const pgRowTypes = (await client.query(pgRowTypesQuery, [pageId])).rows;
+      
+        // Return the retrieved row types.
       return pgRowTypes;
-
     } finally {
+      // Ensure the database connection is released after use.
       client.release();
     }
   }
 
+  /**
+ * Retrieves page format information from the database.
+ * 
+ * @returns {Promise<any[]>} - A promise that resolves to an array of page formats.
+ */
   private async getPgFormats() {
+    // Establish a connection to the database
     const client = await this.pool.connect();
     try {
+      // Define the SQL query to retrieve format details
       const pgFormatsQuery = `
         SELECT 
           tPg."Pg" AS "tPg_Pg", 
@@ -1257,19 +1378,26 @@ export class PageService {
 	      ORDER BY tPg."Pg" ASC;
       `
 
-      // Execute the queries
+      // Execute the query and return the result rows
       const pgFormats = (await client.query(pgFormatsQuery)).rows;
       return pgFormats;
-
     } finally {
+       // Ensure the database connection is released after the operation
       client.release();
     }
   }
 
+  /**
+   * Retrieves column format information from the database.
+   * 
+   * @returns {Promise<any[]>} - A promise that resolves to an array of column formats.
+   */
   private async getPgColFormats() {
+    // Establish a connection to the database
     const client = await this.pool.connect();
 
     try {
+      // Define the SQL query to retrieve column format detail
       const pgColFormatsQuery = `
         SELECT 
           tCol."Col" AS tCol_Col, 
@@ -1288,25 +1416,39 @@ export class PageService {
 	      ORDER BY tCol."Col" ASC;
       `
 
-      // Execute the queries
+      // Execute the query and return the result rows
       const pgColFormats = (await client.query(pgColFormatsQuery)).rows;
       return pgColFormats;
-
     } finally {
+      // Ensure the database connection is released after the operation
       client.release();
     }
   }
 
-  private async enrichRecordFromRawQuery(pageId: number, data: any[]): Promise<any> {
-    const result = []; 
+  /**
+   * Enriches records from a raw query with additional information based on the page ID.
+   * 
+   * This function retrieves various format and type information from the database
+   * and adds that data to each record in the provided array.
+   * 
+   * @param {number} pageId - The ID of the page for which records are being enriched.
+   * @param {any[]} data - The array of records to be enriched.
+   * @returns {Promise<any[]>} - A promise that resolves to an array of enriched records.
+   */
+  private async enrichRecordFromRawQuery(pageId: number, data: any[]): Promise<any[]> {
+    const result = [];
+
+    // Check if any records indicate the presence of page or column IDs
     const isAllPagesPage = data.some(row => Object.keys(row).includes('page_id'));
     const isAllColsPage = data.some(row => Object.keys(row).includes('col_id'));
+
+    // Retrieve formats and types from the database
     const pgRowFormats = await this.getPgRowFormats(pageId);
     const pgRowTypes = await this.getPgRowTypes(pageId);
     const pgFormats = isAllPagesPage ? await this.getPgFormats() : null;
     const pgColFormats = isAllColsPage ? await this.getPgColFormats() : null;
 
-
+    // Iterate through each record to enrich it with additional data
     for (const record of data) {
       const pgRowFormat = this.filterRecord('tFormat_Object', record['row'], pgRowFormats);
       const pgRowType = this.filterRecord('tRow_Row', record['row'], pgRowTypes);
@@ -1335,6 +1477,7 @@ export class PageService {
       
     }
 
+    // Return the enriched records
     return result;
   }
 

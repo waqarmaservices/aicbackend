@@ -114,12 +114,25 @@ export class PageController {
     }
   }
 
+  /**
+ * Handles GET requests to retrieve page data by page ID.
+ * 
+ * This method calls the `getonePageData` function from the `pageService` to fetch the requested data.
+ *
+ * @param {number} pageId - The ID of the page to retrieve.
+ * @returns {Promise<ApiResponse<any>>} - The API response object containing the page data or an error.
+ * @throws {Error} - Throws an error if the service call fails.
+ */
   @Get('content/:pageId')
   async getonePageData(@Param('pageId') pageId: number): Promise<ApiResponse<any>> {
     try {
+       // Fetch page data by page ID using the service method
       const data = await this.pageService.getonePageData(pageId);
+
+      // Return the data wrapped in an ApiResponse with success status
       return new ApiResponse(true, data, '', 200);
     } catch (error) {
+      // Throw the error to be handled by a global error handler
       throw error;
     }
   }
