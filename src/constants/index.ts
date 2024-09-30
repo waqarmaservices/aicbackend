@@ -197,6 +197,10 @@ export const TOKEN_IDS = {
   PAGE_TYPE: {
     EACH_PAGE: 3000000251,
   },
+  ALL_UNITS: {
+    Number: 3000001008,
+    Date: 3000001012
+  }
 };
 
 export const GENERAL = {

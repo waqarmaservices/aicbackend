@@ -287,6 +287,8 @@ export class PageService {
           tItem."DataType" AS "tItem_DataType", 
           tItem."Object" AS "tItem_Object",
           tItem."JSON" AS "tItem_JSON",
+          tItem."Num" AS "tItem_Num",
+          tItem."DateTime" AS "tItem_DateTime",
           tCellItemObject."Row" AS "tCell_ItemObject",
           tItemObject."JSON" AS "tItemObject_JSON",
           tItemDDS."JSON" AS "tItemDDS_JSON",
@@ -327,6 +329,12 @@ export class PageService {
         if (row?.tItemDDS_JSON) {
           cellItem['id'] = row.tItem_Item;
           cellItem['item'] = ids.reduce((res, id) => res ?? row.tItemDDS_JSON?.[id], undefined);  
+        } else if (row?.tItem_DataType == TOKEN_IDS.ALL_UNITS.Number) {
+          cellItem['id'] = row.tItem_Item;
+          cellItem['item'] = row.tItem_Num;  
+        } else if (row?.tItem_DataType == TOKEN_IDS.ALL_UNITS.Date) {
+          cellItem['id'] = row.tItem_Item;
+          cellItem['item'] = row.tItem_DateTime.toLocaleDateString();  
         } else {
           cellItem['id'] = row.tItem_Item;
           cellItem['item'] = ids.reduce((res, id) => res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
