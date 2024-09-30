@@ -975,6 +975,12 @@ export class PageService {
    */
   private async getAllCols(): Promise<Array<{colId: number, colName: string}>>  {
     const client = await this.pool.connect();
+    const queryParams = [
+      PAGE_IDS.ALL_COLS,
+      COLUMN_IDS.ALL_COLS.Col_ID,
+      COLUMN_IDS.ALL_COLS.COL_NAME
+    ];
+
     // SQL query to retrieve JSON data from "tItem" associated with the column names
     try {
       const allColNamesQuery = `
@@ -983,8 +989,8 @@ export class PageService {
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-        WHERE tRow."Pg" = PAGE_IDS.ALL_COLS
-        AND tCell."Col" = COLUMN_IDS.ALL_COLS.COL_NAME
+        WHERE tRow."Pg" = $1::int
+        AND tCell."Col" = $3::int
         ORDER BY tRow."Row" ASC;
       `;
 
@@ -995,14 +1001,14 @@ export class PageService {
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-        WHERE tRow."Pg" = PAGE_IDS.ALL_COLS
-        AND tCell."Col" = COLUMN_IDS.ALL_COLS.Col_ID
+        WHERE tRow."Pg" = $1::int
+        AND tCell."Col" = $2::int
         ORDER BY tRow."Row" ASC;
       `;
 
       // Execute both queries concurrently
-      const allColNames = (await client.query(allColNamesQuery)).rows;
-      const allColIds = (await client.query(allColIdsQuery)).rows;
+      const allColNames = (await client.query(allColNamesQuery, queryParams)).rows;
+      const allColIds = (await client.query(allColIdsQuery, queryParams)).rows;
 
       // Merge column names and IDs into an array of objects
       const mergeCols = allColNames.reduce((acc, item, index) => {
