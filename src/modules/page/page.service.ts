@@ -983,8 +983,8 @@ export class PageService {
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-        WHERE tRow."Pg" = 1000000006
-        AND tCell."Col" = 2000000056
+        WHERE tRow."Pg" = PAGE_IDS.ALL_COLS
+        AND tCell."Col" = COLUMN_IDS.ALL_COLS.COL_NAME
         ORDER BY tRow."Row" ASC;
       `;
 
@@ -995,8 +995,8 @@ export class PageService {
         FROM "tCell" tCell
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
-        WHERE tRow."Pg" = 1000000006
-        AND tCell."Col" = 2000000053
+        WHERE tRow."Pg" = PAGE_IDS.ALL_COLS
+        AND tCell."Col" = COLUMN_IDS.ALL_COLS.Col_ID
         ORDER BY tRow."Row" ASC;
       `;
 
@@ -1008,7 +1008,7 @@ export class PageService {
       const mergeCols = allColNames.reduce((acc, item, index) => {
         acc.push({
           colId: allColIds[index].tItem_Object,
-          colName: item.tItem_JSON[3000000100]
+          colName: item.tItem_JSON[SYSTEM_INITIAL.ENGLISH]
         });
         
         return acc;
