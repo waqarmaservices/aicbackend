@@ -167,7 +167,7 @@ export class PageService {
         LEFT JOIN "tRow" tRow ON tRow."Row" = tCell."Row"
         LEFT JOIN "tCell" tCellItemObject ON tCellItemObject."Row" = tItem."Object"
         LEFT JOIN "tItem" tItemObject ON tItemObject."Item" = ANY(tCellItemObject."Items")
-        WHERE tRow."Pg" = $1
+        WHERE tRow."Pg" = $1::int
         ORDER BY tRow."Row" ASC;
       `;
   
@@ -186,7 +186,7 @@ export class PageService {
         LEFT JOIN "tFormat" tFormat ON tFormat."Object" = ANY(tPg."Cols")
         LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-        WHERE tPg."Pg" = $1;
+        WHERE tPg."Pg" = $1::int;
       `;
   
       // Execute both queries with the relevant page ID
@@ -301,7 +301,7 @@ export class PageService {
         LEFT JOIN "tCell" tCellItemDDS ON tCellItemDDS."Row" = (tItem."JSON"->>'3000000300')::bigint
         LEFT JOIN "tItem" tItemDDS ON tItemDDS."Item" = ANY(tCellItemDDS."Items")
         LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tCell."Cell"
-        WHERE tRow."Pg" = $1
+        WHERE tRow."Pg" = $1::int
         ORDER BY tRow."Row" ASC;
       `;
 
@@ -825,7 +825,7 @@ export class PageService {
 
     // Fetch all page columns related to the given page ID.
     const pageColumns = await this.getPageColumnsFromRawQuery(pageId);
-    
+
     // Order the page columns based on predefined format (or custom logic).
     const orderedPageColumns = await this.getOrderedPageColumnsFromRawQuery(pageId, pageColumns);
 
@@ -1067,7 +1067,7 @@ export class PageService {
           tFormat."Status" AS "tFormat_Status",
           tFormat."Comment" AS "tFormat_Comment"
         FROM "tFormat" tFormat
-        WHERE tFormat."Object" = $1
+        WHERE tFormat."Object" = $1::int
         LIMIT 1;
       `;
 
@@ -1308,7 +1308,7 @@ export class PageService {
         LEFT JOIN "tFormat" tFormat ON tFormat."Object" = tRow."Row"
         LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tFormat."Status")
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-        WHERE tRow."Pg" = $1;
+        WHERE tRow."Pg" = $1::int;
       `;
 
       // Execute the query and retrieve the results.
@@ -1349,7 +1349,7 @@ export class PageService {
         FROM "tRow" tRow
         LEFT JOIN "tCell" tCell ON tCell."Row" = ANY(tRow."RowType")
         LEFT JOIN "tItem" tItem ON tItem."Item" = ANY(tCell."Items")
-        WHERE tRow."Pg" = $1;
+        WHERE tRow."Pg" = $1::int;
       `;
 
       // Execute the query and retrieve the results.
