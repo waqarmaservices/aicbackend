@@ -344,7 +344,7 @@ export class PageService {
           cellItem['item'] = row.tItem_DateTime.toLocaleDateString();
 
         } else {
-           // Default case, check both tItem_JSON and tItemObject_JSON for the first matching ID
+          // Default case, check both tItem_JSON and tItemObject_JSON for the first matching ID
           cellItem['id'] = row.tItem_Item;
           cellItem['item'] = ids.reduce((res, id) => res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
         }
