@@ -975,7 +975,7 @@ export class PageService {
    */
   private async getAllCols(): Promise<Array<{colId: number, colName: string}>>  {
     const client = await this.pool.connect();
-    const colNameQParams = [ PAGE_IDS.ALL_COLS, COLUMN_IDS.ALL_COLS.COL_NAME];
+    const colNameQParams = [ PAGE_IDS.ALL_COLS, COLUMN_IDS.ALL_COLS.COL_NAME ];
     const ColIdQParams = [ PAGE_IDS.ALL_COLS, COLUMN_IDS.ALL_COLS.Col_ID ];
 
     // SQL query to retrieve JSON data from "tItem" associated with the column names
