@@ -11,6 +11,7 @@ import {
   COLUMN_IDS,
   GENERAL,
   PAGE_CACHE,
+  PAGE_IDS,
   SHEET_NAMES,
   SYSTEM_INITIAL,
   TOKEN_IDS,
@@ -146,7 +147,7 @@ export class PageService {
     try {
       // Fetch all column definitions and filter results by a specific page ID
       const allCols = await this.getAllCols();
-      const allColsPageId = 1000000006;
+      const allColsPageId = PAGE_IDS.ALL_COLS;
   
       // SQL query to retrieve rows and corresponding column/cell data for the page
       const pgRowsQuery = `
@@ -206,7 +207,7 @@ export class PageService {
   
         // Find the cell item by checking specific JSON keys
         let cellItem = null;
-        const ids = [3000000100, 3000000325];
+        const ids = [SYSTEM_INITIAL.ENGLISH, SYSTEM_INITIAL.ORIGINAL_URL];
         cellItem = ids.reduce((acc, id) => acc ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], null);
         
         const currentRow = result.get(rowKey);
@@ -231,14 +232,14 @@ export class PageService {
       const transformed = this.transformColDataFromRawQuery(finalResult);
   
        // Check if the page is an "All Pages" page and filter rows accordingly
-      const isAllPagesPage = pageId == 1000000001;
+      const isAllPagesPage = pageId == PAGE_IDS.ALL_PAGES;
       return transformed
         .filter(row => isAllPagesPage 
           ? row['Page ID'] == pageId || row['Page Type'] === 'Each Page' || row['Page Type'] === 'Pages List'
           : row['Page ID'] == pageId || row['Page Type'] === 'Each Page')
         .map(row => {
           const formatRecords = this.filterRecord('tFormat_Object', row['Col ID'], pgFormats.rows);
-          row['Col Status'] = formatRecords.map(formatRecord => formatRecord.tItem_JSON[3000000100]);
+          row['Col Status'] = formatRecords.map(formatRecord => formatRecord.tItem_JSON[SYSTEM_INITIAL.ENGLISH]);
           return row;
         })
         .map(column => {
@@ -321,7 +322,7 @@ export class PageService {
         let column = {};
 
         // Determine the cell item based on several possible JSON fields
-        const ids = [3000000100, 3000000325, 3000000309]; // 3000000100 Default English, 3000000325 Original URL, 3000000309 Calculate Data
+        const ids = [SYSTEM_INITIAL.ENGLISH, SYSTEM_INITIAL.ORIGINAL_URL, SYSTEM_INITIAL.CALCULATE_DATA];
         const cellItem = { };
         if (row?.tItemDDS_JSON) {
           cellItem['id'] = row.tItem_Item;
@@ -849,7 +850,7 @@ export class PageService {
    * @returns {any[]} - An array of transformed page objects with column names 
    * as keys and their corresponding items as values.
    */
-  private transformColDataFromRawQuery(data: any) {
+  private transformColDataFromRawQuery(data: any): any[]{
     const transformedData = [];
 
     // Iterate over each key in the input data
@@ -1282,7 +1283,7 @@ export class PageService {
    * @param {number} pageId - The ID of the page for which to retrieve row formats.
    * @returns {Promise<any[]>} - A promise resolving with an array of row format objects associated with the specified page.
    */
-  private async getPgRowFormats(pageId: number) {
+  private async getPgRowFormats(pageId: number): Promise<any[]> {
     // Establish a connection to the PostgreSQL database.
     const client = await this.pool.connect();
     try {
@@ -1327,7 +1328,7 @@ export class PageService {
    * @param {number} pageId - The ID of the page for which to retrieve row types.
    * @returns {Promise<any[]>} - A promise resolving with an array of row type objects associated with the specified page.
    */
-  private async getPgRowTypes(pageId: number) {
+  private async getPgRowTypes(pageId: number): Promise<any[]> {
     // Establish a connection to the PostgreSQL database.
     const client = await this.pool.connect();
     // Define the SQL query to retrieve row types and their details.
@@ -1364,7 +1365,7 @@ export class PageService {
  * 
  * @returns {Promise<any[]>} - A promise that resolves to an array of page formats.
  */
-  private async getPgFormats() {
+  private async getPgFormats(): Promise<any[]> {
     // Establish a connection to the database
     const client = await this.pool.connect();
     try {
@@ -1402,7 +1403,7 @@ export class PageService {
    * 
    * @returns {Promise<any[]>} - A promise that resolves to an array of column formats.
    */
-  private async getPgColFormats() {
+  private async getPgColFormats(): Promise<any[]> {
     // Establish a connection to the database
     const client = await this.pool.connect();
 
@@ -1467,19 +1468,19 @@ export class PageService {
         
       result.push({
         ...record,
-        row_status: pgRowFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
-        row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[3000000100]).join(';'),
-        row_type: pgRowType.map(type => type.tItem_JSON?.[3000000100]).join(';'),
+        row_status: pgRowFormat.map(format => format.tItem_JSON?.[SYSTEM_INITIAL.ENGLISH]).join(';'),
+        row_comment: pgRowFormat.map(format => format.tFormat_Comment?.[SYSTEM_INITIAL.ENGLISH]).join(';'),
+        row_type: pgRowType.map(type => type.tItem_JSON?.[SYSTEM_INITIAL.ENGLISH]).join(';'),
         ...(isAllPagesPage ? { 
-            page_status : pgFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
-            page_comment: (pgFormat.map(format => format.tFormat_Comment?.[3000000100]))[0],
+            page_status : pgFormat.map(format => format.tItem_JSON?.[SYSTEM_INITIAL.ENGLISH]).join(';'),
+            page_comment: (pgFormat.map(format => format.tFormat_Comment?.[SYSTEM_INITIAL.ENGLISH]))[0],
             page_owner: 'Admin'
           } : {}
         ),
         ...(isAllColsPage ? { 
-            col_status : pgColFormat.map(format => format.tItem_JSON?.[3000000100]).join(';'),
-            col_comment: (pgColFormat.map(format => format.tFormat_Comment?.[3000000100]))[0],
-            col_formula: (pgColFormat.map(format => format.tFormat_Formula?.[3000000309]))[0],
+            col_status : pgColFormat.map(format => format.tItem_JSON?.[SYSTEM_INITIAL.ENGLISH]).join(';'),
+            col_comment: (pgColFormat.map(format => format.tFormat_Comment?.[SYSTEM_INITIAL.ENGLISH]))[0],
+            col_formula: (pgColFormat.map(format => format.tFormat_Formula?.[SYSTEM_INITIAL.CALCULATE_DATA]))[0],
             col_owner: 'Admin'
           } : {}
         ),
