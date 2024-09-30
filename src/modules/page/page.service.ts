@@ -326,16 +326,25 @@ export class PageService {
         // Determine the cell item based on several possible JSON fields
         const ids = [SYSTEM_INITIAL.ENGLISH, SYSTEM_INITIAL.ORIGINAL_URL, SYSTEM_INITIAL.CALCULATE_DATA];
         const cellItem = { };
+
+        // Check if tItemDDS_JSON is available
         if (row?.tItemDDS_JSON) {
+          // Find the first matching ID in tItemDDS_JSON
           cellItem['id'] = row.tItem_Item;
           cellItem['item'] = ids.reduce((res, id) => res ?? row.tItemDDS_JSON?.[id], undefined);  
+
         } else if (row?.tItem_DataType == TOKEN_IDS.ALL_UNITS.Number) {
+          // Handle the case for numeric data
           cellItem['id'] = row.tItem_Item;
-          cellItem['item'] = row.tItem_Num;  
+          cellItem['item'] = row.tItem_Num;
+
         } else if (row?.tItem_DataType == TOKEN_IDS.ALL_UNITS.Date) {
+          // Handle the case for date data, formatted as a localized date string
           cellItem['id'] = row.tItem_Item;
-          cellItem['item'] = row.tItem_DateTime.toLocaleDateString();  
+          cellItem['item'] = row.tItem_DateTime.toLocaleDateString();
+
         } else {
+           // Default case, check both tItem_JSON and tItemObject_JSON for the first matching ID
           cellItem['id'] = row.tItem_Item;
           cellItem['item'] = ids.reduce((res, id) => res ?? row.tItem_JSON?.[id] ?? row.tItemObject_JSON?.[id], undefined);
         }
